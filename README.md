@@ -1,70 +1,70 @@
 🧾 Sistema de Gestión de Órdenes de Trabajo - Óptica
 📘 Descripción General
 
-El Sistema de Gestión de Órdenes de Trabajo es una solución desarrollada para optimizar la administración de procesos en una óptica, facilitando la comunicación entre la óptica y sus proveedores.
-Permite registrar proveedores, gestionar órdenes con fórmulas ópticas, realizar pagos, generar reportes y visualizar estadísticas en un panel de control.
+El Sistema de Gestión de Órdenes de Trabajo es una aplicación desarrollada para optimizar los procesos administrativos de una óptica, facilitando la comunicación entre esta y sus proveedores.
+El sistema permite registrar proveedores, gestionar órdenes con fórmulas ópticas, realizar pagos, generar reportes y visualizar estadísticas a través de un panel de control.
 
-Este sistema mejora la trazabilidad de las órdenes, automatiza notificaciones sobre los cambios de estado (asignación, devolución, finalización y pago), y ofrece una interfaz diferenciada según el rol del usuario.
+Con esta solución se busca mejorar la trazabilidad de las órdenes, automatizar las notificaciones sobre los cambios de estado (asignación, devolución, finalización y pago), y ofrecer una interfaz adaptada a los distintos roles de usuario.
 
 🚀 Resumen Ejecutivo del Reto
 
-El sistema está diseñado para centralizar la gestión completa de órdenes de trabajo en una óptica, desde la creación hasta la finalización y pago.
-Entre sus principales características se incluyen:
+El proyecto tiene como propósito centralizar la gestión completa de las órdenes de trabajo en una óptica, desde su creación hasta su cierre y pago.
+Entre sus principales características se destacan:
 
-Registro y gestión de proveedores.
+Registro y administración de proveedores.
 
 Creación de órdenes con fórmulas ópticas adjuntas.
 
-Control de pagos y soportes.
+Registro y control de pagos y soportes.
 
-Listado de órdenes pendientes.
+Listado de órdenes pendientes de pago.
 
-Panel de control con estadísticas y gráficos.
+Panel de control con estadísticas y gráficos informativos.
 
-Gestión de usuarios y roles diferenciados.
+Gestión de usuarios con roles diferenciados.
 
 Generación de reportes detallados.
 
-Envío automático de notificaciones sobre cambios de estado en las órdenes.
+Notificaciones automáticas sobre los diferentes estados de las órdenes.
 
 ⚙️ Requisitos Funcionales
 Nº	Requisito Funcional	Descripción
-1	Registrar proveedores	Permite registrar, actualizar y consultar la información de los proveedores.
-2	Registrar órdenes de trabajo	Posibilidad de crear órdenes dirigidas a proveedores, adjuntando las fórmulas ópticas correspondientes.
-3	Registrar pago de órdenes	Permite registrar pagos realizados a proveedores sobre las órdenes enviadas.
+1	Registrar proveedores	El sistema permite registrar, actualizar y consultar la información de los proveedores.
+2	Registrar órdenes de trabajo	Permite crear órdenes de trabajo dirigidas a proveedores, adjuntando las fórmulas ópticas correspondientes.
+3	Registrar pago de órdenes	Permite registrar los pagos realizados a proveedores sobre las órdenes enviadas.
 4	Listar órdenes pendientes de pago	Muestra un listado de todas las órdenes que aún no han sido pagadas.
-5	Adjuntar soporte de pago	Al registrar un pago, el usuario puede adjuntar el comprobante o soporte del mismo.
-6	Panel de control con gráficos	Panel que muestra estadísticas y gráficos de trabajos enviados a proveedores y trabajos pendientes por devolución.
-7	Rol Administrador	Permite ajustar paramétricas del sistema y gestionar usuarios (crear, editar, desactivar).
-8	Rol Asistente (Óptica)	Puede crear órdenes, enviarlas al proveedor, registrar la recepción y registrar pagos.
-9	Rol Proveedor	Puede ver órdenes recibidas, devolverlas a la óptica y acceder a un panel con estadísticas de sus órdenes (recibidas, en proceso, devueltas, pagadas o pendientes).
+5	Adjuntar soporte de pago	Al registrar un pago, se puede adjuntar el comprobante o soporte del mismo.
+6	Panel de control con gráficos	Ofrece un panel con estadísticas y gráficos sobre trabajos enviados y pendientes por devolución.
+7	Rol Administrador	Permite ajustar las configuraciones del sistema y gestionar usuarios (crear, editar o desactivar).
+8	Rol Asistente (Óptica)	Permite crear órdenes de trabajo, enviarlas al proveedor, registrar la recepción y los pagos correspondientes.
+9	Rol Proveedor	Permite consultar las órdenes recibidas, registrar devoluciones y acceder a un panel con estadísticas sobre órdenes recibidas, en proceso, devueltas y su estado de pago.
 10	Generar reportes	Permite generar reportes detallados sobre las órdenes y los pagos asociados.
-11	Notificaciones sobre estados de órdenes	El sistema envía notificaciones automáticas a:
-• Proveedor: al recibir nuevas órdenes y al ser pagadas.
-• Óptica (Asistente): al recibir órdenes devueltas o finalizadas por el proveedor.
+11	Notificaciones sobre estados de órdenes	El sistema cuenta con notificaciones automáticas para:
+• Proveedores: cuando se les asignan nuevas órdenes y cuando estas son pagadas.
+• Óptica (Asistente): cuando las órdenes son devueltas o finalizadas por el proveedor.
 👥 Roles del Sistema
 
-Administrador: gestiona la configuración del sistema, usuarios y parámetros generales.
+Administrador: Gestiona la configuración general del sistema y la administración de usuarios.
 
-Asistente (Óptica): crea, envía y gestiona las órdenes de trabajo, incluyendo pagos y recepciones.
+Asistente (Óptica): Se encarga de crear, enviar y gestionar las órdenes de trabajo, además de registrar pagos y recepciones.
 
-Proveedor: recibe y procesa las órdenes, registrando su devolución y verificando su estado de pago.
+Proveedor: Recibe, procesa y devuelve las órdenes, verificando su estado de pago mediante su propio panel de control.
 
 📊 Funcionalidades Destacadas
 
-Dashboard interactivo: con indicadores visuales de productividad y cumplimiento.
+Panel de control interactivo: Incluye indicadores visuales sobre productividad y estado de las órdenes.
 
-Gestión documental: permite adjuntar comprobantes de pago o soportes ópticos.
+Gestión documental: Permite adjuntar comprobantes de pago y soportes ópticos.
 
-Reportes descargables: en formatos como PDF o Excel.
+Reportes descargables: Ofrece reportes detallados en formatos como PDF o Excel.
 
-Notificaciones en tiempo real: sobre cambios de estado en las órdenes.
+Notificaciones automáticas: Informa en tiempo real los cambios de estado en las órdenes.
 
-Control de acceso por roles: seguridad y trazabilidad en las operaciones.
+Control de acceso por roles: Garantiza la seguridad y trazabilidad de todas las operaciones realizadas.
 
 🧩 Tecnologías Sugeridas
 
-(Esta sección puedes personalizarla según tu stack actual)
+(Esta sección puede ajustarse según la implementación real del proyecto.)
 
 Backend: Python (Flask / Django)
 
@@ -76,4 +76,4 @@ Autenticación: JWT / Login con roles
 
 Gráficos: Chart.js o Recharts
 
-Notificaciones: Sistema interno o integración con correo electrónico 
+Notificaciones: Sistema interno o integración con correo electrónico
