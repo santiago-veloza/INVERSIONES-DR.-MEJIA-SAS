@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-paper-plane"></i> 
+                            Enviar Mensaje a Sedes
+                        </h4>
+                        <small>Envía comunicados importantes a sedes específicas o a todas las sedes</small>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST">
+                            {{ form.hidden_tag() }}
+                            
+                            <div class="row">
+                                <div class="col-md-8 mb-3">
+                                    {{ form.title.label(class="form-label") }}
+                                    {{ form.title(class="form-control form-control-lg", id="title") }}
+                                    {% if form.title.errors %}
+                                        <div class="text-danger small">
+                                            {% for error in form.title.errors %}
+                                                <div>{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    {{ form.priority.label(class="form-label") }}
+                                    {{ form.priority(class="form-select", id="priority") }}
+                                    {% if form.priority.errors %}
+                                        <div class="text-danger small">
+                                            {% for error in form.priority.errors %}
+                                                <div>{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-8 mb-3">
+                                    {{ form.sede_id.label(class="form-label") }}
+                                    {{ form.sede_id(class="form-select", id="sede_id") }}
+                                    {% if form.sede_id.errors %}
+                                        <div class="text-danger small">
+                                            {% for error in form.sede_id.errors %}
+                                                <div>{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle"></i> 
+                                        Selecciona una sede específica o "Todas las Sedes" para envío masivo
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    {{ form.expires_at.label(class="form-label") }}
+                                    {{ form.expires_at(class="form-control") }}
+                                    {% if form.expires_at.errors %}
+                                        <div class="text-danger small">
+                                            {% for error in form.expires_at.errors %}
+                                                <div>{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">
+                                        Opcional: Fecha límite de vigencia
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                {{ form.message.label(class="form-label") }}
+                                {{ form.message(class="form-control", rows="8", placeholder="Escribe tu mensaje aquí...", id="message") }}
+                                {% if form.message.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.message.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">
+                                    Mínimo 10 caracteres, máximo 1000 caracteres
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between">
+                                <a href="{{ url_for('main.list_sede_messages') }}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left"></i> Volver a Mensajes
+                                </a>
+                                <div>
+                                    <button type="button" class="btn btn-outline-primary me-2" onclick="previewMessage()">
+                                        <i class="fas fa-eye"></i> Vista Previa
+                                    </button>
+                                    {{ form.submit(class="btn btn-primary btn-lg") }}
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Panel de vista previa -->
+                <div class="card mt-4 d-none" id="previewPanel">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-eye"></i> Vista Previa del Mensaje
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <strong>Así se verá tu mensaje en las sedes:</strong>
+                        </div>
+                        <div id="previewContent">
+                            <!-- Contenido generado por JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function previewMessage() {
+    const title = document.getElementById('title').value;
+    const message = document.getElementById('message').value;
+    const priority = document.getElementById('priority');
+    const selectedPriority = priority.options[priority.selectedIndex].text;
+    const sede = document.getElementById('sede_id');
+    const selectedSede = sede.options[sede.selectedIndex].text;
+    
+    if (!title || !message) {
+        alert('Por favor completa el título y el mensaje para ver la vista previa');
+        return;
+    }
+    
+    const priorityColors = {
+        'Normal': 'info',
+        'Alta': 'warning', 
+        'Urgente': 'danger'
+    };
+    
+    const priorityColor = priorityColors[selectedPriority.split(' ')[1]] || 'info';
+    
+    const previewHTML = `
+        <div class="card">
+            <div class="card-header bg-${priorityColor} text-white">
+                <h6 class="mb-0">
+                    ${selectedPriority} - ${title}
+                </h6>
+                <small>Para: ${selectedSede}</small>
+            </div>
+            <div class="card-body">
+                <p class="mb-0">${message.replace(/\n/g, '<br>')}</p>
+                <hr>
+                <small class="text-muted">
+                    <i class="fas fa-user"></i> Enviado por: {{ current_user.username }}
+                    <br>
+                    <i class="fas fa-clock"></i> ${new Date().toLocaleString()}
+                </small>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('previewContent').innerHTML = previewHTML;
+    document.getElementById('previewPanel').classList.remove('d-none');
+    document.getElementById('previewPanel').scrollIntoView({ behavior: 'smooth' });
+}
+</script>
+{% endblock %}

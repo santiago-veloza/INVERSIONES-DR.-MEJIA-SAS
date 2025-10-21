@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1 class="mb-4">{% if order %}Editar Orden de Trabajo N° {{ order.order_number }}{% else %}Crear Nueva Orden de Trabajo{% endif %}</h1>
+    <div class="card p-4">
+        <form action="" method="post" novalidate>
+            {{ form.hidden_tag() }}
+            <div class="mb-3">
+                {{ form.client_name.label(class="form-label") }}
+                {{ form.client_name(class="form-control") }}
+                {% for error in form.client_name.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="mb-3">
+                {{ form.sede_id.label(class="form-label") }}
+                {{ form.sede_id(class="form-select") }}
+                {% for error in form.sede_id.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
+                <small class="text-muted">Sede que solicita la orden de trabajo</small>
+            </div>
+            <div class="mb-3">
+                {{ form.provider_id.label(class="form-label") }}
+                {{ form.provider_id(class="form-select") }}
+                {% for error in form.provider_id.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="mb-3">
+                {{ form.formula_details.label(class="form-label") }}
+                {{ form.formula_details(class="form-control", rows=5) }}
+                {% for error in form.formula_details.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="mb-3">
+                {{ form.total_amount.label(class="form-label") }}
+                {{ form.total_amount(class="form-control") }}
+                {% for error in form.total_amount.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="mb-3">
+                {{ form.due_date.label(class="form-label") }}
+                {{ form.due_date(class="form-control") }}
+                {% for error in form.due_date.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="mb-3">
+                {{ form.comments.label(class="form-label") }}
+                {{ form.comments(class="form-control", rows=3) }}
+                {% for error in form.comments.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
+            </div>
+            {{ form.submit(class="btn btn-primary") }}
+            <a href="{{ url_for('main.list_orders') }}" class="btn btn-secondary">Cancelar</a>
+        </form>
+    </div>
+{% endblock %}

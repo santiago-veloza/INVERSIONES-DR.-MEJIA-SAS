@@ -1,0 +1,387 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1 class="mb-4">Panel de Control</h1>
+
+    {% if current_user.role in ['admin', 'asistente'] %}        
+        <div class="alert alert-primary mb-4">
+            <h4><i class="fas fa-building"></i> Panel Óptica - {{ current_user.username }}</h4>
+            <p>Gestión completa de órdenes y proveedores</p>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-3 mb-4">
+                <div class="card text-white bg-primary">
+                    <div class="card-header">
+                        <i class="fas fa-list"></i> Resumen General
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">Total de Órdenes</h5>
+                        <p class="card-text fs-3">{{ total_orders }}</p>
+                        <small>Todas las órdenes registradas</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="card text-white bg-info">
+                    <div class="card-header">
+                        <i class="fas fa-cogs"></i> En Proceso
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">En Progreso</h5>
+                        <p class="card-text fs-3">{{ orders_in_progress }}</p>
+                        <small>Enviadas, aceptadas y en trabajo</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="card text-white bg-warning">
+                    <div class="card-header">
+                        <i class="fas fa-package"></i> Listas
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">Para Recoger</h5>
+                        <p class="card-text fs-3">{{ orders_ready }}</p>
+                        <small>Terminadas por proveedores</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="card text-white bg-success">
+                    <div class="card-header">
+                        <i class="fas fa-check-circle"></i> Completadas
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">Finalizadas</h5>
+                        <p class="card-text fs-3">{{ orders_finished }}</p>
+                        <small>Recibidas y completadas</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mostrar rechazadas si hay alguna -->
+        {% if orders_rejected > 0 %}
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i> 
+                    <strong>{{ orders_rejected }}</strong> órdenes han sido rechazadas por proveedores.
+                    <a href="{{ url_for('main.list_orders') }}" class="alert-link">Ver detalles</a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Acceso Rápido para Óptica -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5><i class="fas fa-bolt"></i> Acceso Rápido</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <a href="{{ url_for('main.create_order') }}" class="btn btn-success btn-lg w-100">
+                                    <i class="fas fa-plus"></i><br>
+                                    <span>Crear Nueva Orden</span>
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="{{ url_for('main.list_orders') }}" class="btn btn-info btn-lg w-100">
+                                    <i class="fas fa-list"></i><br>
+                                    <span>Ver Todas las Órdenes</span>
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="{{ url_for('main.list_providers') }}" class="btn btn-warning btn-lg w-100">
+                                    <i class="fas fa-industry"></i><br>
+                                    <span>Gestionar Proveedores</span>
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="{{ url_for('main.list_pending_payments') }}" class="btn btn-danger btn-lg w-100">
+                                    <i class="fas fa-dollar-sign"></i><br>
+                                    <span>Pagos Pendientes</span>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            {% if current_user.role in ['admin', 'asistente'] %}
+                            <div class="col-md-6 mb-3">
+                                <a href="{{ url_for('main.send_sede_message') }}" class="btn btn-primary btn-lg w-100">
+                                    <i class="fas fa-paper-plane"></i><br>
+                                    <span>Enviar Mensaje a Sedes</span>
+                                </a>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <a href="{{ url_for('main.list_sede_messages') }}" class="btn btn-outline-primary btn-lg w-100">
+                                    <i class="fas fa-envelope-open"></i><br>
+                                    <span>Ver Mensajes Enviados</span>
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        Estado de Órdenes (Óptica)
+                    </div>
+                    <div class="card-body">
+                        <canvas id="opticaOrderStatusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    {% elif current_user.role == 'admin_sede' %}
+        <div class="alert alert-info mb-4">
+            <h4><i class="fas fa-building"></i> Panel Sede - {{ current_user.username }}</h4>
+            <p>Gestión de tu sede: {{ current_user.sede.name if current_user.sede else 'Sin sede asignada' }}</p>
+        </div>
+        
+        <!-- Acceso Rápido para Admin Sede -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5><i class="fas fa-bolt"></i> Acceso Rápido - Mi Sede</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <a href="{{ url_for('main.my_sede_messages') }}" class="btn btn-primary btn-lg w-100">
+                                    <i class="fas fa-envelope"></i><br>
+                                    <span>Mis Mensajes</span>
+                                    {% if sede_messages_count > 0 %}
+                                        <span class="badge bg-light text-primary ms-2">{{ sede_messages_count }}</span>
+                                    {% endif %}
+                                </a>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <a href="{{ url_for('main.sede_payments') }}" class="btn btn-outline-info btn-lg w-100">
+                                    <i class="fas fa-credit-card"></i><br>
+                                    <span>Mis Pagos</span>
+                                </a>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <a href="{{ url_for('main.list_orders') }}" class="btn btn-outline-secondary btn-lg w-100">
+                                    <i class="fas fa-clipboard-list"></i><br>
+                                    <span>Órdenes de Mi Sede</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    {% elif current_user.role == 'proveedor' %}
+        <div class="alert alert-info mb-4">
+            <h4><i class="fas fa-user"></i> Bienvenido {{ current_user.username }}</h4>
+            <p>Panel de control para <strong>{{ current_user.provider.razon_social if current_user.provider else 'Proveedor' }}</strong></p>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-3 mb-4">
+                <div class="card text-white bg-warning">
+                    <div class="card-body">
+                        <h5 class="card-title">⏳ Pendientes Respuesta</h5>
+                        <p class="card-text fs-3">{{ orders_pending_response }}</p>
+                        <small>Órdenes que necesitas aceptar/rechazar</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="card text-white bg-success">
+                    <div class="card-body">
+                        <h5 class="card-title">✅ Aceptadas</h5>
+                        <p class="card-text fs-3">{{ orders_accepted }}</p>
+                        <small>Órdenes aceptadas, listas para iniciar</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="card text-white bg-primary">
+                    <div class="card-body">
+                        <h5 class="card-title">🔧 En Proceso</h5>
+                        <p class="card-text fs-3">{{ orders_in_process }}</p>
+                        <small>Órdenes en desarrollo</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="card text-white bg-info">
+                    <div class="card-body">
+                        <h5 class="card-title">📦 Terminadas</h5>
+                        <p class="card-text fs-3">{{ orders_completed }}</p>
+                        <small>Órdenes listas para recoger</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Acceso Rápido para Proveedor -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5><i class="fas fa-tools"></i> Acciones Rápidas</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <a href="{{ url_for('main.list_orders') }}" class="btn btn-primary btn-lg w-100">
+                                    <i class="fas fa-tasks"></i><br>
+                                    <span>Ver Mis Órdenes</span>
+                                    <small class="d-block">Gestionar todas mis órdenes asignadas</small>
+                                </a>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <a href="{{ url_for('main.view_notifications') }}" class="btn btn-warning btn-lg w-100">
+                                    <i class="fas fa-bell"></i><br>
+                                    <span>Notificaciones</span>
+                                    <small class="d-block">Ver nuevas órdenes y actualizaciones</small>
+                                </a>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card border-success">
+                                    <div class="card-body text-center">
+                                        <h6 class="text-success">💰 Estado de Pagos</h6>
+                                        <p class="mb-1"><strong>Pagadas:</strong> {{ orders_paid }}</p>
+                                        <p class="mb-0"><strong>Pendientes:</strong> {{ orders_pending_payment }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Órdenes que requieren atención inmediata -->
+                        {% if orders_pending_response > 0 %}
+                        <div class="alert alert-warning mt-3">
+                            <h6><i class="fas fa-exclamation-triangle"></i> ¡Atención Requerida!</h6>
+                            <p class="mb-1">Tienes <strong>{{ orders_pending_response }}</strong> órdenes esperando tu respuesta.</p>
+                            <a href="{{ url_for('main.list_orders') }}" class="btn btn-sm btn-outline-warning">Ver y Responder</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        Estado de Órdenes (Proveedor)
+                    </div>
+                    <div class="card-body">
+                        <canvas id="providerOrderStatusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        Estado de Pagos (Proveedor)
+                    </div>
+                    <div class="card-body">
+                        <canvas id="providerPaymentStatusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <p>Bienvenido al sistema. Navega usando el menú superior.</p>
+    {% endif %}
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        {% if current_user.role in ['admin', 'asistente', 'admin_sede'] %}
+            var ctx1 = document.getElementById('opticaOrderStatusChart').getContext('2d');
+            var opticaOrderStatusChart = new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: {{ chart_data.labels | tojson }},
+                    datasets: [{
+                        data: {{ chart_data.data | tojson }},
+                        backgroundColor: ['#007bff', '#ffc107'],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Órdenes de Trabajo de la Óptica'
+                        }
+                    }
+                }
+            });
+        {% elif current_user.role == 'proveedor' %}
+            var ctx1 = document.getElementById('providerOrderStatusChart').getContext('2d');
+            var providerOrderStatusChart = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: {{ chart_data.labels | tojson }},
+                    datasets: [{
+                        label: 'Número de Órdenes',
+                        data: {{ chart_data.data | tojson }},
+                        backgroundColor: ['#007bff', '#17a2b8', '#28a745'],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false,
+                        },
+                        title: {
+                            display: true,
+                            text: 'Estado de Órdenes Recibidas'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            var ctx2 = document.getElementById('providerPaymentStatusChart').getContext('2d');
+            var providerPaymentStatusChart = new Chart(ctx2, {
+                type: 'pie',
+                data: {
+                    labels: {{ payment_chart_data.labels | tojson }},
+                    datasets: [{
+                        data: {{ payment_chart_data.data | tojson }},
+                        backgroundColor: ['#28a745', '#dc3545'], // Green for Paid, Red for Pending
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Estado de Pagos Recibidos'
+                        }
+                    }
+                }
+            });
+        {% endif %}
+    </script>
+{% endblock %}

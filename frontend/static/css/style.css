@@ -1,0 +1,71 @@
+/* Estilos personalizados para la aplicación */
+
+/* Layout general */
+.navbar-brand {
+    font-weight: bold;
+}
+
+/* Cards del dashboard */
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.card-body {
+    padding: 1.25rem;
+}
+
+/* Tablas */
+.table {
+    margin-bottom: 0;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+}
+
+/* Botones */
+.btn {
+    border-radius: 0.375rem;
+}
+
+/* Estados de órdenes */
+.badge {
+    font-size: 0.75em;
+}
+
+/* Alertas */
+.alert {
+    border-radius: 0.375rem;
+    margin-bottom: 1rem;
+}
+
+/* Formularios */
+.form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Responsivo para tablas */
+.table-responsive {
+    border-radius: 0.375rem;
+}
+
+/* Espaciado personalizado */
+.mb-4 {
+    margin-bottom: 1.5rem !important;
+}
+
+/* Iconos */
+.fas, .fa {
+    margin-right: 0.25rem;
+}
+
+/* Estados específicos */
+.status-enviada { color: #007bff; }
+.status-recibida { color: #ffc107; }
+.status-en_proceso { color: #17a2b8; }
+.status-completada { color: #28a745; }
+.status-entregada { color: #6c757d; }
+.status-cancelada { color: #dc3545; }

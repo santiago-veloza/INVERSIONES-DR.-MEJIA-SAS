@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1 class="mb-4">
+        <i class="fas fa-chart-bar"></i> Reportes y Estadísticas
+    </h1>
+    
+    <!-- Dashboard Administrativo -->
+    {% if current_user.role == 'admin' %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-primary shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line"></i> Dashboard Administrativo Central
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h6 class="mb-2">Estadísticas Detalladas por Sede</h6>
+                            <p class="mb-0 text-muted">
+                                Panel completo con métricas de ventas, órdenes, pagos pendientes y rendimiento por sede.
+                                Incluye rankings, gráficos y datos exportables.
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-primary btn-lg">
+                                <i class="fas fa-chart-line"></i> Ver Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+{% endblock %}

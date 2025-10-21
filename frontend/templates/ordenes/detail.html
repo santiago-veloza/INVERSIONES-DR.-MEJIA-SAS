@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1 class="mb-4">Detalle de Orden de Trabajo N° {{ order.order_number }}</h1>
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    Información General de la Orden
+                </div>
+                <div class="card-body">
+                    <p><strong>Cliente:</strong> {{ order.client_name }}</p>
+                    <p><strong>Proveedor Asignado:</strong> {{ order.provider.razon_social or order.provider.name }}</p>
+                    <p><strong>Detalles de la Fórmula:</strong></p>
+                    <div class="alert alert-light border">{{ order.formula_details | replace('\n', '<br>') | safe }}</div>
+                    <p><strong>Monto Total al Proveedor:</strong> ${{ "%.2f"|format(order.total_amount) }}</p>
+                    <p><strong>Estado Actual:</strong>
+                        {% if current_user.role == 'proveedor' %}
+                            {# Vista desde perspectiva del PROVEEDOR #}
+                            {% if order.status == 'enviada' %}
+                                <span class="badge bg-warning text-dark">📥 Recibida - Pendiente de Respuesta</span>
+                            {% elif order.status == 'aceptada' %}
+                                <span class="badge bg-success">✅ Aceptada - Lista para Iniciar</span>
+                            {% elif order.status == 'rechazada' %}
+                                <span class="badge bg-danger">❌ Rechazada por Mí</span>
+                            {% elif order.status == 'en_proceso' %}
+                                <span class="badge bg-primary">🔧 Trabajando en Ella</span>
+                            {% elif order.status == 'devuelta_proveedor' %}
+                                <span class="badge bg-success">✅ Terminada - Enviada a Óptica</span>
+                            {% elif order.status == 'recibida_optica' %}
+                                <span class="badge bg-info text-dark">🏢 Recogida por Óptica</span>
+                            {% elif order.status == 'finalizada' %}
+                                <span class="badge bg-success">🎉 Trabajo Completado</span>
+                            {% elif order.status == 'cancelada' %}
+                                <span class="badge bg-danger">🚫 Cancelada</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ order.status.replace('_', ' ').title() }}</span>
+                            {% endif %}
+                        {% else %}
+                            {# Vista desde perspectiva de la ÓPTICA #}
+                            {% if order.status == 'pendiente_envio' %}
+                                <span class="badge bg-secondary">⏳ Preparando para Envío</span>
+                            {% elif order.status == 'enviada' %}
+                                <span class="badge bg-info text-dark">📧 Enviada al Proveedor</span>
+                            {% elif order.status == 'aceptada' %}
+                                <span class="badge bg-success">✅ Aceptada por Proveedor</span>
+                            {% elif order.status == 'rechazada' %}
+                                <span class="badge bg-danger">❌ Rechazada por Proveedor</span>
+                            {% elif order.status == 'en_proceso' %}
+                                <span class="badge bg-primary">🔧 En Proceso con Proveedor</span>
+                            {% elif order.status == 'devuelta_proveedor' %}
+                                <span class="badge bg-warning text-dark">📦 Lista para Recoger</span>
+                            {% elif order.status == 'recibida_optica' %}
+                                <span class="badge bg-info text-dark">🏢 Recibida en Óptica</span>
+                            {% elif order.status == 'finalizada' %}
+                                <span class="badge bg-success">🎉 Finalizada</span>
+                            {% elif order.status == 'cancelada' %}
+                                <span class="badge bg-danger">🚫 Cancelada</span>
+                            {% else %}
+                                <span class="badge bg-primary">{{ order.status.replace('_', ' ').title() }}</span>
+                            {% endif %}
+                        {% endif %}
+                    </p>
+                    <p><strong>Estado de Pago:</strong>
+                        {% if order.payment_status == 'pagada' %}
+                            <span class="badge bg-success">{{ order.payment_status.replace('_', ' ').title() }}</span>
+                        {% elif order.payment_status == 'parcialmente_pagada' %}
+                            <span class="badge bg-warning text-dark">{{ order.payment_status.replace('_', ' ').title() }}</span>
+                        {% else %}
+                            <span class="badge bg-danger">{{ order.payment_status.replace('_', ' ').title() }}</span>
+                        {% endif %}
+                    </p>
+                    <p><strong>Fecha de Creación:</strong> {{ order.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
+                    <p><strong>Fecha de Entrega Estimada:</strong> {{ order.due_date.strftime('%d/%m/%Y') if order.due_date else 'N/A' }}</p>
+                    <p><strong>Creada por:</strong> {{ order.created_by.username }}</p>
+                    {% if order.comments %}
+                        <p><strong>Comentarios Internos:</strong></p>
+                        <div class="alert alert-secondary border">{{ order.comments | replace('\n', '<br>') | safe }}</div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    {% if current_user.role == 'proveedor' %}
+                        {% if order.status == 'enviada' %}
+                            <div class="alert alert-warning mb-3">
+                                <strong>📥 Orden recibida de la óptica!</strong><br>
+                                Cliente: <strong>{{ order.client_name }}</strong><br>
+                                Revisa los detalles y decide si puedes realizar este trabajo.
+                            </div>
+                            <a href="{{ url_for('main.update_order_status', order_id=order.id) }}" class="btn btn-success me-2">
+                                <i class="fas fa-thumbs-up"></i> Aceptar / Rechazar
+                            </a>
+                        {% elif order.status == 'aceptada' %}
+                            <div class="alert alert-success mb-3">
+                                <strong>✅ Has aceptado esta orden!</strong><br>
+                                Ahora puedes iniciar el trabajo cuando estés listo.
+                            </div>
+                            <a href="{{ url_for('main.update_order_status', order_id=order.id) }}" class="btn btn-primary me-2">
+                                <i class="fas fa-play"></i> Iniciar Trabajo
+                            </a>
+                        {% elif order.status == 'en_proceso' %}
+                            <div class="alert alert-primary mb-3">
+                                <strong>🔧 Trabajando en esta orden...</strong><br>
+                                Cuando termines el trabajo, márcalo como completado.
+                            </div>
+                            <a href="{{ url_for('main.update_order_status', order_id=order.id) }}" class="btn btn-success me-2">
+                                <i class="fas fa-flag-checkered"></i> Marcar como Terminado
+                            </a>
+                        {% elif order.status == 'devuelta_proveedor' %}
+                            <div class="alert alert-success mb-3">
+                                <strong>🎉 Trabajo terminado!</strong> La óptica recogerá la orden pronto.
+                            </div>
+                        {% elif order.status == 'rechazada' %}
+                            <div class="alert alert-danger mb-3">
+                                <strong>❌ Orden rechazada</strong> por este proveedor.
+                            </div>
+                        {% else %}
+                            <a href="{{ url_for('main.update_order_status', order_id=order.id) }}" class="btn btn-warning me-2">
+                                <i class="fas fa-sync-alt"></i> Actualizar Estado
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        <!-- Botones para Óptica (Admin/Asistente) -->
+                        <a href="{{ url_for('main.update_order_status', order_id=order.id) }}" class="btn btn-warning me-2"><i class="fas fa-sync-alt"></i> Actualizar Estado</a>
+                        <a href="{{ url_for('main.edit_order', order_id=order.id) }}" class="btn btn-info me-2"><i class="fas fa-edit"></i> Editar Orden</a>
+                        <a href="{{ url_for('main.add_payment', order_id=order.id) }}" class="btn btn-success me-2"><i class="fas fa-dollar-sign"></i> Registrar Pago</a>
+                    {% endif %}
+                    <a href="{{ url_for('main.list_orders') }}" class="btn btn-secondary">Volver a la Lista</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    Historial de Pagos
+                </div>
+                <div class="card-body">
+                    {% if payments %}
+                        <ul class="list-group">
+                            {% for payment in payments %}
+                                <li class="list-group-item">
+                                    <strong>Monto:</strong> ${{ "%.2f"|format(payment.amount) }}<br>
+                                    <strong>Fecha:</strong> {{ payment.payment_date.strftime('%d/%m/%Y %H:%M') }}<br>
+                                    {% if payment.description %}
+                                        <strong>Descripción:</strong> {{ payment.description }}<br>
+                                    {% endif %}
+                                    {% if payment.support_file %}
+                                        <a href="{{ url_for('main.uploaded_file', filename=payment.support_file) }}" target="_blank" class="btn btn-sm btn-outline-info mt-1">
+                                            <i class="fas fa-file-alt"></i> Ver Comprobante
+                                        </a>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">No hay pagos registrados para esta orden.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1 class="mb-4">Mis Notificaciones</h1>
+    {% if notifications %}
+        <div class="list-group">
+            {% for notification in notifications %}
+                <a href="{{ url_for('main.view_order', order_id=notification.work_order_id) if notification.work_order_id else '#' }}"
+                   class="list-group-item list-group-item-action {% if not notification.is_read %}list-group-item-light fw-bold{% endif %}">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">{{ notification.message }}</h5>
+                        <small class="text-muted">{{ notification.created_at.strftime('%d/%m/%Y %H:%M') }}</small>
+                    </div>
+                    <small class="text-muted">
+                        {% if notification.is_read %}Leída{% else %}Sin leer{% endif %}
+                        {% if not notification.is_read %}
+                            <a href="{{ url_for('main.mark_notification_read', notification_id=notification.id) }}" class="btn btn-sm btn-outline-secondary ms-2">Marcar como leída</a>
+                        {% endif %}
+                    </small>
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-muted">No tienes notificaciones.</p>
+    {% endif %}
+{% endblock %}

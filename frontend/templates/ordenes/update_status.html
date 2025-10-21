@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1 class="mb-4">Actualizar Estado de Orden N° {{ order.order_number }}</h1>
+    <div class="card p-4">
+        <form action="" method="post" novalidate>
+            {{ form.hidden_tag() }}
+            <div class="mb-3">
+                {{ form.status.label(class="form-label") }}
+                {{ form.status(class="form-select") }}
+                {% for error in form.status.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="mb-3">
+                {{ form.comments.label(class="form-label") }}
+                {{ form.comments(class="form-control", rows=3) }}
+                {% for error in form.comments.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
+            </div>
+            {{ form.submit(class="btn btn-warning") }}
+            <a href="{{ url_for('main.view_order', order_id=order.id) }}" class="btn btn-secondary">Cancelar</a>
+        </form>
+    </div>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1 class="mb-4">Editar Usuario: {{ user.username }}</h1>
+    <div class="card p-4">
+        <form action="" method="post" novalidate>
+            {{ form.hidden_tag() }}
+            <div class="mb-3">
+                {{ form.username.label(class="form-label") }}
+                {{ form.username(class="form-control") }}
+                {% for error in form.username.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="mb-3">
+                {{ form.email.label(class="form-label") }}
+                {{ form.email(class="form-control") }}
+                {% for error in form.email.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="mb-3">
+                {{ form.role.label(class="form-label") }}
+                {{ form.role(class="form-select") }}
+                {% for error in form.role.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="mb-3" id="provider_select_field_edit" style="display:none;">
+                {{ form.provider_id.label(class="form-label") }}
+                {{ form.provider_id(class="form-select") }}
+                {% for error in form.provider_id.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="mb-3 form-check">
+                {{ form.is_active(class="form-check-input") }}
+                {{ form.is_active.label(class="form-check-label") }}
+            </div>
+            {{ form.submit(class="btn btn-primary") }}
+            <a href="{{ url_for('main.admin_users') }}" class="btn btn-secondary">Cancelar</a>
+        </form>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const roleSelect = document.getElementById('role');
+            const providerSelectField = document.getElementById('provider_select_field_edit');
+
+            function toggleProviderSelect() {
+                if (roleSelect.value === 'proveedor') {
+                    providerSelectField.style.display = 'block';
+                } else {
+                    providerSelectField.style.display = 'none';
+                }
+            }
+
+            roleSelect.addEventListener('change', toggleProviderSelect);
+            toggleProviderSelect(); // Ejecutar al cargar la página para el estado inicial
+        });
+    </script>
+{% endblock %}

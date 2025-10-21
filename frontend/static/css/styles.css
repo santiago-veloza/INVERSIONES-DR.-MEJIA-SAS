@@ -1,0 +1,51 @@
+/* Estilos generales */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+    color: #343a40;
+}
+
+.navbar-brand {
+    font-weight: bold;
+}
+
+.card {
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.card-title {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.card-text.fs-3 {
+    font-weight: bold;
+}
+
+/* Alertas */
+.alert {
+    margin-top: 1rem;
+}
+
+/* Formularios */
+.form-group label {
+    font-weight: bold;
+}
+
+.btn-primary, .btn-success, .btn-info, .btn-warning, .btn-danger {
+    border-radius: 0.3rem;
+}
+
+/* Notificaciones en el navbar */
+#notificationsDropdown .badge {
+    position: absolute;
+    top: 5px; /* Ajusta según sea necesario */
+    right: 5px; /* Ajusta según sea necesario */
+    font-size: 0.7em;
+    padding: 0.3em 0.5em;
+}
+
+.dropdown-item.fw-bold {
+    background-color: #e9ecef; /* Ligeramente diferente para no leídas */
+}

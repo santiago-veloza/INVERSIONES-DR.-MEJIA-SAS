@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card mt-5">
+                <div class="card-header text-center bg-primary text-white">
+                    <h3>Iniciar Sesión</h3>
+                </div>
+                <div class="card-body">
+                    <form action="" method="post" novalidate>
+                        {{ form.hidden_tag() }}
+                        <div class="mb-3">
+                            {{ form.user_type.label(class="form-label") }}
+                            {{ form.user_type(class="form-select", id="user_type") }}
+                            {% for error in form.user_type.errors %}
+                                <span class="text-danger">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        <div class="mb-3" id="sede_selection" style="display: none;">
+                            {{ form.sede_id.label(class="form-label") }}
+                            {{ form.sede_id(class="form-select") }}
+                            {% for error in form.sede_id.errors %}
+                                <span class="text-danger">{{ error }}</span>
+                            {% endfor %}
+                            <small class="text-muted">Selecciona la sede desde la cual vas a trabajar</small>
+                        </div>
+                        <div class="mb-3">
+                            {{ form.username.label(class="form-label") }}
+                            {{ form.username(class="form-control", size=32) }}
+                            {% for error in form.username.errors %}
+                                <span class="text-danger">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.password.label(class="form-label") }}
+                            {{ form.password(class="form-control", size=32) }}
+                            {% for error in form.password.errors %}
+                                <span class="text-danger">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        <div class="mb-3 form-check">
+                            {{ form.remember_me(class="form-check-input") }}
+                            {{ form.remember_me.label(class="form-check-label") }}
+                        </div>
+                        {{ form.submit(class="btn btn-primary w-100") }}
+                    </form>
+                </div>
+                <div class="card-footer text-center">
+                    <small class="text-muted">¿No tienes cuenta? Contacta al administrador.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const userTypeSelect = document.getElementById('user_type');
+            const sedeSelection = document.getElementById('sede_selection');
+            
+            function toggleSedeSelection() {
+                if (userTypeSelect.value === 'sede') {
+                    sedeSelection.style.display = 'block';
+                    sedeSelection.querySelector('select').required = true;
+                } else {
+                    sedeSelection.style.display = 'none';
+                    sedeSelection.querySelector('select').required = false;
+                    sedeSelection.querySelector('select').value = '';
+                }
+            }
+            
+            userTypeSelect.addEventListener('change', toggleSedeSelection);
+            toggleSedeSelection(); // Ejecutar al cargar la página
+        });
+    </script>
+{% endblock %}

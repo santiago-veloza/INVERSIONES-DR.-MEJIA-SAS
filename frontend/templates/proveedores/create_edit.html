@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1 class="mb-4">{% if provider_id %}Editar Proveedor{% else %}Registrar Nuevo Proveedor{% endif %}</h1>
+    <div class="card p-4">
+        <form action="" method="post" novalidate>
+            {{ form.hidden_tag() }}
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        {{ form.nit.label(class="form-label") }}
+                        {{ form.nit(class="form-control", size=20) }}
+                        {% for error in form.nit.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        {{ form.razon_social.label(class="form-label") }}
+                        {{ form.razon_social(class="form-control", size=255) }}
+                        {% for error in form.razon_social.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="mb-3">
+                {{ form.name.label(class="form-label") }}
+                {{ form.name(class="form-control", size=128, placeholder="Opcional - Si es diferente a la razón social") }}
+                {% for error in form.name.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="mb-3">
+                {{ form.contact_person.label(class="form-label") }}
+                {{ form.contact_person(class="form-control", size=128) }}
+                {% for error in form.contact_person.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        {{ form.phone.label(class="form-label") }}
+                        {{ form.phone(class="form-control", size=20) }}
+                        {% for error in form.phone.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        {{ form.email.label(class="form-label") }}
+                        {{ form.email(class="form-control", size=120) }}
+                        {% for error in form.email.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="mb-3">
+                {{ form.address.label(class="form-label") }}
+                {{ form.address(class="form-control", rows=3) }}
+                {% for error in form.address.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
+            </div>
+            
+            <!-- Sección de Datos de Usuario -->
+            {% if not provider_id %}
+            <hr class="my-4">
+            <h5 class="mb-3"><i class="fas fa-user"></i> Datos de Acceso al Sistema</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        {{ form.username.label(class="form-label") }}
+                        {{ form.username(class="form-control", size=20) }}
+                        {% for error in form.username.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                        <small class="text-muted">El usuario utilizará este nombre para iniciar sesión</small>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        {{ form.user_email.label(class="form-label") }}
+                        {{ form.user_email(class="form-control", size=120) }}
+                        {% for error in form.user_email.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                        <small class="text-muted">Email para notificaciones del sistema</small>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        {{ form.password.label(class="form-label") }}
+                        {{ form.password(class="form-control") }}
+                        {% for error in form.password.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                        <small class="text-muted">Mínimo 6 caracteres</small>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        {{ form.password2.label(class="form-label") }}
+                        {{ form.password2(class="form-control") }}
+                        {% for error in form.password2.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <hr class="my-4">
+            {{ form.submit(class="btn btn-primary") }}
+            <a href="{{ url_for('main.list_providers') }}" class="btn btn-secondary">Cancelar</a>
+        </form>
+    </div>
+{% endblock %}

@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1 class="mb-4">Gestión de Sedes</h1>
+    <p>
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addSedeModal">
+            <i class="fas fa-plus"></i> Agregar Nueva Sede
+        </button>
+    </p>
+    
+    {% if sedes %}
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-building"></i> 
+                            Sedes Registradas ({{ sedes|length }})
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Sede</th>
+                                        <th>Ciudad</th>
+                                        <th>Dirección</th>
+                                        <th>Teléfono</th>
+                                        <th>Encargado</th>
+                                        <th>Estado</th>
+                                        <th>Órdenes</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for sede in sedes %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ sede.name }}</strong>
+                                            <br><small class="text-muted">ID: {{ sede.id }}</small>
+                                        </td>
+                                        <td>{{ sede.city }}</td>
+                                        <td>{{ sede.address or '-' }}</td>
+                                        <td>{{ sede.phone or '-' }}</td>
+                                        <td>{{ sede.manager or '-' }}</td>
+                                        <td>
+                                            {% if sede.is_active %}
+                                                <span class="badge bg-success">Activa</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Inactiva</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">{{ sede.orders|length }}</span>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <button class="btn btn-sm btn-info" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#editSedeModal{{ sede.id }}"
+                                                        title="Editar">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-sm {% if sede.is_active %}btn-warning{% else %}btn-success{% endif %}" 
+                                                        onclick="toggleSedeStatus({{ sede.id }}, {{ sede.is_active|lower }})"
+                                                        title="{% if sede.is_active %}Desactivar{% else %}Activar{% endif %}">
+                                                    <i class="fas fa-{% if sede.is_active %}pause{% else %}play{% endif %}"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resumen por ciudades -->
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Resumen por Ciudades</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% set cities = sedes|groupby('city') %}
+                            {% for city, sedes_en_ciudad in cities %}
+                            <div class="col-md-3 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <h6 class="card-title">{{ city }}</h6>
+                                        <h2 class="text-primary">{{ sedes_en_ciudad|list|length }}</h2>
+                                        <small class="text-muted">sede(s)</small>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> 
+            No hay sedes registradas. Haga clic en "Agregar Nueva Sede" para comenzar.
+        </div>
+    {% endif %}
+
+    <!-- Modal para agregar sede -->
+    <div class="modal fade" id="addSedeModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Agregar Nueva Sede</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="POST" action="{{ url_for('main.add_sede') }}">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Nombre de la Sede</label>
+                            <input type="text" class="form-control" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Ciudad</label>
+                            <input type="text" class="form-control" name="city" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Dirección</label>
+                            <input type="text" class="form-control" name="address">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Teléfono</label>
+                            <input type="text" class="form-control" name="phone">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Encargado</label>
+                            <input type="text" class="form-control" name="manager">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success">Agregar Sede</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modales para editar cada sede -->
+    {% for sede in sedes %}
+    <div class="modal fade" id="editSedeModal{{ sede.id }}" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar Sede: {{ sede.name }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="POST" action="{{ url_for('main.edit_sede', sede_id=sede.id) }}">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Nombre de la Sede</label>
+                            <input type="text" class="form-control" name="name" value="{{ sede.name }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Ciudad</label>
+                            <input type="text" class="form-control" name="city" value="{{ sede.city }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Dirección</label>
+                            <input type="text" class="form-control" name="address" value="{{ sede.address or '' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Teléfono</label>
+                            <input type="text" class="form-control" name="phone" value="{{ sede.phone or '' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Encargado</label>
+                            <input type="text" class="form-control" name="manager" value="{{ sede.manager or '' }}">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Actualizar Sede</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <script>
+        function toggleSedeStatus(sedeId, isActive) {
+            const action = isActive ? 'desactivar' : 'activar';
+            if (confirm(`¿Está seguro de que desea ${action} esta sede?`)) {
+                fetch(`/sede/toggle_status/${sedeId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al procesar la solicitud');
+                });
+            }
+        }
+    </script>
+{% endblock %}
