@@ -122,11 +122,32 @@ class ProviderEditForm(FlaskForm):
 
 
 class WorkOrderForm(FlaskForm):
-    client_name = StringField('Nombre del Cliente', validators=[DataRequired(), Length(max=128)])
+    # Información básica de la orden
+    client_name = StringField('Nombre del Paciente', validators=[DataRequired(), Length(max=128)])
+    client_cc = StringField('Cédula del Paciente', validators=[DataRequired(), Length(max=20)])
+    receipt_number = StringField('Número del Recibo de Venta', validators=[DataRequired(), Length(max=64)])
+    
+    # Sede y proveedor
     sede_id = SelectField('Sede Solicitante', coerce=int, validators=[DataRequired()])
-    # order_number se puede generar automáticamente
     provider_id = SelectField('Proveedor', coerce=int, validators=[DataRequired()])
-    formula_details = TextAreaField('Detalles de la Fórmula Óptica', validators=[DataRequired()])
+    
+    # Tipo de lente
+    lens_type = StringField('Tipo de Lente Solicitado', validators=[DataRequired(), Length(max=128)])
+    
+    # Fórmula Ojo Derecho (OD)
+    formula_od_esfera = StringField('OD - Esfera', validators=[Optional(), Length(max=10)])
+    formula_od_cilindro = StringField('OD - Cilindro', validators=[Optional(), Length(max=10)])
+    formula_od_eje = StringField('OD - Eje', validators=[Optional(), Length(max=10)])
+    formula_od_adicion = StringField('OD - Adición', validators=[Optional(), Length(max=10)])
+    
+    # Fórmula Ojo Izquierdo (OI)
+    formula_oi_esfera = StringField('OI - Esfera', validators=[Optional(), Length(max=10)])
+    formula_oi_cilindro = StringField('OI - Cilindro', validators=[Optional(), Length(max=10)])
+    formula_oi_eje = StringField('OI - Eje', validators=[Optional(), Length(max=10)])
+    formula_oi_adicion = StringField('OI - Adición', validators=[Optional(), Length(max=10)])
+    
+    # Información adicional
+    formula_details = TextAreaField('Detalles Adicionales de la Fórmula', validators=[Optional()])
     due_date = DateField('Fecha de Entrega (Estimada)', format='%Y-%m-%d', validators=[Optional()])
     comments = TextAreaField('Comentarios Adicionales', validators=[Optional()])
     total_amount = FloatField('Monto Total al Proveedor', validators=[Optional()])
@@ -164,8 +185,14 @@ class WorkOrderStatusForm(FlaskForm):
         ('finalizada', 'Finalizada'),
         ('cancelada', 'Cancelada')
     ], validators=[DataRequired()])
+    rejection_reason = TextAreaField('Razón del Rechazo', validators=[Optional()], 
+                                   description='Requerido si el estado es "Rechazada por Proveedor"')
     comments = TextAreaField('Comentarios sobre el estado', validators=[Optional()])
     submit = SubmitField('Actualizar Estado')
+
+    def validate_rejection_reason(self, rejection_reason):
+        if self.status.data == 'rechazada' and not rejection_reason.data.strip():
+            raise ValidationError('Debe proporcionar una razón del rechazo cuando rechaza una orden.')
 
 class PaymentForm(FlaskForm):
     amount = FloatField('Monto del Pago', validators=[DataRequired()])
@@ -180,9 +207,14 @@ class PendingPaymentsFilterForm(FlaskForm):
     provider_id = SelectField('Filtrar por Proveedor', coerce=int, validators=[Optional()])
     submit = SubmitField('Filtrar')
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, providers=None, *args, **kwargs):
         super(PendingPaymentsFilterForm, self).__init__(*args, **kwargs)
-        self.provider_id.choices = [(0, 'Todos los Proveedores')] + [(p.id, p.name) for p in Provider.query.order_by(Provider.name).all()]
+        if providers is not None:
+            # Usar la lista de proveedores proporcionada
+            self.provider_id.choices = [(0, 'Todos los Proveedores')] + [(p.id, p.razon_social or p.name) for p in providers]
+        else:
+            # Comportamiento por defecto (todos los proveedores)
+            self.provider_id.choices = [(0, 'Todos los Proveedores')] + [(p.id, p.razon_social or p.name) for p in Provider.query.order_by(Provider.name).all()]
 
 class UserForm(FlaskForm):
     username = StringField('Usuario', validators=[DataRequired(), Length(min=4, max=64)])

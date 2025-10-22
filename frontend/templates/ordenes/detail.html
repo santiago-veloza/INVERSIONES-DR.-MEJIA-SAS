@@ -1,21 +1,119 @@
 {% extends "base.html" %}
 {% block content %}
-    <h1 class="mb-4">Detalle de Orden de Trabajo N° {{ order.order_number }}</h1>
+    <h1 class="mb-4">Orden de Trabajo N° {{ order.order_number }}</h1>
+    
     <div class="row">
         <div class="col-md-8">
             <div class="card mb-4">
                 <div class="card-header bg-primary text-white">
-                    Información General de la Orden
+                    <h5><i class="fas fa-clipboard-list"></i> Información de la Orden - Estilo Talonario</h5>
                 </div>
                 <div class="card-body">
-                    <p><strong>Cliente:</strong> {{ order.client_name }}</p>
-                    <p><strong>Proveedor Asignado:</strong> {{ order.provider.razon_social or order.provider.name }}</p>
-                    <p><strong>Detalles de la Fórmula:</strong></p>
-                    <div class="alert alert-light border">{{ order.formula_details | replace('\n', '<br>') | safe }}</div>
-                    <p><strong>Monto Total al Proveedor:</strong> ${{ "%.2f"|format(order.total_amount) }}</p>
-                    <p><strong>Estado Actual:</strong>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Número de Orden:</strong></td>
+                                    <td>{{ order.order_number }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Recibo de Venta:</strong></td>
+                                    <td>{{ order.receipt_number or 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Nombre del Paciente:</strong></td>
+                                    <td>{{ order.client_name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Cédula:</strong></td>
+                                    <td>{{ order.client_cc or 'N/A' }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Sede:</strong></td>
+                                    <td>{{ order.sede.name }} - {{ order.sede.city }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Tipo de Lente:</strong></td>
+                                    <td>{{ order.lens_type or 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Proveedor:</strong></td>
+                                    <td>{{ order.provider.razon_social or order.provider.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Monto:</strong></td>
+                                    <td>${{ "%.2f"|format(order.total_amount) }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5><i class="fas fa-eye"></i> Fórmula Óptica</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-primary"><i class="fas fa-eye"></i> Ojo Derecho (OD)</h6>
+                            <table class="table table-sm table-bordered">
+                                <tr>
+                                    <td><strong>Esfera:</strong></td>
+                                    <td>{{ order.formula_od_esfera or 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Cilindro:</strong></td>
+                                    <td>{{ order.formula_od_cilindro or 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Eje:</strong></td>
+                                    <td>{{ order.formula_od_eje or 'N/A' }}{{ '°' if order.formula_od_eje else '' }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Adición:</strong></td>
+                                    <td>{{ order.formula_od_adicion or 'N/A' }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-primary"><i class="fas fa-eye"></i> Ojo Izquierdo (OI)</h6>
+                            <table class="table table-sm table-bordered">
+                                <tr>
+                                    <td><strong>Esfera:</strong></td>
+                                    <td>{{ order.formula_oi_esfera or 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Cilindro:</strong></td>
+                                    <td>{{ order.formula_oi_cilindro or 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Eje:</strong></td>
+                                    <td>{{ order.formula_oi_eje or 'N/A' }}{{ '°' if order.formula_oi_eje else '' }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Adición:</strong></td>
+                                    <td>{{ order.formula_oi_adicion or 'N/A' }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    {% if order.formula_details %}
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h6 class="text-secondary">Detalles Adicionales:</h6>
+                            <div class="alert alert-light border">{{ order.formula_details | replace('\n', '<br>') | safe }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
                         {% if current_user.role == 'proveedor' %}
-                            {# Vista desde perspectiva del PROVEEDOR #}
                             {% if order.status == 'enviada' %}
                                 <span class="badge bg-warning text-dark">📥 Recibida - Pendiente de Respuesta</span>
                             {% elif order.status == 'aceptada' %}
@@ -36,7 +134,6 @@
                                 <span class="badge bg-secondary">{{ order.status.replace('_', ' ').title() }}</span>
                             {% endif %}
                         {% else %}
-                            {# Vista desde perspectiva de la ÓPTICA #}
                             {% if order.status == 'pendiente_envio' %}
                                 <span class="badge bg-secondary">⏳ Preparando para Envío</span>
                             {% elif order.status == 'enviada' %}
@@ -60,6 +157,24 @@
                             {% endif %}
                         {% endif %}
                     </p>
+                    {% if order.status == 'rechazada' and order.rejection_reason %}
+                    <div class="alert alert-danger">
+                        <h6><i class="bi bi-exclamation-triangle"></i> Razón del Rechazo:</h6>
+                        <p class="mb-2">{{ order.rejection_reason }}</p>
+                        {% if order.rejection_count > 1 %}
+                            <small class="text-muted">Esta orden ha sido rechazada {{ order.rejection_count }} veces.</small>
+                        {% endif %}
+                        {% if order.resubmitted_at %}
+                            <hr>
+                            <small><strong>Último reenvío:</strong> {{ order.resubmitted_at.strftime('%d/%m/%Y %H:%M') }}
+                            {% if order.resubmitted_by %}
+                                por {{ order.resubmitted_by.username }}
+                            {% endif %}
+                            </small>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
                     <p><strong>Estado de Pago:</strong>
                         {% if order.payment_status == 'pagada' %}
                             <span class="badge bg-success">{{ order.payment_status.replace('_', ' ').title() }}</span>
@@ -118,10 +233,23 @@
                             </a>
                         {% endif %}
                     {% else %}
-                        <!-- Botones para Óptica (Admin/Asistente) -->
+                        {% if order.status == 'rechazada' and (current_user.role in ['admin', 'asistente'] or (current_user.role == 'admin_sede' and current_user.sede_id == order.sede_id)) %}
+                            <div class="alert alert-warning mb-3">
+                                <strong>⚠️ Esta orden fue rechazada por el proveedor.</strong><br>
+                                Puede realizar los ajustes necesarios y reenviarla.
+                            </div>
+                            <a href="{{ url_for('main.resubmit_order', order_id=order.id) }}" class="btn btn-primary me-2">
+                                <i class="bi bi-arrow-repeat"></i> Hacer Ajustes y Reenviar
+                            </a>
+                        {% endif %}
+                        
                         <a href="{{ url_for('main.update_order_status', order_id=order.id) }}" class="btn btn-warning me-2"><i class="fas fa-sync-alt"></i> Actualizar Estado</a>
-                        <a href="{{ url_for('main.edit_order', order_id=order.id) }}" class="btn btn-info me-2"><i class="fas fa-edit"></i> Editar Orden</a>
-                        <a href="{{ url_for('main.add_payment', order_id=order.id) }}" class="btn btn-success me-2"><i class="fas fa-dollar-sign"></i> Registrar Pago</a>
+                        {% if current_user.role in ['admin', 'asistente'] or (current_user.role == 'admin_sede' and current_user.sede_id == order.sede_id) %}
+                            <a href="{{ url_for('main.edit_order', order_id=order.id) }}" class="btn btn-info me-2"><i class="fas fa-edit"></i> Editar Orden</a>
+                        {% endif %}
+                        {% if current_user.role in ['admin', 'asistente'] %}
+                            <a href="{{ url_for('main.add_payment', order_id=order.id) }}" class="btn btn-success me-2"><i class="fas fa-dollar-sign"></i> Registrar Pago</a>
+                        {% endif %}
                     {% endif %}
                     <a href="{{ url_for('main.list_orders') }}" class="btn btn-secondary">Volver a la Lista</a>
                 </div>

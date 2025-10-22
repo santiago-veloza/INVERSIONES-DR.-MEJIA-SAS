@@ -4,22 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% if title %}
-    <title>{{ title }} - Óptica OT</title>
+    <title>{{ title }} - Ópticas Dr. Mejía</title>
     {% else %}
-    <title>Óptica OT</title>
+    <title>Ópticas Dr. Mejía</title>
     {% endif %}
-    <!-- Bootstrap CSS -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome para íconos -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Chart.js para gráficos -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"> {# Tu propio CSS #}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" 
+            crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta name="description" content="Sistema de gestión para Ópticas Dr. Mejía - Inversiones Dr. Mejía SAS">
+    <meta name="author" content="Ópticas Dr. Mejía">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
 </head>
-<body>
+    <body class="fade-in-up navbar-present">
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{{ url_for('main.index') }}">Óptica OT</a>
+            <a class="navbar-brand" href="{{ url_for('main.index') }}">
+                <i class="fas fa-glasses me-2"></i>Ópticas Dr. Mejía
+            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -27,27 +32,37 @@
                 <ul class="navbar-nav me-auto">
                     {% if current_user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.index') }}">Panel</a>
+                            <a class="nav-link" href="{{ url_for('main.index') }}">
+                                <i class="fas fa-tachometer-alt"></i> Panel
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.list_orders') }}">Órdenes</a>
+                            <a class="nav-link" href="{{ url_for('main.list_orders') }}">
+                                <i class="fas fa-shopping-cart"></i> Órdenes
+                            </a>
                         </li>
                         {% if current_user.role == 'admin' or current_user.role == 'asistente' %}
-                            {# Administración Central - Acceso completo #}
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('main.list_providers') }}">Proveedores</a>
+                                <a class="nav-link" href="{{ url_for('main.list_providers') }}">
+                                    <i class="fas fa-truck"></i> Proveedores
+                                </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('main.list_sedes') }}">Sedes</a>
+                                <a class="nav-link" href="{{ url_for('main.list_sedes') }}">
+                                    <i class="fas fa-building"></i> Sedes
+                                </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('main.list_pending_payments') }}">Pagos Pendientes</a>
+                                <a class="nav-link" href="{{ url_for('main.list_pending_payments') }}">
+                                    <i class="fas fa-clock"></i> Pagos Pendientes
+                                </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('main.reports') }}">Reportes</a>
+                                <a class="nav-link" href="{{ url_for('main.reports') }}">
+                                    <i class="fas fa-chart-bar"></i> Reportes
+                                </a>
                             </li>
                         {% elif current_user.role == 'admin_sede' %}
-                            {# Administrador de Sede - Acceso limitado #}
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ url_for('main.my_sede_messages') }}">
                                     <i class="fas fa-envelope"></i> Mensajes
@@ -65,13 +80,19 @@
                         {% if current_user.role == 'admin' %}
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    Admin Central
+                                    <i class="fas fa-cog"></i> Admin Central
                                 </a>
                                 <ul class="dropdown-menu" aria-labelledby="adminDropdown">
-                                    <li><a class="dropdown-item" href="{{ url_for('main.admin_users') }}">Gestionar Usuarios</a></li>
-                                    <li><a class="dropdown-item" href="{{ url_for('main.register') }}">Registrar Nuevo Usuario</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('main.admin_users') }}">
+                                        <i class="fas fa-users"></i> Gestionar Usuarios
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('main.register') }}">
+                                        <i class="fas fa-user-plus"></i> Registrar Nuevo Usuario
+                                    </a></li>
                                     <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="{{ url_for('main.create_sede_admin') }}">Crear Admin de Sede</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('main.create_sede_admin') }}">
+                                        <i class="fas fa-user-shield"></i> Crear Admin de Sede
+                                    </a></li>
                                 </ul>
                             </li>
                         {% endif %}
@@ -80,7 +101,7 @@
                 <ul class="navbar-nav">
                     {% if current_user.is_authenticated %}
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="notificationsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <a class="nav-link dropdown-toggle position-relative" href="#" id="notificationsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-bell"></i>
                                 {% if unread_notifications_count > 0 %}
                                     <span class="badge bg-danger position-absolute translate-middle-x rounded-pill">{{ unread_notifications_count }}</span>
@@ -91,65 +112,485 @@
                                     {% for notification in latest_notifications %}
                                         <li>
                                             <a class="dropdown-item {% if not notification.is_read %}fw-bold{% endif %}" href="{{ url_for('main.view_order', order_id=notification.work_order_id) if notification.work_order_id else url_for('main.view_notifications') }}">
+                                                <i class="fas fa-info-circle text-primary me-2"></i>
                                                 {{ notification.message }}
-                                                <small class="text-muted d-block">{{ notification.created_at.strftime('%H:%M %d/%m') }}</small>
+                                                <small class="text-muted d-block mt-1">
+                                                    <i class="fas fa-clock me-1"></i>{{ notification.created_at.strftime('%H:%M %d/%m') }}
+                                                </small>
                                             </a>
                                         </li>
                                     {% endfor %}
                                     <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item text-center" href="{{ url_for('main.view_notifications') }}">Ver todas las notificaciones</a></li>
+                                    <li><a class="dropdown-item text-center fw-bold" href="{{ url_for('main.view_notifications') }}">
+                                        <i class="fas fa-eye me-2"></i>Ver todas las notificaciones
+                                    </a></li>
                                 {% else %}
-                                    <li><span class="dropdown-item text-muted">No hay notificaciones nuevas.</span></li>
+                                    <li><span class="dropdown-item text-muted text-center">
+                                        <i class="fas fa-bell-slash me-2"></i>No hay notificaciones nuevas.
+                                    </span></li>
                                 {% endif %}
                             </ul>
                         </li>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-user-circle"></i> {{ current_user.username }} ({{ current_user.role.capitalize() }})
+                                <i class="fas fa-user-circle me-1"></i> {{ current_user.username }} 
+                                <span class="badge bg-light text-primary ms-1">{{ current_user.role.replace('_', ' ').title() }}</span>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                                 <li><a class="dropdown-item" href="#">
-                                    <i class="fas fa-user"></i> Perfil
+                                    <i class="fas fa-user me-2"></i> Perfil
                                 </a></li>
                                 {% if current_user.role == 'admin' %}
                                 <li><a class="dropdown-item" href="{{ url_for('main.change_my_password') }}">
-                                    <i class="fas fa-key"></i> Cambiar Contraseña
+                                    <i class="fas fa-key me-2"></i> Cambiar Contraseña
                                 </a></li>
                                 {% endif %}
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ url_for('main.logout') }}">
-                                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                                <li><a class="dropdown-item text-danger" href="{{ url_for('main.logout') }}">
+                                    <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
                                 </a></li>
                             </ul>
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.login') }}">Iniciar Sesión</a>
+                            <a class="nav-link" href="{{ url_for('main.login') }}">
+                                <i class="fas fa-sign-in-alt me-1"></i> Iniciar Sesión
+                            </a>
                         </li>
                     {% endif %}
                 </ul>
             </div>
         </div>
     </nav>
-
-    <div class="container mt-4">
+    <div class="container-fluid main-content">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
                     <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {% if category == 'success' %}
+                            <i class="fas fa-check-circle me-2"></i>
+                        {% elif category == 'danger' %}
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                        {% elif category == 'warning' %}
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                        {% elif category == 'info' %}
+                            <i class="fas fa-info-circle me-2"></i>
+                        {% else %}
+                            <i class="fas fa-info me-2"></i>
+                        {% endif %}
                         {{ message }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 {% endfor %}
             {% endif %}
         {% endwith %}
-
         {% block content %}{% endblock %}
     </div>
+    <footer class="mt-5 py-4 bg-light border-top">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-12 text-center">
+                    <p class="text-muted mb-0">
+                        <i class="fas fa-copyright me-2"></i>
+                        <strong>2025 Inversiones Dr. Mejía SAS</strong>
+                        <span class="mx-3">|</span>
+                        <i class="fas fa-shield-alt me-1"></i>
+                        Todos los derechos reservados
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.7/dist/umd/popper.min.js" 
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js" 
+            crossorigin="anonymous"></script>
+    <script>
 
-    <!-- Bootstrap JS y Popper.js -->
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.7/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
-    {% block scripts %}{% endblock %} {# Para scripts específicos de cada página #}
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // Inicializar dropdowns de Bootstrap explícitamente
+            const dropdownElementList = [].slice.call(document.querySelectorAll('[data-bs-toggle="dropdown"]'));
+            const dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
+                return new bootstrap.Dropdown(dropdownToggleEl);
+            });
+
+            const alerts = document.querySelectorAll('.alert:not(.alert-danger)');
+            alerts.forEach(function(alert) {
+                setTimeout(function() {
+                    if (alert.classList.contains('show')) {
+                        const bsAlert = new bootstrap.Alert(alert);
+                        bsAlert.close();
+                    }
+                }, 5000);
+            });
+
+            const cards = document.querySelectorAll('.card');
+            cards.forEach(function(card) {
+                if (!card.classList.contains('no-hover')) {
+                    card.classList.add('hover-effect');
+                }
+            });
+
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(function(link) {
+                if (link.href === window.location.href) {
+                    link.classList.add('active');
+                    link.style.background = 'rgba(255, 255, 255, 0.2)';
+                    link.style.borderRadius = '0.5rem';
+                }
+            });
+        });
+
+        function showLoading(element) {
+            const originalText = element.textContent;
+            const spinner = document.createElement('i');
+            spinner.className = 'fas fa-spinner fa-spin me-2';
+            
+            // Limpiar contenido y agregar spinner de forma segura
+            element.textContent = '';
+            element.appendChild(spinner);
+            element.appendChild(document.createTextNode('Cargando...'));
+            element.disabled = true;
+            
+            setTimeout(function() {
+                element.textContent = originalText;
+                element.disabled = false;
+            }, 2000);
+        }
+
+        function confirmAction(message) {
+            // Escapar el mensaje para prevenir XSS
+            const sanitizedMessage = document.createElement('div');
+            sanitizedMessage.textContent = message;
+            return confirm('¿Está seguro que desea ' + sanitizedMessage.textContent + '?');
+        }
+
+        const tableResponsive = document.querySelectorAll('.table-responsive');
+        
+        tableResponsive.forEach(function(table) {
+
+            function checkScrollNeeded() {
+                const wrapper = table.closest('.table-scroll-wrapper');
+                if (wrapper) {
+                    if (table.scrollWidth > table.clientWidth) {
+                        wrapper.classList.add('has-scroll');
+                    } else {
+                        wrapper.classList.remove('has-scroll');
+                    }
+                }
+            }
+
+            table.addEventListener('scroll', function() {
+                this.classList.add('scrolling');
+
+                clearTimeout(this.scrollTimeout);
+                this.scrollTimeout = setTimeout(() => {
+                    this.classList.remove('scrolling');
+                }, 1000);
+            });
+
+            checkScrollNeeded();
+            window.addEventListener('resize', checkScrollNeeded);
+
+            table.addEventListener('mouseenter', function() {
+                if (this.scrollWidth > this.clientWidth) {
+                    this.style.cursor = 'grab';
+                }
+            });
+            
+            table.addEventListener('mouseleave', function() {
+                this.style.cursor = 'default';
+            });
+        });
+
+        const tableCells = document.querySelectorAll('.table td');
+        tableCells.forEach(function(cell) {
+            if (cell.scrollWidth > cell.clientWidth) {
+                cell.setAttribute('title', cell.textContent.trim());
+            }
+        });
+
+        function detectHorizontalScroll() {
+            const tables = document.querySelectorAll('.table-responsive');
+            tables.forEach(function(table) {
+                const wrapper = table.closest('.table-scroll-wrapper');
+                if (wrapper) {
+                    const hasHorizontalScroll = table.scrollWidth > table.clientWidth;
+                    
+                    if (hasHorizontalScroll) {
+                        wrapper.classList.add('has-scroll');
+
+                        if (window.innerWidth <= 768) {
+                            wrapper.style.position = 'relative';
+                            wrapper.style.border = '2px solid var(--primary-color)';
+                            wrapper.style.borderRadius = 'var(--border-radius)';
+                        }
+                    } else {
+                        wrapper.classList.remove('has-scroll');
+                        wrapper.style.border = '';
+                    }
+                }
+            });
+        }
+
+        detectHorizontalScroll();
+        window.addEventListener('resize', detectHorizontalScroll);
+
+        if ('ontouchstart' in window) {
+            const tables = document.querySelectorAll('.table-responsive');
+            tables.forEach(function(table) {
+                table.style.webkitOverflowScrolling = 'touch';
+
+                table.addEventListener('scroll', function() {
+                    this.style.boxShadow = 'inset 0 0 10px rgba(13, 110, 253, 0.2)';
+                    
+                    clearTimeout(this.scrollEndTimeout);
+                    this.scrollEndTimeout = setTimeout(() => {
+                        this.style.boxShadow = '';
+                    }, 150);
+                });
+            });
+        }
+
+        // Sistema de Detección de Inactividad y Timeout de Sesión
+        {% if current_user.is_authenticated %}
+        class SessionManager {
+            constructor() {
+                this.checkInterval = 15000; // Verificar cada 15 segundos (para pruebas más rápidas)
+                this.warningShown = false;
+                this.extendUrl = '/api/session/extend';
+                this.statusUrl = '/api/session/status';
+                this.logoutUrl = '/logout';
+                
+                this.init();
+            }
+            
+            init() {
+                // SOLO navegación específica cuenta como actividad
+                this.addNavigationListeners();
+                this.addFormSubmissionListeners();
+                this.addButtonClickListeners();
+                
+                // Iniciar verificación periódica
+                this.startPeriodicCheck();
+            }
+            
+            addNavigationListeners() {
+                // Detectar cambios de página
+                window.addEventListener('beforeunload', () => {
+                    this.onUserActivity();
+                });
+                
+                // Detectar navegación con enlaces
+                document.addEventListener('click', (e) => {
+                    if (e.target.tagName === 'A' && e.target.href) {
+                        this.onUserActivity();
+                    }
+                }, true);
+            }
+            
+            addFormSubmissionListeners() {
+                // Detectar envío de formularios
+                document.addEventListener('submit', () => {
+                    this.onUserActivity();
+                }, true);
+                
+                // Detectar clicks en botones de envío
+                document.addEventListener('click', (e) => {
+                    if (e.target.type === 'submit' || 
+                        e.target.classList.contains('btn-primary') ||
+                        e.target.classList.contains('btn-success') ||
+                        e.target.classList.contains('btn-warning')) {
+                        this.onUserActivity();
+                    }
+                }, true);
+            }
+            
+            addButtonClickListeners() {
+                // Solo botones específicos cuentan como actividad
+                document.addEventListener('click', (e) => {
+                    // Botones de acciones específicas
+                    if (e.target.closest('.dropdown-menu') ||
+                        e.target.closest('.nav-link') ||
+                        e.target.classList.contains('btn') ||
+                        e.target.closest('button')) {
+                        this.onUserActivity();
+                    }
+                }, true);
+            }
+            
+            onUserActivity() {
+                // Indicador visual de actividad (para debugging)
+                console.log('🔄 Actividad detectada - Sesión extendida:', new Date().toLocaleTimeString());
+                
+                // Extender sesión cuando hay actividad
+                if (!this.extending) {
+                    this.extending = true;
+                    this.extendSession().finally(() => {
+                        this.extending = false;
+                    });
+                }
+                
+                // Ocultar advertencia si está visible
+                if (this.warningShown) {
+                    this.hideWarning();
+                }
+            }
+            
+            startPeriodicCheck() {
+                setInterval(() => {
+                    this.checkSessionStatus();
+                }, this.checkInterval);
+            }
+            
+            async checkSessionStatus() {
+                try {
+                    const response = await fetch(this.statusUrl);
+                    const data = await response.json();
+                    
+                    if (!data.authenticated) {
+                        this.forceLogout('Su sesión ha expirado');
+                        return;
+                    }
+                    
+                    // Mostrar advertencia si quedan menos de 2 minutos
+                    if (data.should_warn && !this.warningShown) {
+                        this.showWarning(Math.round(data.time_remaining));
+                    }
+                    
+                    // Logout automático si el tiempo se agotó
+                    if (data.time_remaining <= 0) {
+                        this.forceLogout('Tiempo de sesión agotado');
+                    }
+                    
+                } catch (error) {
+                    console.error('Error verificando estado de sesión:', error);
+                }
+            }
+            
+            async extendSession() {
+                try {
+                    const response = await fetch(this.extendUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Error extendiendo sesión');
+                    }
+                    
+                } catch (error) {
+                    console.error('Error extendiendo sesión:', error);
+                }
+            }
+            
+            showWarning(timeRemaining) {
+                this.warningShown = true;
+                const minutes = Math.floor(timeRemaining / 60);
+                const seconds = timeRemaining % 60;
+                
+                // Crear modal de advertencia si no existe
+                if (!document.getElementById('sessionWarningModal')) {
+                    this.createWarningModal();
+                }
+                
+                const modal = document.getElementById('sessionWarningModal');
+                const timeDisplay = document.getElementById('sessionTimeRemaining');
+                
+                timeDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                
+                const bsModal = new bootstrap.Modal(modal, {
+                    backdrop: 'static',
+                    keyboard: false
+                });
+                bsModal.show();
+                
+                // Actualizar contador cada segundo
+                this.countdownInterval = setInterval(() => {
+                    timeRemaining--;
+                    const mins = Math.floor(timeRemaining / 60);
+                    const secs = timeRemaining % 60;
+                    
+                    if (timeRemaining <= 0) {
+                        clearInterval(this.countdownInterval);
+                        this.forceLogout('Tiempo agotado');
+                        return;
+                    }
+                    
+                    timeDisplay.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+                }, 1000);
+            }
+            
+            hideWarning() {
+                this.warningShown = false;
+                
+                if (this.countdownInterval) {
+                    clearInterval(this.countdownInterval);
+                }
+                
+                const modal = document.getElementById('sessionWarningModal');
+                if (modal) {
+                    const bsModal = bootstrap.Modal.getInstance(modal);
+                    if (bsModal) {
+                        bsModal.hide();
+                    }
+                }
+            }
+            
+            createWarningModal() {
+                const modalHtml = `
+                    <div class="modal fade" id="sessionWarningModal" tabindex="-1" aria-labelledby="sessionWarningModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content border-warning">
+                                <div class="modal-header bg-warning text-dark">
+                                    <h5 class="modal-title" id="sessionWarningModalLabel">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>Advertencia de Sesión
+                                    </h5>
+                                </div>
+                                <div class="modal-body text-center">
+                                    <div class="mb-3">
+                                        <i class="fas fa-clock fa-3x text-warning mb-3"></i>
+                                    </div>
+                                    <h6>Su sesión expirará en:</h6>
+                                    <div class="display-4 text-danger mb-3" id="sessionTimeRemaining">2:00</div>
+                                    <p class="text-muted">Haga clic en "Extender Sesión" para continuar trabajando o sus datos no guardados se perderán.</p>
+                                </div>
+                                <div class="modal-footer justify-content-center">
+                                    <button type="button" class="btn btn-success" onclick="sessionManager.extendSession(); sessionManager.hideWarning();">
+                                        <i class="fas fa-refresh me-2"></i>Extender Sesión
+                                    </button>
+                                    <button type="button" class="btn btn-secondary" onclick="sessionManager.forceLogout('Cerrado por usuario');">
+                                        <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+            }
+            
+            forceLogout(reason) {
+                // Limpiar intervalos
+                if (this.countdownInterval) {
+                    clearInterval(this.countdownInterval);
+                }
+                
+                // Mostrar mensaje y redirigir
+                alert(`${reason}. Será redirigido al login.`);
+                window.location.href = this.logoutUrl;
+            }
+        }
+        
+        // Inicializar el gestor de sesiones
+        const sessionManager = new SessionManager();
+        {% endif %}
+    </script>
+    
+    {% block scripts %}{% endblock %} 
 </body>
 </html>

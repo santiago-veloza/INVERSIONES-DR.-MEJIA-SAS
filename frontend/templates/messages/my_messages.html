@@ -12,7 +12,6 @@
         </div>
 
         {% if messages %}
-            <!-- Mensajes urgentes destacados -->
             {% set urgent_messages = messages|selectattr('priority', 'equalto', 'urgente')|list %}
             {% if urgent_messages %}
             <div class="alert alert-danger border-start border-danger border-5 mb-4">
@@ -77,7 +76,7 @@
                             </div>
                             {% endif %}
                             
-                            <button class="btn btn-outline-primary btn-sm w-100" onclick="viewFullMessage({{ message.id }})">
+                            <button class="btn btn-outline-primary btn-sm w-100 view-message-btn" data-message-id="{{ message.id }}">>
                                 <i class="fas fa-eye"></i> Ver Mensaje Completo
                             </button>
                         </div>
@@ -96,8 +95,6 @@
                 </div>
                 {% endfor %}
             </div>
-
-            <!-- Filtros y estadísticas -->
             <div class="row mt-4">
                 <div class="col-md-12">
                     <div class="card">
@@ -109,22 +106,22 @@
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-md-3 mb-2">
-                                    <button class="btn btn-outline-secondary w-100" onclick="filterMessages('all')">
+                                    <button class="btn btn-outline-secondary w-100 filter-btn" data-filter="all">>
                                         Todos ({{ messages|length }})
                                     </button>
                                 </div>
                                 <div class="col-md-3 mb-2">
-                                    <button class="btn btn-outline-danger w-100" onclick="filterMessages('urgente')">
+                                    <button class="btn btn-outline-danger w-100 filter-btn" data-filter="urgente">>
                                         Urgentes ({{ messages|selectattr('priority', 'equalto', 'urgente')|list|length }})
                                     </button>
                                 </div>
                                 <div class="col-md-3 mb-2">
-                                    <button class="btn btn-outline-success w-100" onclick="filterMessages('global')">
+                                    <button class="btn btn-outline-success w-100 filter-btn" data-filter="global">>
                                         Globales ({{ messages|selectattr('is_global', 'equalto', True)|list|length }})
                                     </button>
                                 </div>
                                 <div class="col-md-3 mb-2">
-                                    <button class="btn btn-outline-info w-100" onclick="filterMessages('sede')">
+                                    <button class="btn btn-outline-info w-100 filter-btn" data-filter="sede">>
                                         Mi Sede ({{ messages|selectattr('is_global', 'equalto', False)|list|length }})
                                     </button>
                                 </div>
@@ -141,8 +138,6 @@
             </div>
         {% endif %}
     </div>
-
-    <!-- Modal para mensaje completo -->
     <div class="modal fade" id="fullMessageModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -151,7 +146,6 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body" id="modalBody">
-                    <!-- Contenido dinámico -->
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
@@ -168,8 +162,7 @@ const messages = {{ messages_json|tojson }};
 function viewFullMessage(messageId) {
     const message = messages.find(m => m.id === messageId);
     if (!message) return;
-    
-    // Configurar header según prioridad
+
     const modalHeader = document.getElementById('modalHeader');
     const modalTitle = document.getElementById('modalTitle');
     
@@ -182,8 +175,7 @@ function viewFullMessage(messageId) {
     } else {
         modalHeader.className = 'modal-header bg-info text-white';
     }
-    
-    // Contenido del mensaje
+
     const typeLabel = message.is_global ? 
         '<span class="badge bg-success mb-3"><i class="fas fa-globe"></i> Mensaje Global</span>' :
         '<span class="badge bg-primary mb-3"><i class="fas fa-building"></i> Para Mi Sede</span>';
@@ -252,12 +244,30 @@ function filterMessages(type) {
         
         card.closest('.col-md-6').style.display = show ? 'block' : 'none';
     });
-    
-    // Actualizar botones activos
+
     document.querySelectorAll('.btn-outline-secondary, .btn-outline-danger, .btn-outline-success, .btn-outline-info').forEach(btn => {
         btn.classList.remove('active');
     });
     event.target.classList.add('active');
 }
+
+// Configurar event listeners al cargar el DOM
+document.addEventListener('DOMContentLoaded', function() {
+    // Event listeners para botones de filtro
+    document.querySelectorAll('.filter-btn').forEach(function(button) {
+        button.addEventListener('click', function() {
+            const filter = this.getAttribute('data-filter');
+            filterMessages(filter);
+        });
+    });
+
+    // Event listeners para botones de ver mensaje
+    document.querySelectorAll('.view-message-btn').forEach(function(button) {
+        button.addEventListener('click', function() {
+            const messageId = parseInt(this.getAttribute('data-message-id'));
+            viewFullMessage(messageId);
+        });
+    });
+});
 </script>
 {% endblock %}

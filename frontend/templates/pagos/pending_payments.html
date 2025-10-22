@@ -1,6 +1,19 @@
 {% extends "base.html" %}
 {% block content %}
-    <h1 class="mb-4">Órdenes Pendientes de Pago</h1>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5">
+        <div class="mb-3 mb-md-0">
+            <h1 class="text-gradient mb-2">Órdenes Pendientes de Pago</h1>
+            <p class="text-muted mb-0">
+                <i class="fas fa-clock me-2"></i>Gestiona los pagos pendientes
+            </p>
+        </div>
+        <div>
+            <a href="{{ url_for('main.sede_payments') }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i>
+                <span class="d-none d-sm-inline">Volver a </span>Mis Pagos
+            </a>
+        </div>
+    </div>
 
     <div class="card p-3 mb-4">
         <form method="POST" action="{{ url_for('main.list_pending_payments') }}" class="row g-3 align-items-end">
@@ -20,7 +33,6 @@
         </form>
     </div>
 
-    <!-- Indicador de filtro activo -->
     {% if filtered_provider %}
     <div class="alert alert-info mb-3">
         <i class="fas fa-filter"></i> 
@@ -39,6 +51,7 @@
                 <thead>
                     <tr>
                         <th>N° Orden</th>
+                        <th>Sede</th>
                         <th>Cliente</th>
                         <th>Proveedor</th>
                         <th>Monto Total</th>
@@ -53,6 +66,13 @@
                     {% for order in orders %}
                     <tr>
                         <td>{{ order.order_number }}</td>
+                        <td>
+                            {% if order.sede %}
+                                <span class="badge bg-info">{{ order.sede.name }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Central</span>
+                            {% endif %}
+                        </td>
                         <td>{{ order.client_name }}</td>
                         <td>{{ order.provider.razon_social or order.provider.name }}</td>
                         <td>${{ "%.2f"|format(order.total_amount) }}</td>
@@ -75,15 +95,98 @@
                         </td>
                         <td>{{ order.created_at.strftime('%d/%m/%Y') }}</td>
                         <td>
-                            <a href="{{ url_for('main.view_order', order_id=order.id) }}" class="btn btn-sm btn-primary me-2" title="Ver Detalle"><i class="fas fa-eye"></i></a>
-                            <a href="{{ url_for('main.add_payment', order_id=order.id) }}" class="btn btn-sm btn-success" title="Registrar Pago"><i class="fas fa-dollar-sign"></i></a>
+                            <div class="btn-group" role="group">
+                                <a href="{{ url_for('main.view_order', order_id=order.id) }}" class="btn btn-sm btn-primary" title="Ver Detalle">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ url_for('main.add_payment', order_id=order.id) }}" class="btn btn-sm btn-success" title="Registrar Pago">
+                                    <i class="fas fa-dollar-sign"></i>
+                                </a>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
+        
+        <div class="mt-5">
+            <h5 class="text-gradient mb-4">Resumen de Pagos Pendientes</h5>
+            <div class="row g-4">
+                <div class="col-xl-3 col-lg-6">
+                    <div class="card stats-card text-center">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center justify-content-center mb-3">
+                                <div class="bg-primary bg-opacity-10 rounded-circle p-3">
+                                    <i class="fas fa-file-invoice fa-2x text-primary"></i>
+                                </div>
+                            </div>
+                            <h6 class="text-muted">Total de Órdenes</h6>
+                            <h4>{{ orders|length }}</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-lg-6">
+                    <div class="card stats-card text-center">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center justify-content-center mb-3">
+                                <div class="bg-info bg-opacity-10 rounded-circle p-3">
+                                    <i class="fas fa-dollar-sign fa-2x text-info"></i>
+                                </div>
+                            </div>
+                            <h6 class="text-muted">Monto Total</h6>
+                            {% set total_amount = orders|map(attribute='total_amount')|sum %}
+                            <h4>${{ "%.2f"|format(total_amount) }}</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-lg-6">
+                    <div class="card stats-card text-center">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center justify-content-center mb-3">
+                                <div class="bg-success bg-opacity-10 rounded-circle p-3">
+                                    <i class="fas fa-check-circle fa-2x text-success"></i>
+                                </div>
+                            </div>
+                            <h6 class="text-muted">Total Pagado</h6>
+                            {% set total_paid = 0 %}
+                            {% for order in orders %}
+                                {% set paid = order.payments|map(attribute='amount')|sum %}
+                                {% set total_paid = total_paid + paid %}
+                            {% endfor %}
+                            <h4>${{ "%.2f"|format(total_paid) }}</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-lg-6">
+                    <div class="card stats-card text-center">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center justify-content-center mb-3">
+                                <div class="bg-danger bg-opacity-10 rounded-circle p-3">
+                                    <i class="fas fa-exclamation-triangle fa-2x text-danger"></i>
+                                </div>
+                            </div>
+                            <h6 class="text-muted">Total Pendiente</h6>
+                            {% set total_pending = 0 %}
+                            {% for order in orders %}
+                                {% if order.payments %}
+                                    {% set paid = order.payments|map(attribute='amount')|sum %}
+                                {% else %}
+                                    {% set paid = 0 %}
+                                {% endif %}
+                                {% set total_pending = total_pending + (order.total_amount - paid) %}
+                            {% endfor %}
+                            <h4>${{ "%.2f"|format(total_pending) }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     {% else %}
-        <p>No hay órdenes pendientes de pago.</p>
+        <div class="alert alert-info text-center">
+            <i class="fas fa-info-circle"></i>
+            <h4>No hay órdenes pendientes de pago</h4>
+            <p class="mb-0">Todas las órdenes han sido pagadas completamente.</p>
+        </div>
     {% endif %}
 {% endblock %}

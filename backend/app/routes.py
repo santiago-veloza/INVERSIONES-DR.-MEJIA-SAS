@@ -1,6 +1,6 @@
 from flask import render_template, flash, redirect, url_for, request, current_app, send_from_directory, jsonify
 from flask_login import current_user, login_user, logout_user, login_required
-from app import db, login_manager
+from app import db, login_manager, csrf
 from app import bp
 from app.models import User, Provider, WorkOrder, Payment, Notification, Sede, SedeMessage
 from app.forms import (
@@ -13,7 +13,129 @@ from functools import wraps
 from urllib.parse import urlparse
 import os
 import uuid # Para generar IDs únicos para órdenes
+import bleach
+import html
+import re
+import mimetypes  # Alternativa más simple que python-magic
 from datetime import datetime
+
+# Configuración de sanitización
+ALLOWED_TAGS = ['b', 'i', 'em', 'strong', 'p', 'br', 'ul', 'ol', 'li']
+ALLOWED_ATTRIBUTES = {}
+
+# Configuración de archivos permitidos
+ALLOWED_EXTENSIONS = {'pdf', 'png', 'jpg', 'jpeg', 'gif', 'doc', 'docx', 'txt'}
+ALLOWED_MIME_TYPES = {
+    'application/pdf',
+    'image/png', 'image/jpeg', 'image/gif',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'text/plain'
+}
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
+
+def validate_file_upload(file):
+    """Valida archivos subidos de forma exhaustiva"""
+    errors = []
+    
+    if not file or not file.filename:
+        return ["No se ha seleccionado ningún archivo"], None
+    
+    # Sanitizar nombre de archivo
+    original_filename = file.filename
+    secure_name = secure_filename(original_filename)
+    
+    if not secure_name:
+        errors.append("Nombre de archivo inválido")
+        return errors, None
+    
+    # Validar extensión
+    if '.' not in secure_name:
+        errors.append("El archivo debe tener una extensión")
+        return errors, None
+        
+    extension = secure_name.rsplit('.', 1)[1].lower()
+    if extension not in ALLOWED_EXTENSIONS:
+        errors.append(f"Extensión de archivo no permitida. Permitidas: {', '.join(ALLOWED_EXTENSIONS)}")
+    
+    # Leer contenido del archivo para validaciones
+    file_content = file.read()
+    file.seek(0)  # Resetear puntero del archivo
+    
+    # Validar tamaño
+    if len(file_content) > MAX_FILE_SIZE:
+        errors.append(f"El archivo es demasiado grande. Máximo permitido: {MAX_FILE_SIZE / (1024*1024):.1f}MB")
+    
+    # Validar tipo MIME usando mimetypes (más compatible)
+    try:
+        detected_mime, _ = mimetypes.guess_type(secure_name)
+        if detected_mime and detected_mime not in ALLOWED_MIME_TYPES:
+            errors.append(f"Tipo de archivo no permitido: {detected_mime}")
+    except Exception as e:
+        errors.append("Error al verificar el tipo de archivo")
+    
+    # Validar contenido básico (no archivos ejecutables)
+    dangerous_signatures = [
+        b'\x4d\x5a',  # MZ header (ejecutables Windows)
+        b'\x7f\x45\x4c\x46',  # ELF header (ejecutables Linux)
+        b'\xfe\xed\xfa',  # Mach-O header (ejecutables macOS)
+        b'<script',  # Scripts en archivos de texto
+        b'<?php',  # Código PHP
+    ]
+    
+    file_start = file_content[:100].lower()
+    for signature in dangerous_signatures:
+        if signature in file_start:
+            errors.append("El archivo contiene contenido potencialmente peligroso")
+            break
+    
+    if errors:
+        return errors, None
+        
+    # Generar nombre único y seguro
+    unique_filename = f"{uuid.uuid4().hex}_{secure_name}"
+    
+    return [], unique_filename
+
+def sanitize_input(input_string):
+    """Sanitiza entrada de usuario para prevenir XSS"""
+    if not input_string:
+        return input_string
+    
+    # Eliminar caracteres peligrosos
+    cleaned = bleach.clean(str(input_string), tags=ALLOWED_TAGS, attributes=ALLOWED_ATTRIBUTES)
+    # Escape adicional para HTML
+    cleaned = html.escape(cleaned, quote=True)
+    return cleaned.strip()
+
+def validate_and_sanitize_form_data(form_data, required_fields=None):
+    """Valida y sanitiza datos de formulario"""
+    sanitized_data = {}
+    errors = []
+    
+    if required_fields is None:
+        required_fields = []
+    
+    for key, value in form_data.items():
+        if value is not None:
+            sanitized_value = sanitize_input(value)
+            
+            # Validaciones específicas
+            if key in ['email'] and sanitized_value:
+                if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', sanitized_value):
+                    errors.append(f'El formato del email {key} no es válido')
+            
+            if key in ['phone'] and sanitized_value:
+                if not re.match(r'^[\d\s\-\+\(\)]+$', sanitized_value):
+                    errors.append(f'El formato del teléfono {key} no es válido')
+            
+            sanitized_data[key] = sanitized_value
+        
+        # Verificar campos obligatorios
+        if key in required_fields and (not value or not sanitized_data.get(key)):
+            errors.append(f'El campo {key} es obligatorio')
+    
+    return sanitized_data, errors
 
 # --- Decoradores para roles ---
 def role_required(*roles):
@@ -73,6 +195,13 @@ def login():
             session['sede_seleccionada'] = sede_id
         
         login_user(user, remember=form.remember_me.data)
+        
+        # Inicializar timeout de sesión
+        from flask import session
+        from datetime import datetime
+        session['last_activity'] = datetime.now().isoformat()
+        session.permanent = True
+        
         next_page = request.args.get('next')
         if not next_page or urlparse(next_page).netloc != '':
             next_page = url_for('main.index')
@@ -486,6 +615,42 @@ def change_provider_password(provider_id):
     new_password = request.form.get('new_password')
     confirm_password = request.form.get('confirm_password')
     
+    # Sanitizar y validar datos del formulario
+    form_data = {
+        'new_password': new_password,
+        'confirm_password': confirm_password
+    }
+    
+    sanitized_data, validation_errors = validate_and_sanitize_form_data(
+        form_data, 
+        required_fields=['new_password', 'confirm_password']
+    )
+    
+    if validation_errors:
+        for error in validation_errors:
+            flash(error, 'error')
+        return redirect(url_for('main.list_providers'))
+    
+    new_password = sanitized_data['new_password']
+    confirm_password = sanitized_data['confirm_password']
+    
+    # Validaciones adicionales de seguridad
+    if len(new_password) < 8:
+        flash('La contraseña debe tener al menos 8 caracteres.', 'error')
+        return redirect(url_for('main.list_providers'))
+        
+    if not re.search(r'[A-Z]', new_password):
+        flash('La contraseña debe contener al menos una letra mayúscula.', 'error')
+        return redirect(url_for('main.list_providers'))
+        
+    if not re.search(r'[a-z]', new_password):
+        flash('La contraseña debe contener al menos una letra minúscula.', 'error')
+        return redirect(url_for('main.list_providers'))
+        
+    if not re.search(r'\d', new_password):
+        flash('La contraseña debe contener al menos un número.', 'error')
+        return redirect(url_for('main.list_providers'))
+    
     # Validaciones
     if not new_password or not confirm_password:
         flash('Todos los campos son obligatorios.', 'error')
@@ -522,15 +687,30 @@ def list_sedes():
 @login_required
 @role_required('admin', 'asistente')
 def add_sede():
-    name = request.form.get('name')
-    city = request.form.get('city')
-    address = request.form.get('address')
-    phone = request.form.get('phone')
-    manager = request.form.get('manager')
+    # Sanitizar y validar datos del formulario
+    form_data = {
+        'name': request.form.get('name'),
+        'city': request.form.get('city'),
+        'address': request.form.get('address'),
+        'phone': request.form.get('phone'),
+        'manager': request.form.get('manager')
+    }
     
-    if not name or not city:
-        flash('Nombre y ciudad son campos obligatorios.', 'error')
+    sanitized_data, validation_errors = validate_and_sanitize_form_data(
+        form_data, 
+        required_fields=['name', 'city']
+    )
+    
+    if validation_errors:
+        for error in validation_errors:
+            flash(error, 'error')
         return redirect(url_for('main.list_sedes'))
+    
+    name = sanitized_data['name']
+    city = sanitized_data['city']
+    address = sanitized_data.get('address', '')
+    phone = sanitized_data.get('phone', '')
+    manager = sanitized_data.get('manager', '')
     
     # Verificar si ya existe
     existing_sede = Sede.query.filter_by(name=name).first()
@@ -652,15 +832,30 @@ def sede_payments():
         sede_id = current_user.sede_id
         session['sede_seleccionada'] = sede_id
     
-    # Obtener órdenes de la sede
-    orders = WorkOrder.query.filter_by(sede_id=sede_id).all()
+    # Obtener órdenes de la sede con información de pagos
+    orders = WorkOrder.query.filter_by(sede_id=sede_id).order_by(WorkOrder.created_at.desc()).all()
+    
+    # Separar órdenes por estado de pago
+    pending_payments = [order for order in orders if order.payment_status in ['pendiente', 'parcialmente_pagada']]
+    paid_orders = [order for order in orders if order.payment_status == 'pagada']
+    
+    # Obtener proveedores únicos que tienen órdenes en esta sede
+    provider_ids = {order.provider_id for order in orders if order.provider_id}
+    providers = Provider.query.filter(Provider.id.in_(provider_ids)).all() if provider_ids else []
+    
     sede = Sede.query.get(sede_id)
     
     if not sede:
         flash('Sede no encontrada.', 'danger')
         return redirect(url_for('main.index'))
     
-    return render_template('pagos/sede_payments.html', title=f'Pagos - {sede.name}', orders=orders, sede=sede)
+    return render_template('pagos/sede_payments.html', 
+                         title=f'Gestión de Pagos - {sede.name}', 
+                         orders=orders, 
+                         pending_payments=pending_payments,
+                         paid_orders=paid_orders,
+                         providers=providers,
+                         sede=sede)
 
 # --- Rutas de Órdenes de Trabajo ---
 @bp.route('/orders')
@@ -692,8 +887,22 @@ def create_order():
         order = WorkOrder(
             order_number=order_number,
             client_name=form.client_name.data,
+            client_cc=form.client_cc.data,
+            receipt_number=form.receipt_number.data,
+            lens_type=form.lens_type.data,
             sede_id=form.sede_id.data,
             provider_id=form.provider_id.data,
+            # Fórmula Ojo Derecho
+            formula_od_esfera=form.formula_od_esfera.data,
+            formula_od_cilindro=form.formula_od_cilindro.data,
+            formula_od_eje=form.formula_od_eje.data,
+            formula_od_adicion=form.formula_od_adicion.data,
+            # Fórmula Ojo Izquierdo
+            formula_oi_esfera=form.formula_oi_esfera.data,
+            formula_oi_cilindro=form.formula_oi_cilindro.data,
+            formula_oi_eje=form.formula_oi_eje.data,
+            formula_oi_adicion=form.formula_oi_adicion.data,
+            # Información adicional
             formula_details=form.formula_details.data,
             due_date=form.due_date.data,
             comments=form.comments.data,
@@ -710,6 +919,15 @@ def create_order():
             notification = Notification(
                 user_id=provider_user.id,
                 message=f'🆕 Nueva orden recibida! N°: {order.order_number} para {order.client_name}. Por favor acepta o rechaza esta orden.',
+                work_order_id=order.id
+            )
+            db.session.add(notification)
+            
+        # Notificar a la sede que creó la orden (si es admin_sede)
+        if current_user.role == 'admin_sede':
+            notification = Notification(
+                user_id=current_user.id,
+                message=f'✅ Orden creada exitosamente. La orden N° {order.order_number} para {order.client_name} ha sido enviada al proveedor {order.provider.name}.',
                 work_order_id=order.id
             )
             db.session.add(notification)
@@ -806,6 +1024,12 @@ def update_order_status(order_id):
     if form.validate_on_submit():
         old_status = order.status
         order.status = form.status.data
+        
+        # Manejar rechazo: almacenar razón y incrementar contador
+        if order.status == 'rechazada' and old_status != 'rechazada':
+            order.rejection_reason = form.rejection_reason.data
+            order.rejection_count = (order.rejection_count or 0) + 1
+        
         # Asegurar que comments sea string antes de concatenar
         if order.comments is None:
             order.comments = ''
@@ -814,6 +1038,11 @@ def update_order_status(order_id):
             order.comments += f"\n[{timestamp}] {current_user.username} cambió el estado a '{order.status}'. Comentarios: {form.comments.data}"
         else:
             order.comments += f"\n[{timestamp}] {current_user.username} cambió el estado a '{order.status}'."
+        
+        # Agregar razón de rechazo a los comentarios si aplica
+        if order.status == 'rechazada' and form.rejection_reason.data:
+            order.comments += f"\n[{timestamp}] Razón del rechazo: {form.rejection_reason.data}"
+        
         db.session.commit()
 
         # Notificaciones automáticas según el flujo
@@ -823,26 +1052,77 @@ def update_order_status(order_id):
             if provider_user:
                 notification = Notification(user_id=provider_user.id, message=f'Nueva orden N° {order.order_number} enviada para {order.client_name}. Por favor revisa y acepta/rechaza.', work_order_id=order.id)
                 db.session.add(notification)
+                
+            # También confirmar a la sede que envió la orden
+            if old_status != 'enviada':  # Solo si es un cambio nuevo a enviada
+                sede_admins = User.query.filter_by(role='admin_sede', sede_id=order.sede_id, is_active=True).all()
+                for admin_user in sede_admins:
+                    notification = Notification(
+                        user_id=admin_user.id, 
+                        message=f'📧 Orden enviada exitosamente. La orden N° {order.order_number} para {order.client_name} ha sido enviada al proveedor {order.provider.name}.', 
+                        work_order_id=order.id
+                    )
+                    db.session.add(notification)
         elif order.status == 'aceptada' and old_status != 'aceptada':
-            # Proveedor aceptó la orden - notificar a la óptica
+            # Proveedor aceptó la orden - notificar PRINCIPALMENTE a la sede que la envió
+            sede_admins = User.query.filter_by(role='admin_sede', sede_id=order.sede_id, is_active=True).all()
+            for admin_user in sede_admins:
+                notification = Notification(
+                    user_id=admin_user.id, 
+                    message=f'✅ ¡Orden aceptada! El proveedor {order.provider.name} ha aceptado la orden N° {order.order_number} para {order.client_name}.', 
+                    work_order_id=order.id
+                )
+                db.session.add(notification)
+            
+            # También notificar a administradores centrales (para monitoreo general)
             optica_users = User.query.filter(User.role.in_(['admin', 'asistente'])).all()
             for u in optica_users:
                 notification = Notification(user_id=u.id, message=f'¡Orden aceptada! El proveedor {order.provider.name} ha aceptado la orden N° {order.order_number} para {order.client_name}.', work_order_id=order.id)
                 db.session.add(notification)
         elif order.status == 'rechazada' and old_status != 'rechazada':
-            # Proveedor rechazó la orden - notificar a la óptica
+            # Proveedor rechazó la orden - notificar a la sede que la envió
+            sede_admins = User.query.filter_by(role='admin_sede', sede_id=order.sede_id, is_active=True).all()
+            for admin_user in sede_admins:
+                notification = Notification(
+                    user_id=admin_user.id, 
+                    message=f'⚠️ Orden rechazada N° {order.order_number} para {order.client_name}. Razón: {order.rejection_reason}. Puede hacer ajustes y reenviar la orden.', 
+                    work_order_id=order.id
+                )
+                db.session.add(notification)
+            
+            # También notificar a administradores centrales
             optica_users = User.query.filter(User.role.in_(['admin', 'asistente'])).all()
             for u in optica_users:
-                notification = Notification(user_id=u.id, message=f'⚠️ Orden rechazada. El proveedor {order.provider.name} ha rechazado la orden N° {order.order_number} para {order.client_name}.', work_order_id=order.id)
+                notification = Notification(user_id=u.id, message=f'⚠️ Orden rechazada. El proveedor {order.provider.name} ha rechazado la orden N° {order.order_number} para {order.client_name}. Razón: {order.rejection_reason}', work_order_id=order.id)
                 db.session.add(notification)
         elif order.status == 'en_proceso' and old_status != 'en_proceso':
-            # Proveedor inició el trabajo - notificar a la óptica
+            # Proveedor inició el trabajo - notificar PRINCIPALMENTE a la sede que la envió
+            sede_admins = User.query.filter_by(role='admin_sede', sede_id=order.sede_id, is_active=True).all()
+            for admin_user in sede_admins:
+                notification = Notification(
+                    user_id=admin_user.id, 
+                    message=f'🔧 Trabajo iniciado. El proveedor {order.provider.name} ha iniciado el trabajo en la orden N° {order.order_number} para {order.client_name}.', 
+                    work_order_id=order.id
+                )
+                db.session.add(notification)
+            
+            # También notificar a administradores centrales
             optica_users = User.query.filter(User.role.in_(['admin', 'asistente'])).all()
             for u in optica_users:
                 notification = Notification(user_id=u.id, message=f'🔧 Trabajo iniciado. El proveedor {order.provider.name} ha iniciado el trabajo en la orden N° {order.order_number} para {order.client_name}.', work_order_id=order.id)
                 db.session.add(notification)
         elif order.status == 'devuelta_proveedor' and old_status != 'devuelta_proveedor':
-            # Proveedor terminó el trabajo - notificar a la óptica
+            # Proveedor terminó el trabajo - notificar PRINCIPALMENTE a la sede que la envió
+            sede_admins = User.query.filter_by(role='admin_sede', sede_id=order.sede_id, is_active=True).all()
+            for admin_user in sede_admins:
+                notification = Notification(
+                    user_id=admin_user.id, 
+                    message=f'✅ ¡Trabajo terminado! El proveedor {order.provider.name} ha terminado la orden N° {order.order_number} para {order.client_name}. Lista para recoger.', 
+                    work_order_id=order.id
+                )
+                db.session.add(notification)
+            
+            # También notificar a administradores centrales
             optica_users = User.query.filter(User.role.in_(['admin', 'asistente'])).all()
             for u in optica_users:
                 notification = Notification(user_id=u.id, message=f'✅ ¡Trabajo terminado! El proveedor {order.provider.name} ha terminado la orden N° {order.order_number} para {order.client_name}. Lista para recoger.', work_order_id=order.id)
@@ -866,18 +1146,36 @@ def update_order_status(order_id):
 # --- Rutas de Pagos ---
 @bp.route('/order/<int:order_id>/payment/new', methods=['GET', 'POST'])
 @login_required
-@role_required('admin', 'asistente')
+@role_required('admin', 'asistente', 'admin_sede')
 def add_payment(order_id):
     order = WorkOrder.query.get_or_404(order_id)
+    
+    # Verificar permisos para admin_sede: solo puede agregar pagos a órdenes de su sede
+    if current_user.role == 'admin_sede':
+        if order.sede_id != current_user.sede_id:
+            flash('No tienes permisos para registrar pagos de órdenes de otras sedes.', 'danger')
+            return redirect(url_for('main.list_orders'))
+    
     form = PaymentForm()
     if form.validate_on_submit():
         support_filename = None
         if form.support_file.data:
-            filename = secure_filename(form.support_file.data.filename)
-            unique_filename = f"{uuid.uuid4().hex}_{filename}"
-            filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], unique_filename)
-            form.support_file.data.save(filepath)
-            support_filename = unique_filename
+            # Validar archivo de forma segura
+            validation_errors, validated_filename = validate_file_upload(form.support_file.data)
+            
+            if validation_errors:
+                for error in validation_errors:
+                    flash(error, 'error')
+                return render_template('pagos/add_payment.html', form=form, order=order, title='Registrar Pago')
+            
+            # Guardar archivo validado
+            filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], validated_filename)
+            try:
+                form.support_file.data.save(filepath)
+                support_filename = validated_filename
+            except Exception as e:
+                flash(f'Error al guardar el archivo: {str(e)}', 'error')
+                return render_template('pagos/add_payment.html', form=form, order=order, title='Registrar Pago')
 
         payment = Payment(
             amount=form.amount.data,
@@ -917,12 +1215,22 @@ def add_payment(order_id):
 
 @bp.route('/payments/pending', methods=['GET', 'POST'])
 @login_required
-@role_required('admin', 'asistente')
+@role_required('admin', 'asistente', 'admin_sede')
 def list_pending_payments():
-    form = PendingPaymentsFilterForm()
-    
     # Query base: órdenes que no están completamente pagadas
     query = WorkOrder.query.filter(WorkOrder.payment_status.in_(['pendiente', 'parcialmente_pagada']))
+    
+    # Filtrar por sede si es admin_sede
+    if current_user.role == 'admin_sede':
+        query = query.filter_by(sede_id=current_user.sede_id)
+    
+    # Obtener proveedores únicos que tienen órdenes pendientes
+    orders_with_providers = query.filter(WorkOrder.provider_id.isnot(None)).all()
+    provider_ids = {order.provider_id for order in orders_with_providers}
+    providers = Provider.query.filter(Provider.id.in_(provider_ids)).order_by(Provider.name).all() if provider_ids else []
+    
+    # Crear formulario con proveedores filtrados
+    form = PendingPaymentsFilterForm(providers=providers)
     
     # Variables para el template
     filtered_provider = None
@@ -1235,3 +1543,141 @@ def inject_notifications():
             sede_messages_count=sede_messages_count
         )
     return dict(unread_notifications_count=0, latest_notifications=[])
+
+@bp.route('/order/resubmit/<int:order_id>', methods=['GET', 'POST'])
+@login_required
+@role_required('admin', 'asistente', 'admin_sede')
+def resubmit_order(order_id):
+    order = WorkOrder.query.get_or_404(order_id)
+    
+    # Verificar que la orden esté en estado rechazada
+    if order.status != 'rechazada':
+        flash('Solo se pueden reenviar órdenes que han sido rechazadas.', 'danger')
+        return redirect(url_for('main.view_order', order_id=order_id))
+    
+    # Verificar permisos para admin_sede: solo puede reenviar órdenes de su sede
+    if current_user.role == 'admin_sede':
+        if order.sede_id != current_user.sede_id:
+            flash('No tienes permisos para reenviar órdenes de otras sedes.', 'danger')
+            return redirect(url_for('main.list_orders'))
+    
+    form = WorkOrderForm(current_user=current_user, obj=order)
+    if form.validate_on_submit():
+        # Validación adicional para admin_sede: no puede cambiar la sede
+        if current_user.role == 'admin_sede':
+            if form.sede_id.data != current_user.sede_id:
+                flash('No puedes cambiar la sede de origen de la orden.', 'danger')
+                return render_template('ordenes/resubmit.html', title=f'Reenviar Orden {order.order_number}', form=form, order=order)
+        
+        # Actualizar los datos de la orden
+        form.populate_obj(order)
+        
+        # Cambiar estado a enviada y registrar el reenvío
+        order.status = 'enviada'
+        order.resubmitted_at = datetime.utcnow()
+        order.resubmitted_by_user_id = current_user.id
+        
+        # Agregar comentario sobre el reenvío
+        if order.comments is None:
+            order.comments = ''
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M')
+        order.comments += f"\n[{timestamp}] {current_user.username} reenvió la orden después del rechazo. Ajustes realizados."
+        
+        db.session.flush()  # Para asegurar que order.id esté disponible
+        
+        # Notificar al proveedor sobre el reenvío
+        provider_user = User.query.filter_by(provider_id=order.provider_id, role='proveedor').first()
+        if provider_user:
+            notification = Notification(
+                user_id=provider_user.id,
+                message=f'🔄 Orden reenviada N° {order.order_number} para {order.client_name}. Se han realizado ajustes según su solicitud. Por favor revise nuevamente.',
+                work_order_id=order.id
+            )
+            db.session.add(notification)
+        
+        db.session.commit()
+        flash(f'Orden N° {order.order_number} reenviada exitosamente al proveedor con los ajustes realizados.', 'success')
+        return redirect(url_for('main.view_order', order_id=order.id))
+    
+    return render_template('ordenes/resubmit.html', title=f'Reenviar Orden {order.order_number}', form=form, order=order)
+
+# Ruta de prueba para verificar notificaciones
+@bp.route('/debug/notifications')
+@login_required
+def debug_notifications():
+    if current_user.role not in ['admin', 'admin_sede']:
+        flash('Sin permisos para esta vista de debug.', 'danger')
+        return redirect(url_for('main.index'))
+    
+    # Obtener notificaciones del usuario actual
+    user_notifications = Notification.query.filter_by(user_id=current_user.id).order_by(Notification.created_at.desc()).limit(10).all()
+    
+    debug_info = {
+        'user_id': current_user.id,
+        'username': current_user.username,
+        'role': current_user.role,
+        'sede_id': current_user.sede_id,
+        'total_notifications': len(user_notifications),
+        'unread_count': Notification.query.filter_by(user_id=current_user.id, is_read=False).count()
+    }
+    
+    return f"""
+    <h2>DEBUG: Notificaciones para {current_user.username}</h2>
+    <p><strong>ID Usuario:</strong> {debug_info['user_id']}</p>
+    <p><strong>Rol:</strong> {debug_info['role']}</p>
+    <p><strong>Sede ID:</strong> {debug_info['sede_id']}</p>
+    <p><strong>Total notificaciones:</strong> {debug_info['total_notifications']}</p>
+    <p><strong>No leídas:</strong> {debug_info['unread_count']}</p>
+    
+    <h3>Últimas 10 notificaciones:</h3>
+    <ul>
+    {''.join([f"<li>ID: {n.id} | Leída: {n.is_read} | Fecha: {n.created_at} | Orden: {n.work_order_id}<br>Mensaje: {n.message[:100]}...</li>" for n in user_notifications])}
+    </ul>
+    
+    <a href="/index">Volver al inicio</a>
+    """
+
+# --- Rutas API para manejo de sesiones ---
+
+@bp.route('/api/session/status')
+@login_required
+@csrf.exempt
+def session_status():
+    """API para verificar el estado de la sesión"""
+    from flask import session, jsonify, current_app
+    from datetime import datetime
+    
+    last_activity = session.get('last_activity')
+    if last_activity:
+        last_activity_dt = datetime.fromisoformat(last_activity)
+        time_since_activity = (datetime.now() - last_activity_dt).total_seconds()
+        session_timeout = current_app.config['PERMANENT_SESSION_LIFETIME'].total_seconds()
+        warning_time = current_app.config['SESSION_TIMEOUT_WARNING'].total_seconds()
+        
+        return jsonify({
+            'authenticated': True,
+            'time_since_activity': time_since_activity,
+            'session_timeout': session_timeout,
+            'warning_time': warning_time,
+            'time_remaining': session_timeout - time_since_activity,
+            'should_warn': time_since_activity >= warning_time
+        })
+    
+    return jsonify({'authenticated': False})
+
+@bp.route('/api/session/extend', methods=['POST'])
+@login_required
+@csrf.exempt
+def extend_session():
+    """API para extender la sesión del usuario"""
+    from flask import session, jsonify
+    from datetime import datetime
+    
+    session['last_activity'] = datetime.now().isoformat()
+    session.permanent = True
+    
+    return jsonify({
+        'success': True,
+        'message': 'Sesión extendida exitosamente',
+        'extended_at': session['last_activity']
+    })

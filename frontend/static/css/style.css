@@ -1,71 +1,490 @@
-/* Estilos personalizados para la aplicación */
+/* ==========================================
+   ESTILOS COMPLEMENTARIOS PROFESIONALES
+   INVERSIONES DR. MEJÍA SAS
+========================================== */
 
-/* Layout general */
-.navbar-brand {
-    font-weight: bold;
+/* Mejoras específicas para formularios */
+.form-container {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    margin: 1rem 0;
 }
 
-/* Cards del dashboard */
-.card {
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    border: 1px solid rgba(0, 0, 0, 0.125);
+.form-container h2, .form-container h3 {
+    color: #0d6efd;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e9ecef;
+    font-weight: 700;
 }
 
-.card-body {
-    padding: 1.25rem;
+/* Mejoras para tablas responsivas */
+.table-container {
+    background: #ffffff;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    margin: 1.5rem 0;
 }
 
-/* Tablas */
-.table {
+.table-container .table {
     margin-bottom: 0;
 }
 
-.table th {
-    border-top: none;
+.table-container .table th {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    color: #ffffff;
     font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: none;
+    padding: 1.25rem 1rem;
 }
 
-/* Botones */
-.btn {
-    border-radius: 0.375rem;
+.table-container .table td {
+    padding: 1rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #e9ecef;
 }
 
-/* Estados de órdenes */
-.badge {
-    font-size: 0.75em;
+.table-container .table tbody tr:hover {
+    background-color: rgba(13, 110, 253, 0.05);
+    transform: scale(1.002);
+    transition: all 0.2s ease;
 }
 
-/* Alertas */
-.alert {
-    border-radius: 0.375rem;
+/* Mejoras para botones de acción */
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.action-buttons .btn {
+    min-width: 120px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.action-buttons .btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.action-buttons .btn:hover::before {
+    left: 100%;
+}
+
+/* Estados de órdenes con badges mejorados */
+.status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.status-badge::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.status-enviada {
+    background: linear-gradient(135deg, #cfe2ff 0%, #b6d7ff 100%);
+    color: #0a58ca;
+    border: 1px solid #b6d7ff;
+}
+
+.status-recibida {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffecb5 100%);
+    color: #664d03;
+    border: 1px solid #ffecb5;
+}
+
+.status-en_proceso {
+    background: linear-gradient(135deg, #d1ecf1 0%, #b3e5fc 100%);
+    color: #055160;
+    border: 1px solid #b3e5fc;
+}
+
+.status-completada {
+    background: linear-gradient(135deg, #d1e7dd 0%, #a3d5a3 100%);
+    color: #0f5132;
+    border: 1px solid #a3d5a3;
+}
+
+.status-entregada {
+    background: linear-gradient(135deg, #e2e3e5 0%, #d3d3d4 100%);
+    color: #41464b;
+    border: 1px solid #d3d3d4;
+}
+
+.status-cancelada {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c2c7 100%);
+    color: #842029;
+    border: 1px solid #f5c2c7;
+}
+
+/* Mejoras para cards de dashboard */
+.dashboard-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border: none;
+    border-radius: 1rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    position: relative;
+}
+
+.dashboard-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #0d6efd, #6ea8fe, #0d6efd);
+    background-size: 200% 100%;
+    animation: shimmer 3s linear infinite;
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.2);
+}
+
+.dashboard-card .card-body {
+    padding: 2rem;
+    text-align: center;
+}
+
+.dashboard-card .card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 1px;
     margin-bottom: 1rem;
 }
 
-/* Formularios */
-.form-control:focus {
-    border-color: #80bdff;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+.dashboard-card .display-4 {
+    font-weight: 700;
+    color: #0d6efd;
+    text-shadow: 0 2px 4px rgba(13, 110, 253, 0.1);
+    margin-bottom: 0.5rem;
 }
 
-/* Responsivo para tablas */
-.table-responsive {
+.dashboard-card .text-muted {
+    font-style: italic;
+    font-size: 0.875rem;
+}
+
+/* Mejoras para pagination */
+.pagination {
+    justify-content: center;
+    margin: 2rem 0;
+}
+
+.page-link {
+    border: none;
+    border-radius: 0.5rem;
+    margin: 0 0.25rem;
+    color: #0d6efd;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.page-link:hover {
+    background: #0d6efd;
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
+}
+
+.page-item.active .page-link {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    border-color: #0d6efd;
+    box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
+}
+
+/* Mejoras para modals */
+.modal-content {
+    border: none;
+    border-radius: 1rem;
+    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    color: #ffffff;
+    border: none;
+    padding: 1.5rem 2rem;
+}
+
+.modal-header .modal-title {
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+.modal-footer {
+    background: #f8f9fa;
+    border: none;
+    padding: 1.5rem 2rem;
+}
+
+/* Mejoras para breadcrumbs */
+.breadcrumb {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 2rem;
+    padding: 1rem 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1.5rem;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    content: "›";
+    color: #0d6efd;
+    font-weight: bold;
+}
+
+.breadcrumb-item.active {
+    color: #0d6efd;
+    font-weight: 600;
+}
+
+/* Mejoras para progress bars */
+.progress {
+    height: 0.75rem;
+    border-radius: 2rem;
+    background: #e9ecef;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.progress-bar {
+    background: linear-gradient(135deg, #0d6efd 0%, #6ea8fe 100%);
+    border-radius: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(45deg, 
+        rgba(255, 255, 255, 0.2) 25%, 
+        transparent 25%, 
+        transparent 50%, 
+        rgba(255, 255, 255, 0.2) 50%, 
+        rgba(255, 255, 255, 0.2) 75%, 
+        transparent 75%, 
+        transparent);
+    background-size: 1rem 1rem;
+    animation: progress-bar-stripes 1s linear infinite;
+}
+
+@keyframes progress-bar-stripes {
+    0% { background-position: 1rem 0; }
+    100% { background-position: 0 0; }
+}
+
+/* Mejoras para inputs con iconos */
+.input-group {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.input-group-text {
+    background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+    border: 2px solid #dee2e6;
+    color: #0d6efd;
+    font-weight: 600;
+}
+
+.input-group .form-control {
+    border-left: none;
+}
+
+.input-group .form-control:focus {
+    box-shadow: none;
+    border-color: #0d6efd;
+}
+
+.input-group .form-control:focus + .input-group-text {
+    border-color: #0d6efd;
+    background: linear-gradient(135deg, #cfe2ff 0%, #b6d7ff 100%);
+}
+
+/* Efectos hover para elementos interactivos */
+.clickable {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.clickable:hover {
+    transform: scale(1.02);
+}
+
+/* Mejoras para tooltips personalizados */
+.tooltip-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip-wrapper::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #212529;
+    color: #ffffff;
+    padding: 0.5rem 1rem;
     border-radius: 0.375rem;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 1000;
 }
 
-/* Espaciado personalizado */
-.mb-4 {
-    margin-bottom: 1.5rem !important;
+.tooltip-wrapper::before {
+    content: '';
+    position: absolute;
+    bottom: 117%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #212529;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
 }
 
-/* Iconos */
-.fas, .fa {
-    margin-right: 0.25rem;
+.tooltip-wrapper:hover::after,
+.tooltip-wrapper:hover::before {
+    opacity: 1;
+    visibility: visible;
 }
 
-/* Estados específicos */
-.status-enviada { color: #007bff; }
-.status-recibida { color: #ffc107; }
-.status-en_proceso { color: #17a2b8; }
-.status-completada { color: #28a745; }
-.status-entregada { color: #6c757d; }
-.status-cancelada { color: #dc3545; }
+/* Responsive improvements */
+@media (max-width: 576px) {
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .action-buttons .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .dashboard-card .card-body {
+        padding: 1.5rem;
+    }
+    
+    .form-container {
+        padding: 1.5rem;
+        margin: 0.5rem 0;
+    }
+}
+
+/* Loading spinner personalizado */
+.spinner-custom {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #e9ecef;
+    border-top: 4px solid #0d6efd;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Mejoras para lista de elementos */
+.list-group-item {
+    border: none;
+    border-left: 4px solid transparent;
+    margin-bottom: 0.5rem;
+    border-radius: 0.5rem;
+    background: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.list-group-item:hover {
+    border-left-color: #0d6efd;
+    background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%);
+    transform: translateX(5px);
+}
+
+.list-group-item.active {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    border-left-color: #ffffff;
+    color: #ffffff;
+}
+
+/* Mejoras finales */
+.text-shadow {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.box-shadow {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.rounded-custom {
+    border-radius: 1rem !important;
+}
+
+.gradient-text {
+    background: linear-gradient(135deg, #0d6efd 0%, #6ea8fe 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 700;
+}

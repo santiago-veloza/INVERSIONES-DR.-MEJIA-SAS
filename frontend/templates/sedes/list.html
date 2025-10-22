@@ -62,7 +62,9 @@
                                                     <i class="fas fa-edit"></i>
                                                 </button>
                                                 <button class="btn btn-sm {% if sede.is_active %}btn-warning{% else %}btn-success{% endif %}" 
-                                                        onclick="toggleSedeStatus({{ sede.id }}, {{ sede.is_active|lower }})"
+                                                        class="btn btn-sm toggle-status-btn" 
+                                                        data-sede-id="{{ sede.id }}" 
+                                                        data-current-status="{{ sede.is_active|lower }}"
                                                         title="{% if sede.is_active %}Desactivar{% else %}Activar{% endif %}">
                                                     <i class="fas fa-{% if sede.is_active %}pause{% else %}play{% endif %}"></i>
                                                 </button>
@@ -78,7 +80,6 @@
             </div>
         </div>
 
-        <!-- Resumen por ciudades -->
         <div class="row mt-4">
             <div class="col-md-12">
                 <div class="card">
@@ -111,7 +112,6 @@
         </div>
     {% endif %}
 
-    <!-- Modal para agregar sede -->
     <div class="modal fade" id="addSedeModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -151,7 +151,6 @@
         </div>
     </div>
 
-    <!-- Modales para editar cada sede -->
     {% for sede in sedes %}
     <div class="modal fade" id="editSedeModal{{ sede.id }}" tabindex="-1">
         <div class="modal-dialog">
@@ -217,5 +216,16 @@
                 });
             }
         }
+
+        // Configurar event listeners al cargar el DOM
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.toggle-status-btn').forEach(function(button) {
+                button.addEventListener('click', function() {
+                    const sedeId = parseInt(this.getAttribute('data-sede-id'));
+                    const isActive = this.getAttribute('data-current-status') === 'true';
+                    toggleSedeStatus(sedeId, isActive);
+                });
+            });
+        });
     </script>
 {% endblock %}

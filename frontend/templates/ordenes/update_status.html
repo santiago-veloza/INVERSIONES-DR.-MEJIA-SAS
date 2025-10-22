@@ -6,11 +6,21 @@
             {{ form.hidden_tag() }}
             <div class="mb-3">
                 {{ form.status.label(class="form-label") }}
-                {{ form.status(class="form-select") }}
+                {{ form.status(class="form-select", id="status") }}
                 {% for error in form.status.errors %}
                     <span class="text-danger">{{ error }}</span>
                 {% endfor %}
             </div>
+            
+            <div class="mb-3" id="rejection-reason-container" style="display: none;">
+                {{ form.rejection_reason.label(class="form-label") }}
+                {{ form.rejection_reason(class="form-control", rows=3, placeholder="Especifique la razón del rechazo...") }}
+                <div class="form-text">{{ form.rejection_reason.description }}</div>
+                {% for error in form.rejection_reason.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
+            </div>
+            
             <div class="mb-3">
                 {{ form.comments.label(class="form-label") }}
                 {{ form.comments(class="form-control", rows=3) }}
@@ -22,4 +32,26 @@
             <a href="{{ url_for('main.view_order', order_id=order.id) }}" class="btn btn-secondary">Cancelar</a>
         </form>
     </div>
+
+    <script>
+
+        document.getElementById('status').addEventListener('change', function() {
+            const rejectionContainer = document.getElementById('rejection-reason-container');
+            if (this.value === 'rechazada') {
+                rejectionContainer.style.display = 'block';
+                document.getElementById('rejection_reason').required = true;
+            } else {
+                rejectionContainer.style.display = 'none';
+                document.getElementById('rejection_reason').required = false;
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusSelect = document.getElementById('status');
+            if (statusSelect.value === 'rechazada') {
+                document.getElementById('rejection-reason-container').style.display = 'block';
+                document.getElementById('rejection_reason').required = true;
+            }
+        });
+    </script>
 {% endblock %}

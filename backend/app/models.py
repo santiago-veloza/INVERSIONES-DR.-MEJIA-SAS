@@ -74,9 +74,32 @@ class Provider(db.Model):
 
 class WorkOrder(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    order_number = db.Column(db.String(64), unique=True, nullable=False) # Podría ser un UUID o un consecutivo
-    client_name = db.Column(db.String(128), nullable=False)
-    formula_details = db.Column(db.Text, nullable=False) # Fórmulas ópticas
+    order_number = db.Column(db.String(64), unique=True, nullable=False) # Número o código de orden
+    
+    # Información del recibo de venta
+    receipt_number = db.Column(db.String(64), nullable=False) # Número del recibo de venta
+    
+    # Información del paciente
+    client_name = db.Column(db.String(128), nullable=False) # Nombre del paciente
+    client_cc = db.Column(db.String(20), nullable=False) # Cédula del paciente
+    
+    # Tipo de lente solicitado
+    lens_type = db.Column(db.String(128), nullable=False) # Tipo de lente solicitado
+    
+    # Fórmula óptica detallada por ojo
+    formula_od_esfera = db.Column(db.String(10)) # Ojo derecho - Esfera
+    formula_od_cilindro = db.Column(db.String(10)) # Ojo derecho - Cilindro  
+    formula_od_eje = db.Column(db.String(10)) # Ojo derecho - Eje
+    formula_od_adicion = db.Column(db.String(10)) # Ojo derecho - Adición
+    
+    formula_oi_esfera = db.Column(db.String(10)) # Ojo izquierdo - Esfera
+    formula_oi_cilindro = db.Column(db.String(10)) # Ojo izquierdo - Cilindro
+    formula_oi_eje = db.Column(db.String(10)) # Ojo izquierdo - Eje
+    formula_oi_adicion = db.Column(db.String(10)) # Ojo izquierdo - Adición
+    
+    # Información adicional
+    formula_details = db.Column(db.Text) # Detalles adicionales de fórmulas ópticas (opcional)
+    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     due_date = db.Column(db.DateTime)
     status = db.Column(db.String(64), default='pendiente_envio') # 'pendiente_envio', 'enviada', 'en_proceso', 'devuelta_proveedor', 'recibida_optica', 'finalizada', 'cancelada'
@@ -94,6 +117,13 @@ class WorkOrder(db.Model):
     # Estado de pago de la orden (puede ser calculado en tiempo real o actualizado)
     payment_status = db.Column(db.String(64), default='pendiente') # 'pendiente', 'parcialmente_pagada', 'pagada'
     total_amount = db.Column(db.Float, default=0.0) # Monto total que se debe pagar al proveedor por esta orden
+
+    # Sistema de rechazos y reenvíos
+    rejection_reason = db.Column(db.Text)  # Razón del rechazo
+    rejection_count = db.Column(db.Integer, default=0)  # Número de rechazos
+    resubmitted_at = db.Column(db.DateTime)  # Fecha del último reenvío
+    resubmitted_by_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # Usuario que reenvió
+    resubmitted_by = db.relationship('User', backref='resubmitted_orders', foreign_keys=[resubmitted_by_user_id])
 
     def __repr__(self):
         return f'<WorkOrder {self.order_number} - {self.client_name}>'
