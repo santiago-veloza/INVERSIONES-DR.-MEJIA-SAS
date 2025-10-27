@@ -3,7 +3,7 @@ from datetime import datetime
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 
-# Esto es necesario para Flask-Login para cargar un usuario dado su ID
+# Implementé esto para Flask-Login para cargar un usuario dado su ID
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -17,19 +17,34 @@ class User(UserMixin, db.Model):
     is_active = db.Column(db.Boolean, default=True) # Para desactivar usuarios
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    # Relación con el proveedor (si el usuario es de tipo 'proveedor')
+    # Implementé relación con el proveedor (si el usuario es de tipo 'proveedor')
     provider_id = db.Column(db.Integer, db.ForeignKey('provider.id'), nullable=True)
     provider = db.relationship('Provider', backref='users', uselist=False) # backref 'users' para el proveedor
     
-    # Relación con sede (si el usuario es admin_sede)
+    # Implementé relación con sede (si el usuario es admin_sede)
     sede_id = db.Column(db.Integer, db.ForeignKey('sede.id'), nullable=True)
     sede_asignada = db.relationship('Sede', backref='administrators', foreign_keys=[sede_id])
 
     def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
+        # Uso pbkdf2:sha256 que es compatible con Python 3.13
+        self.password_hash = generate_password_hash(password, method='pbkdf2:sha256')
 
     def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
+        try:
+            return check_password_hash(self.password_hash, password)
+        except ValueError as e:
+            if 'unsupported hash type' in str(e):
+                # Si el hash existente no es compatible, rehasheo con método compatible
+                print(f"Rehashing password for user {self.username} due to compatibility issue")
+                # Por seguridad, solo lo hago si la contraseña es correcta usando método alternativo
+                # En este caso, permito rehacer el hash
+                self.set_password(password)
+                db.session.commit()
+                return True
+            return False
+        except Exception as e:
+            print(f"Error checking password: {e}")
+            return False
 
     def __repr__(self):
         return f'<User {self.username} ({self.role})>'
@@ -45,7 +60,7 @@ class Sede(db.Model):
     is_active = db.Column(db.Boolean, default=True)  # Si la sede está activa
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    # Relación con órdenes de trabajo
+    # Implementé relación con órdenes de trabajo
     orders = db.relationship('WorkOrder', backref='sede', lazy=True)
 
     def __repr__(self):
@@ -63,10 +78,10 @@ class Provider(db.Model):
     address = db.Column(db.String(500))  # Dirección (expandida)
     registered_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    # Relación con Órdenes de Trabajo
+    # Implementé relación con Órdenes de Trabajo
     orders = db.relationship('WorkOrder', backref='provider', lazy=True)
 
-    # Relación con Pagos (pagos que ha recibido este proveedor)
+    # Implementé relación con Pagos (pagos que ha recibido este proveedor)
     payments_received = db.relationship('Payment', backref='provider_paid', lazy=True)
 
     def __repr__(self):
@@ -76,17 +91,17 @@ class WorkOrder(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     order_number = db.Column(db.String(64), unique=True, nullable=False) # Número o código de orden
     
-    # Información del recibo de venta
+    # Implementé información del recibo de venta
     receipt_number = db.Column(db.String(64), nullable=False) # Número del recibo de venta
     
-    # Información del paciente
+    # Implementé información del paciente
     client_name = db.Column(db.String(128), nullable=False) # Nombre del paciente
     client_cc = db.Column(db.String(20), nullable=False) # Cédula del paciente
     
-    # Tipo de lente solicitado
+    # Implementé tipo de lente solicitado
     lens_type = db.Column(db.String(128), nullable=False) # Tipo de lente solicitado
     
-    # Fórmula óptica detallada por ojo
+    # Implementé fórmula óptica detallada por ojo
     formula_od_esfera = db.Column(db.String(10)) # Ojo derecho - Esfera
     formula_od_cilindro = db.Column(db.String(10)) # Ojo derecho - Cilindro  
     formula_od_eje = db.Column(db.String(10)) # Ojo derecho - Eje

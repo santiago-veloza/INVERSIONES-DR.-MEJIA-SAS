@@ -12,18 +12,18 @@ from werkzeug.utils import secure_filename
 from functools import wraps
 from urllib.parse import urlparse
 import os
-import uuid # Para generar IDs únicos para órdenes
+import uuid # Genero IDs únicos para las órdenes de trabajo
 import bleach
 import html
 import re
-import mimetypes  # Alternativa más simple que python-magic
+import mimetypes  # Uso mimetypes en lugar de python-magic para simplicidad
 from datetime import datetime
 
-# Configuración de sanitización
+# Configuración de sanitización que implementé para seguridad
 ALLOWED_TAGS = ['b', 'i', 'em', 'strong', 'p', 'br', 'ul', 'ol', 'li']
 ALLOWED_ATTRIBUTES = {}
 
-# Configuración de archivos permitidos
+# Configuración de tipos de archivos que permito subir
 ALLOWED_EXTENSIONS = {'pdf', 'png', 'jpg', 'jpeg', 'gif', 'doc', 'docx', 'txt'}
 ALLOWED_MIME_TYPES = {
     'application/pdf',
@@ -32,10 +32,10 @@ ALLOWED_MIME_TYPES = {
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'text/plain'
 }
-MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
+MAX_FILE_SIZE = 5 * 1024 * 1024  # Límite de 5MB por archivo que establecí
 
 def validate_file_upload(file):
-    """Valida archivos subidos de forma exhaustiva"""
+    """Función que desarrollé para validar archivos subidos de forma exhaustiva"""
     errors = []
     
     if not file or not file.filename:
@@ -49,7 +49,7 @@ def validate_file_upload(file):
         errors.append("Nombre de archivo inválido")
         return errors, None
     
-    # Validar extensión
+    # Valido que el archivo tenga extensión
     if '.' not in secure_name:
         errors.append("El archivo debe tener una extensión")
         return errors, None
@@ -58,15 +58,15 @@ def validate_file_upload(file):
     if extension not in ALLOWED_EXTENSIONS:
         errors.append(f"Extensión de archivo no permitida. Permitidas: {', '.join(ALLOWED_EXTENSIONS)}")
     
-    # Leer contenido del archivo para validaciones
+    # Leo el contenido del archivo para hacer validaciones adicionales
     file_content = file.read()
-    file.seek(0)  # Resetear puntero del archivo
+    file.seek(0)  # Reseteo el puntero del archivo para uso posterior
     
-    # Validar tamaño
+    # Verifico el tamaño del archivo
     if len(file_content) > MAX_FILE_SIZE:
         errors.append(f"El archivo es demasiado grande. Máximo permitido: {MAX_FILE_SIZE / (1024*1024):.1f}MB")
     
-    # Validar tipo MIME usando mimetypes (más compatible)
+    # Valido el tipo MIME usando mimetypes (implementé esta solución por compatibilidad)
     try:
         detected_mime, _ = mimetypes.guess_type(secure_name)
         if detected_mime and detected_mime not in ALLOWED_MIME_TYPES:
@@ -74,7 +74,7 @@ def validate_file_upload(file):
     except Exception as e:
         errors.append("Error al verificar el tipo de archivo")
     
-    # Validar contenido básico (no archivos ejecutables)
+    # Implementé validación de contenido para evitar archivos ejecutables maliciosos
     dangerous_signatures = [
         b'\x4d\x5a',  # MZ header (ejecutables Windows)
         b'\x7f\x45\x4c\x46',  # ELF header (ejecutables Linux)
@@ -92,24 +92,24 @@ def validate_file_upload(file):
     if errors:
         return errors, None
         
-    # Generar nombre único y seguro
+    # Genero un nombre único y seguro para el archivo
     unique_filename = f"{uuid.uuid4().hex}_{secure_name}"
     
     return [], unique_filename
 
 def sanitize_input(input_string):
-    """Sanitiza entrada de usuario para prevenir XSS"""
+    """Función que desarrollé para sanitizar entrada de usuario y prevenir XSS"""
     if not input_string:
         return input_string
     
-    # Eliminar caracteres peligrosos
+    # Elimino caracteres peligrosos usando bleach
     cleaned = bleach.clean(str(input_string), tags=ALLOWED_TAGS, attributes=ALLOWED_ATTRIBUTES)
-    # Escape adicional para HTML
+    # Aplico escape adicional para HTML por seguridad
     cleaned = html.escape(cleaned, quote=True)
     return cleaned.strip()
 
 def validate_and_sanitize_form_data(form_data, required_fields=None):
-    """Valida y sanitiza datos de formulario"""
+    """Función que creé para validar y sanitizar datos de formulario"""
     sanitized_data = {}
     errors = []
     
@@ -120,7 +120,7 @@ def validate_and_sanitize_form_data(form_data, required_fields=None):
         if value is not None:
             sanitized_value = sanitize_input(value)
             
-            # Validaciones específicas
+            # Implementé validaciones específicas para diferentes tipos de campos
             if key in ['email'] and sanitized_value:
                 if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', sanitized_value):
                     errors.append(f'El formato del email {key} no es válido')
@@ -131,14 +131,15 @@ def validate_and_sanitize_form_data(form_data, required_fields=None):
             
             sanitized_data[key] = sanitized_value
         
-        # Verificar campos obligatorios
+        # Verifico campos obligatorios
         if key in required_fields and (not value or not sanitized_data.get(key)):
             errors.append(f'El campo {key} es obligatorio')
     
     return sanitized_data, errors
 
-# --- Decoradores para roles ---
+# --- Decoradores que implementé para control de roles ---
 def role_required(*roles):
+    """Decorador que creé para proteger rutas según el rol del usuario"""
     def wrapper(fn):
         @wraps(fn)
         def decorated_view(*args, **kwargs):
@@ -151,41 +152,51 @@ def role_required(*roles):
         return decorated_view
     return wrapper
 
-# --- Rutas de Autenticación ---
+# --- Rutas de Autenticación que desarrollé ---
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
-    form = LoginForm()
-    if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data).first()
+    
+    if request.method == 'POST':
+        # Obtengo datos del formulario directamente
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '')
+        user_type = request.form.get('user_type', '')
+        sede_id = request.form.get('sede_id', type=int)
+        remember_me = 'remember_me' in request.form
         
-        # Validar que el usuario existe, password es correcto y está activo
-        if user is None or not user.check_password(form.password.data) or not user.is_active:
+        # Validaciones básicas
+        if not username or not password or not user_type:
+            flash('Todos los campos son obligatorios.', 'danger')
+            return redirect(url_for('main.login'))
+        
+        # Buscar usuario en la base de datos
+        user = User.query.filter_by(username=username).first()
+        
+        # Valido que el usuario existe, password es correcto y está activo
+        if user is None or not user.check_password(password) or not user.is_active:
             flash('Usuario o contraseña inválidos o cuenta inactiva.', 'danger')
             return redirect(url_for('main.login'))
         
-        # Validar que el tipo de usuario seleccionado coincida con el rol del usuario
-        user_type_selected = form.user_type.data
-        
-        if user_type_selected == 'central' and user.role not in ['admin', 'asistente']:
+        # Valido que el tipo de usuario seleccionado coincida con el rol del usuario
+        if user_type == 'central' and user.role not in ['admin', 'asistente']:
             flash('Este usuario no tiene acceso a Administración Central.', 'danger')
             return redirect(url_for('main.login'))
-        elif user_type_selected == 'sede' and user.role != 'admin_sede':
+        elif user_type == 'sede' and user.role != 'admin_sede':
             flash('Este usuario no es administrador de sede.', 'danger')
             return redirect(url_for('main.login'))
-        elif user_type_selected == 'proveedor' and user.role != 'proveedor':
+        elif user_type == 'proveedor' and user.role != 'proveedor':
             flash('Este usuario no es proveedor.', 'danger')
             return redirect(url_for('main.login'))
         
         # Para administradores de sede, validar que se seleccionó una sede válida
-        if user_type_selected == 'sede':
-            sede_id = form.sede_id.data
+        if user_type == 'sede':
             if not sede_id or sede_id == 0:
                 flash('Debe seleccionar una sede.', 'danger')
                 return redirect(url_for('main.login'))
             
-            # Verificar que el usuario puede acceder a esta sede
+            # Verifico que el usuario puede acceder a esta sede
             if user.sede_id and user.sede_id != sede_id:
                 flash('No tiene permisos para acceder a esta sede.', 'danger')
                 return redirect(url_for('main.login'))
@@ -194,7 +205,8 @@ def login():
             from flask import session
             session['sede_seleccionada'] = sede_id
         
-        login_user(user, remember=form.remember_me.data)
+        # Login exitoso
+        login_user(user, remember=remember_me)
         
         # Inicializar timeout de sesión
         from flask import session
@@ -206,7 +218,7 @@ def login():
         if not next_page or urlparse(next_page).netloc != '':
             next_page = url_for('main.index')
         
-        # Mensaje personalizado según el tipo de usuario
+        # Implementé mensajes personalizados según el tipo de usuario
         if user.role == 'admin':
             flash(f'Bienvenido Administrador Central, {user.username}!', 'success')
         elif user.role == 'asistente':
@@ -218,7 +230,11 @@ def login():
             flash(f'Bienvenido Proveedor, {user.username}!', 'success')
         
         return redirect(next_page)
-    return render_template('auth/login.html', title='Iniciar Sesión', form=form)
+    
+    # GET request - mostrar el formulario de login
+    # Obtengo sedes para el select
+    sedes = Sede.query.filter_by(is_active=True).order_by(Sede.city, Sede.name).all()
+    return render_template('auth/login.html', title='Iniciar Sesión', sedes=sedes)
 
 @bp.route('/logout')
 @login_required
@@ -242,7 +258,7 @@ def register():
         return redirect(url_for('main.login'))
     return render_template('auth/register.html', title='Registrar Usuario', form=form)
 
-# --- Rutas del Panel de Control (Index) ---
+# --- Rutas del Panel de Control que implementé ---
 @bp.route('/')
 @bp.route('/index')
 @login_required
@@ -296,21 +312,21 @@ def index():
             'data': [orders_paid, orders_pending_payment]
         }
         return render_template('index.html', title='Panel de Proveedor',
-                               orders_pending_response=orders_pending_response,
-                               orders_accepted=orders_accepted,
-                               orders_in_process=orders_in_process,
-                               orders_completed=orders_completed,
-                               orders_paid=orders_paid,
-                               orders_pending_payment=orders_pending_payment,
-                               chart_data=chart_data,
-                               payment_chart_data=payment_chart_data)
+                                    orders_pending_response=orders_pending_response,
+                                    orders_accepted=orders_accepted,
+                                    orders_in_process=orders_in_process,
+                                    orders_completed=orders_completed,
+                                    orders_paid=orders_paid,
+                                    orders_pending_payment=orders_pending_payment,
+                                    chart_data=chart_data,
+                                    payment_chart_data=payment_chart_data)
     else:
         # Si un usuario proveedor no tiene provider_id asociado, o algún otro caso no manejado.
         flash('Tu cuenta no está completamente configurada. Contacta al administrador.', 'warning')
         return render_template('index.html', title='Inicio')
 
 
-# --- Dashboard Administrativo Detallado ---
+# --- Dashboard Administrativo que desarrollé ---
 @bp.route('/admin/dashboard')
 @login_required
 @role_required('admin')
@@ -319,11 +335,11 @@ def admin_dashboard():
     from sqlalchemy import func, and_, extract
     from datetime import datetime, timedelta
     
-    # Obtener mes actual
+    # Obtengo mes actual
     current_month = datetime.now().month
     current_year = datetime.now().year
     
-    # Obtener todas las sedes
+    # Obtengo todas las sedes
     sedes = Sede.query.filter_by(is_active=True).order_by(Sede.name).all()
     
     sede_stats = []
@@ -452,7 +468,7 @@ def admin_dashboard():
                          current_year=current_year)
 
 
-# --- API Endpoints para Dashboard ---
+# --- API Endpoints que creé para el Dashboard ---
 @bp.route('/api/admin/stats')
 @login_required
 @role_required('admin')
@@ -536,7 +552,7 @@ def api_sede_details(sede_id):
     })
 
 
-# --- Rutas de Proveedores (Admin y Asistente) ---
+# --- Gestión de Proveedores que desarrollé ---
 @bp.route('/providers')
 @login_required
 @role_required('admin', 'asistente')
@@ -551,7 +567,7 @@ def create_provider():
     form = ProviderForm()
     if form.validate_on_submit():
         try:
-            # Crear el proveedor
+            # Creo el proveedor
             provider = Provider(
                 nit=form.nit.data,
                 razon_social=form.razon_social.data,
@@ -564,7 +580,7 @@ def create_provider():
             db.session.add(provider)
             db.session.flush()  # Para obtener el ID del proveedor
             
-            # Crear el usuario para el proveedor
+            # Creo el usuario para el proveedor
             user = User(
                 username=form.username.data,
                 email=form.user_email.data,
@@ -615,43 +631,7 @@ def change_provider_password(provider_id):
     new_password = request.form.get('new_password')
     confirm_password = request.form.get('confirm_password')
     
-    # Sanitizar y validar datos del formulario
-    form_data = {
-        'new_password': new_password,
-        'confirm_password': confirm_password
-    }
-    
-    sanitized_data, validation_errors = validate_and_sanitize_form_data(
-        form_data, 
-        required_fields=['new_password', 'confirm_password']
-    )
-    
-    if validation_errors:
-        for error in validation_errors:
-            flash(error, 'error')
-        return redirect(url_for('main.list_providers'))
-    
-    new_password = sanitized_data['new_password']
-    confirm_password = sanitized_data['confirm_password']
-    
-    # Validaciones adicionales de seguridad
-    if len(new_password) < 8:
-        flash('La contraseña debe tener al menos 8 caracteres.', 'error')
-        return redirect(url_for('main.list_providers'))
-        
-    if not re.search(r'[A-Z]', new_password):
-        flash('La contraseña debe contener al menos una letra mayúscula.', 'error')
-        return redirect(url_for('main.list_providers'))
-        
-    if not re.search(r'[a-z]', new_password):
-        flash('La contraseña debe contener al menos una letra minúscula.', 'error')
-        return redirect(url_for('main.list_providers'))
-        
-    if not re.search(r'\d', new_password):
-        flash('La contraseña debe contener al menos un número.', 'error')
-        return redirect(url_for('main.list_providers'))
-    
-    # Validaciones
+    # Validaciones básicas (sin sanitizar las contraseñas)
     if not new_password or not confirm_password:
         flash('Todos los campos son obligatorios.', 'error')
         return redirect(url_for('main.list_providers'))
@@ -675,7 +655,7 @@ def change_provider_password(provider_id):
     
     return redirect(url_for('main.list_providers'))
 
-# --- Rutas de Sedes ---
+# --- Gestión de Sedes que implementé ---
 @bp.route('/sedes')
 @login_required
 @role_required('admin', 'asistente')
@@ -687,39 +667,56 @@ def list_sedes():
 @login_required
 @role_required('admin', 'asistente')
 def add_sede():
-    # Sanitizar y validar datos del formulario
-    form_data = {
-        'name': request.form.get('name'),
-        'city': request.form.get('city'),
-        'address': request.form.get('address'),
-        'phone': request.form.get('phone'),
-        'manager': request.form.get('manager')
-    }
+    name = request.form.get('name')
+    city = request.form.get('city')
+    address = request.form.get('address')
+    phone = request.form.get('phone')
+    manager = request.form.get('manager')
     
-    sanitized_data, validation_errors = validate_and_sanitize_form_data(
-        form_data, 
-        required_fields=['name', 'city']
-    )
+    # Datos del administrador
+    admin_username = request.form.get('admin_username')
+    admin_email = request.form.get('admin_email')
+    admin_password = request.form.get('admin_password')
+    admin_password2 = request.form.get('admin_password2')
     
-    if validation_errors:
-        for error in validation_errors:
-            flash(error, 'error')
+    # Valido datos básicos de la sede
+    if not name or not city:
+        flash('Nombre y ciudad son campos obligatorios.', 'error')
         return redirect(url_for('main.list_sedes'))
     
-    name = sanitized_data['name']
-    city = sanitized_data['city']
-    address = sanitized_data.get('address', '')
-    phone = sanitized_data.get('phone', '')
-    manager = sanitized_data.get('manager', '')
+    # Valido datos del administrador
+    if not admin_username or not admin_email or not admin_password:
+        flash('Usuario, email y contraseña del administrador son obligatorios.', 'error')
+        return redirect(url_for('main.list_sedes'))
     
-    # Verificar si ya existe
+    if admin_password != admin_password2:
+        flash('Las contraseñas del administrador no coinciden.', 'error')
+        return redirect(url_for('main.list_sedes'))
+    
+    if len(admin_password) < 6:
+        flash('La contraseña del administrador debe tener al menos 6 caracteres.', 'error')
+        return redirect(url_for('main.list_sedes'))
+    
+    # Verifico si ya existe una sede con el mismo nombre
     existing_sede = Sede.query.filter_by(name=name).first()
     if existing_sede:
         flash(f'Ya existe una sede con el nombre "{name}".', 'error')
         return redirect(url_for('main.list_sedes'))
     
+    # Verifico si ya existe un usuario con el mismo username o email
+    existing_user_username = User.query.filter_by(username=admin_username).first()
+    if existing_user_username:
+        flash(f'Ya existe un usuario con el nombre "{admin_username}".', 'error')
+        return redirect(url_for('main.list_sedes'))
+    
+    existing_user_email = User.query.filter_by(email=admin_email).first()
+    if existing_user_email:
+        flash(f'Ya existe un usuario con el email "{admin_email}".', 'error')
+        return redirect(url_for('main.list_sedes'))
+    
     try:
-        sede = Sede(
+        # Creo la sede primero
+        new_sede = Sede(
             name=name,
             city=city,
             address=address,
@@ -727,12 +724,28 @@ def add_sede():
             manager=manager,
             is_active=True
         )
-        db.session.add(sede)
+        db.session.add(new_sede)
+        db.session.flush()  # Para obtener el ID de la sede
+        
+        # Creo el usuario administrador de la sede
+        admin_user = User(
+            username=admin_username,
+            email=admin_email,
+            role='admin_sede',
+            sede_id=new_sede.id,
+            is_active=True
+        )
+        admin_user.set_password(admin_password)
+        db.session.add(admin_user)
+        
+        # Confirmar ambas transacciones
         db.session.commit()
-        flash(f'Sede "{name}" agregada exitosamente.', 'success')
+        
+        flash(f'Sede "{name}" creada exitosamente con su administrador "{admin_username}".', 'success')
+        
     except Exception as e:
         db.session.rollback()
-        flash(f'Error al agregar la sede: {str(e)}', 'error')
+        flash(f'Error al crear la sede: {str(e)}', 'error')
     
     return redirect(url_for('main.list_sedes'))
 
@@ -766,7 +779,7 @@ def edit_sede(sede_id):
         flash('Nombre y ciudad son campos obligatorios.', 'error')
         return redirect(url_for('main.list_sedes'))
     
-    # Verificar si ya existe otra sede con el mismo nombre (excluyendo la actual)
+    # Verifico si ya existe otra sede con el mismo nombre (excluyendo la actual)
     existing_sede = Sede.query.filter(Sede.name == name, Sede.id != sede_id).first()
     if existing_sede:
         flash(f'Ya existe otra sede con el nombre "{name}".', 'error')
@@ -783,6 +796,44 @@ def edit_sede(sede_id):
     except Exception as e:
         db.session.rollback()
         flash(f'Error al actualizar la sede: {str(e)}', 'error')
+    
+    return redirect(url_for('main.list_sedes'))
+
+@bp.route('/sede/change_admin_password/<int:sede_id>', methods=['POST'])
+@login_required
+@role_required('admin', 'asistente')
+def change_sede_admin_password(sede_id):
+    sede = Sede.query.get_or_404(sede_id)
+    
+    # Buscar el administrador de la sede
+    admin_user = User.query.filter_by(sede_id=sede_id, role='admin_sede', is_active=True).first()
+    if not admin_user:
+        flash('No se encontró un administrador activo para esta sede.', 'error')
+        return redirect(url_for('main.list_sedes'))
+    
+    new_password = request.form.get('new_password')
+    confirm_new_password = request.form.get('confirm_new_password')
+    
+    # Validaciones
+    if not new_password or not confirm_new_password:
+        flash('Todos los campos de contraseña son obligatorios.', 'error')
+        return redirect(url_for('main.list_sedes'))
+    
+    if new_password != confirm_new_password:
+        flash('Las contraseñas no coinciden.', 'error')
+        return redirect(url_for('main.list_sedes'))
+    
+    if len(new_password) < 6:
+        flash('La contraseña debe tener al menos 6 caracteres.', 'error')
+        return redirect(url_for('main.list_sedes'))
+    
+    try:
+        admin_user.set_password(new_password)
+        db.session.commit()
+        flash(f'Contraseña del administrador de sede "{admin_user.username}" cambiada exitosamente.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al cambiar la contraseña: {str(e)}', 'error')
     
     return redirect(url_for('main.list_sedes'))
 
@@ -827,19 +878,19 @@ def sede_payments():
     # Usar la sede del usuario si no hay sede en sesión
     sede_id = session.get('sede_seleccionada', current_user.sede_id)
     
-    # Verificar que la sede de la sesión coincida con la del usuario
+    # Verifico que la sede de la sesión coincida con la del usuario
     if sede_id != current_user.sede_id:
         sede_id = current_user.sede_id
         session['sede_seleccionada'] = sede_id
     
-    # Obtener órdenes de la sede con información de pagos
+    # Obtengo órdenes de la sede con información de pagos
     orders = WorkOrder.query.filter_by(sede_id=sede_id).order_by(WorkOrder.created_at.desc()).all()
     
     # Separar órdenes por estado de pago
     pending_payments = [order for order in orders if order.payment_status in ['pendiente', 'parcialmente_pagada']]
     paid_orders = [order for order in orders if order.payment_status == 'pagada']
     
-    # Obtener proveedores únicos que tienen órdenes en esta sede
+    # Obtengo proveedores únicos que tienen órdenes en esta sede
     provider_ids = {order.provider_id for order in orders if order.provider_id}
     providers = Provider.query.filter(Provider.id.in_(provider_ids)).all() if provider_ids else []
     
@@ -857,7 +908,7 @@ def sede_payments():
                          providers=providers,
                          sede=sede)
 
-# --- Rutas de Órdenes de Trabajo ---
+# --- Sistema de Órdenes de Trabajo que desarrollé ---
 @bp.route('/orders')
 @login_required
 def list_orders():
@@ -932,7 +983,7 @@ def create_order():
             )
             db.session.add(notification)
         db.session.commit()
-        # Obtener nombre del proveedor de forma segura (por si la relación no está cargada)
+        # Obtengo nombre del proveedor de forma segura (por si la relación no está cargada)
         provider_name = None
         if order.provider_id:
             p = Provider.query.get(order.provider_id)
@@ -962,7 +1013,7 @@ def view_order(order_id):
 def edit_order(order_id):
     order = WorkOrder.query.get_or_404(order_id)
     
-    # Verificar permisos para admin_sede: solo puede editar órdenes de su sede
+    # Verifico permisos para admin_sede: solo puede editar órdenes de su sede
     if current_user.role == 'admin_sede':
         if order.sede_id != current_user.sede_id:
             flash('No tienes permisos para editar órdenes de otras sedes.', 'danger')
@@ -1143,14 +1194,14 @@ def update_order_status(order_id):
 
     return render_template('ordenes/update_status.html', title=f'Actualizar Estado de Orden {order.order_number}', form=form, order=order)
 
-# --- Rutas de Pagos ---
+# --- Sistema de Gestión de Pagos que implementé ---
 @bp.route('/order/<int:order_id>/payment/new', methods=['GET', 'POST'])
 @login_required
 @role_required('admin', 'asistente', 'admin_sede')
 def add_payment(order_id):
     order = WorkOrder.query.get_or_404(order_id)
     
-    # Verificar permisos para admin_sede: solo puede agregar pagos a órdenes de su sede
+    # Verifico permisos para admin_sede: solo puede agregar pagos a órdenes de su sede
     if current_user.role == 'admin_sede':
         if order.sede_id != current_user.sede_id:
             flash('No tienes permisos para registrar pagos de órdenes de otras sedes.', 'danger')
@@ -1160,7 +1211,7 @@ def add_payment(order_id):
     if form.validate_on_submit():
         support_filename = None
         if form.support_file.data:
-            # Validar archivo de forma segura
+            # Valido archivo de forma segura
             validation_errors, validated_filename = validate_file_upload(form.support_file.data)
             
             if validation_errors:
@@ -1224,12 +1275,12 @@ def list_pending_payments():
     if current_user.role == 'admin_sede':
         query = query.filter_by(sede_id=current_user.sede_id)
     
-    # Obtener proveedores únicos que tienen órdenes pendientes
+    # Obtengo proveedores únicos que tienen órdenes pendientes
     orders_with_providers = query.filter(WorkOrder.provider_id.isnot(None)).all()
     provider_ids = {order.provider_id for order in orders_with_providers}
     providers = Provider.query.filter(Provider.id.in_(provider_ids)).order_by(Provider.name).all() if provider_ids else []
     
-    # Crear formulario con proveedores filtrados
+    # Creo formulario con proveedores filtrados
     form = PendingPaymentsFilterForm(providers=providers)
     
     # Variables para el template
@@ -1238,7 +1289,7 @@ def list_pending_payments():
     if request.method == 'POST' and form.validate_on_submit():
         if form.provider_id.data and form.provider_id.data != 0: # 0 representa "Todos los Proveedores"
             query = query.filter_by(provider_id=form.provider_id.data)
-            # Obtener el nombre del proveedor para mostrar en el template
+            # Obtengo el nombre del proveedor para mostrar en el template
             filtered_provider = Provider.query.get(form.provider_id.data)
         
     pending_orders = query.order_by(WorkOrder.created_at.desc()).all()
@@ -1258,7 +1309,7 @@ def uploaded_file(filename):
     return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
 
 
-# --- Rutas de Administración de Usuarios (Solo Admin) ---
+# --- Administración de Usuarios que desarrollé ---
 @bp.route('/admin/users')
 @login_required
 @role_required('admin')
@@ -1295,7 +1346,7 @@ def delete_user(user_id):
         flash('No puedes eliminar tu propia cuenta.', 'danger')
         return redirect(url_for('main.admin_users'))
     
-    # Verificar si el usuario tiene órdenes asociadas
+    # Verifico si el usuario tiene órdenes asociadas
     orders_count = WorkOrder.query.filter_by(created_by_user_id=user.id).count()
     if orders_count > 0:
         flash(f'No se puede eliminar el usuario {user.username} porque tiene {orders_count} órdenes asociadas.', 'warning')
@@ -1307,7 +1358,7 @@ def delete_user(user_id):
     flash(f'Usuario {username} eliminado exitosamente.', 'success')
     return redirect(url_for('main.admin_users'))
 
-# --- Rutas de Reportes ---
+# --- Sistema de Reportes que implementé ---
 @bp.route('/reports')
 @login_required
 @role_required('admin', 'asistente')
@@ -1320,7 +1371,7 @@ def reports():
         # Para asistentes, mostrar página básica de reportes
         return render_template('reports/reports.html', title='Reportes')
 
-# --- Rutas de Notificaciones ---
+# --- Sistema de Notificaciones que desarrollé ---
 @bp.route('/notifications')
 @login_required
 def view_notifications():
@@ -1345,7 +1396,7 @@ def mark_notification_read(notification_id):
     flash('Notificación marcada como leída.', 'success')
     return redirect(request.referrer or url_for('main.view_notifications')) # Redirige a la página anterior o a la lista de notificaciones
 
-# --- Rutas de Mensajes a Sedes ---
+# --- Sistema de Mensajería Interna que implementé ---
 @bp.route('/messages/send', methods=['GET', 'POST'])
 @login_required
 @role_required('admin', 'asistente')
@@ -1373,7 +1424,7 @@ def send_sede_message():
             db.session.add(message)
             db.session.commit()
             
-            # Obtener nombre de destino para el mensaje de confirmación
+            # Obtengo nombre de destino para el mensaje de confirmación
             if is_global:
                 destination = "todas las sedes"
             else:
@@ -1550,12 +1601,12 @@ def inject_notifications():
 def resubmit_order(order_id):
     order = WorkOrder.query.get_or_404(order_id)
     
-    # Verificar que la orden esté en estado rechazada
+    # Verifico que la orden esté en estado rechazada
     if order.status != 'rechazada':
         flash('Solo se pueden reenviar órdenes que han sido rechazadas.', 'danger')
         return redirect(url_for('main.view_order', order_id=order_id))
     
-    # Verificar permisos para admin_sede: solo puede reenviar órdenes de su sede
+    # Verifico permisos para admin_sede: solo puede reenviar órdenes de su sede
     if current_user.role == 'admin_sede':
         if order.sede_id != current_user.sede_id:
             flash('No tienes permisos para reenviar órdenes de otras sedes.', 'danger')
@@ -1609,7 +1660,7 @@ def debug_notifications():
         flash('Sin permisos para esta vista de debug.', 'danger')
         return redirect(url_for('main.index'))
     
-    # Obtener notificaciones del usuario actual
+    # Obtengo notificaciones del usuario actual
     user_notifications = Notification.query.filter_by(user_id=current_user.id).order_by(Notification.created_at.desc()).limit(10).all()
     
     debug_info = {
@@ -1637,7 +1688,7 @@ def debug_notifications():
     <a href="/index">Volver al inicio</a>
     """
 
-# --- Rutas API para manejo de sesiones ---
+# --- API para manejo de sesiones que desarrollé ---
 
 @bp.route('/api/session/status')
 @login_required

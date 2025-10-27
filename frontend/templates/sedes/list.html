@@ -58,9 +58,18 @@
                                                 <button class="btn btn-sm btn-info" 
                                                         data-bs-toggle="modal" 
                                                         data-bs-target="#editSedeModal{{ sede.id }}"
-                                                        title="Editar">
+                                                        title="Editar Sede">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
+                                                {% set sede_admin = sede.administrators|selectattr('role', 'equalto', 'admin_sede')|first %}
+                                                {% if sede_admin %}
+                                                <button class="btn btn-sm btn-secondary" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#changeSedeAdminPasswordModal{{ sede.id }}"
+                                                        title="Cambiar Contraseña del Administrador">
+                                                    <i class="fas fa-key"></i>
+                                                </button>
+                                                {% endif %}
                                                 <button class="btn btn-sm {% if sede.is_active %}btn-warning{% else %}btn-success{% endif %}" 
                                                         class="btn btn-sm toggle-status-btn" 
                                                         data-sede-id="{{ sede.id }}" 
@@ -113,38 +122,104 @@
     {% endif %}
 
     <div class="modal fade" id="addSedeModal" tabindex="-1">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Agregar Nueva Sede</h5>
+                    <h5 class="modal-title">Agregar Nueva Sede con Administrador</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <form method="POST" action="{{ url_for('main.add_sede') }}">
                     <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label">Nombre de la Sede</label>
-                            <input type="text" class="form-control" name="name" required>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Información:</strong> Al crear la sede se creará automáticamente un usuario administrador para la misma.
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Ciudad</label>
-                            <input type="text" class="form-control" name="city" required>
+                        
+                        <h6 class="mb-3"><i class="fas fa-building"></i> Información de la Sede</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Nombre de la Sede</label>
+                                    <input type="text" class="form-control" name="name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Ciudad</label>
+                                    <input type="text" class="form-control" name="city" required>
+                                </div>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Dirección</label>
-                            <input type="text" class="form-control" name="address">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Teléfono</label>
-                            <input type="text" class="form-control" name="phone">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Dirección</label>
+                                    <input type="text" class="form-control" name="address">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Teléfono</label>
+                                    <input type="text" class="form-control" name="phone">
+                                </div>
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Encargado</label>
                             <input type="text" class="form-control" name="manager">
                         </div>
+
+                        <hr>
+                        
+                        <h6 class="mb-3"><i class="fas fa-user-shield"></i> Datos de Acceso al Sistema</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Usuario para Acceso <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="admin_username" required 
+                                           placeholder="Ej: admin_sede_centro">
+                                    <small class="text-muted">El usuario utilizará este nombre para iniciar sesión</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Email del Usuario <span class="text-danger">*</span></label>
+                                    <input type="email" class="form-control" name="admin_email" required 
+                                           placeholder="admin@sede.com">
+                                    <small class="text-muted">Email para notificaciones del sistema</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Contraseña <span class="text-danger">*</span></label>
+                                    <input type="password" class="form-control" name="admin_password" 
+                                           id="admin_password" required minlength="6">
+                                    <small class="text-muted">Mínimo 6 caracteres</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Confirmar Contraseña <span class="text-danger">*</span></label>
+                                    <input type="password" class="form-control" name="admin_password2" 
+                                           id="admin_password2" required minlength="6">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="show_admin_passwords" 
+                                   onchange="toggleAdminPasswordVisibility()">
+                            <label class="form-check-label" for="show_admin_passwords">
+                                Mostrar contraseñas
+                            </label>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-success">Agregar Sede</button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-plus"></i> Crear Sede y Administrador
+                        </button>
                     </div>
                 </form>
             </div>
@@ -190,6 +265,59 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal Cambiar Contraseña Admin Sede {{ sede.id }} -->
+    {% set sede_admin = sede.administrators|selectattr('role', 'equalto', 'admin_sede')|first %}
+    {% if sede_admin %}
+    <div class="modal fade" id="changeSedeAdminPasswordModal{{ sede.id }}" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Cambiar Contraseña del Administrador</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="POST" action="{{ url_for('main.change_sede_admin_password', sede_id=sede.id) }}" class="needs-validation" novalidate>
+                    <div class="modal-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> 
+                            Cambiar contraseña para: <strong>{{ sede_admin.username }}</strong> ({{ sede_admin.email }})
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="newPassword{{ sede.id }}" class="form-label">Nueva Contraseña <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="newPassword{{ sede.id }}" name="new_password" required minlength="6">
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('newPassword{{ sede.id }}')">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="invalid-feedback">
+                                La contraseña debe tener al menos 6 caracteres.
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="confirmNewPassword{{ sede.id }}" class="form-label">Confirmar Nueva Contraseña <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="confirmNewPassword{{ sede.id }}" name="confirm_new_password" required minlength="6">
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('confirmNewPassword{{ sede.id }}')">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="invalid-feedback">
+                                Las contraseñas no coinciden.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-warning">Cambiar Contraseña</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
     {% endfor %}
 
     <script>
@@ -217,6 +345,38 @@
             }
         }
 
+
+
+        function toggleAdminPasswordVisibility() {
+            const checkbox = document.getElementById('show_admin_passwords');
+            const password = document.getElementById('admin_password');
+            const password2 = document.getElementById('admin_password2');
+            
+            if (checkbox.checked) {
+                password.type = 'text';
+                password2.type = 'text';
+            } else {
+                password.type = 'password';
+                password2.type = 'password';
+            }
+        }
+
+        function togglePasswordVisibility(fieldId) {
+            const field = document.getElementById(fieldId);
+            const button = field.nextElementSibling;
+            const icon = button.querySelector('i');
+            
+            if (field.type === 'password') {
+                field.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                field.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
         // Configurar event listeners al cargar el DOM
         document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('.toggle-status-btn').forEach(function(button) {
@@ -224,6 +384,52 @@
                     const sedeId = parseInt(this.getAttribute('data-sede-id'));
                     const isActive = this.getAttribute('data-current-status') === 'true';
                     toggleSedeStatus(sedeId, isActive);
+                });
+            });
+
+            // Validación del formulario de nueva sede
+            const addSedeForm = document.querySelector('#addSedeModal form');
+            if (addSedeForm) {
+                addSedeForm.addEventListener('submit', function(e) {
+                    const password = document.getElementById('admin_password');
+                    const password2 = document.getElementById('admin_password2');
+                    
+                    if (password.value !== password2.value) {
+                        e.preventDefault();
+                        alert('Las contraseñas del administrador no coinciden.');
+                        password2.focus();
+                        return;
+                    }
+                    
+                    if (password.value.length < 6) {
+                        e.preventDefault();
+                        alert('La contraseña debe tener al menos 6 caracteres.');
+                        password.focus();
+                        return;
+                    }
+                });
+            }
+
+            // Validación de formularios de cambio de contraseña
+            document.querySelectorAll('form[action*="change_sede_admin_password"]').forEach(function(form) {
+                form.addEventListener('submit', function(e) {
+                    const formData = new FormData(form);
+                    const newPassword = formData.get('new_password');
+                    const confirmPassword = formData.get('confirm_new_password');
+                    
+                    if (newPassword !== confirmPassword) {
+                        e.preventDefault();
+                        alert('Las contraseñas no coinciden.');
+                        form.querySelector('input[name="confirm_new_password"]').focus();
+                        return;
+                    }
+                    
+                    if (newPassword.length < 6) {
+                        e.preventDefault();
+                        alert('La contraseña debe tener al menos 6 caracteres.');
+                        form.querySelector('input[name="new_password"]').focus();
+                        return;
+                    }
                 });
             });
         });

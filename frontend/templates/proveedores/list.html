@@ -227,65 +227,7 @@
     {% endif %}
 
     <script>
-
-        const style = document.createElement('style');
-        style.textContent = `
-            .modal {
-                z-index: 1055 !important;
-            }
-            .modal-backdrop {
-                z-index: 1050 !important;
-                pointer-events: none !important;
-            }
-            .modal-backdrop.fade.show {
-                z-index: 1050 !important;
-                pointer-events: none !important;
-            }
-            .modal-dialog {
-                z-index: 1060 !important;
-                position: relative;
-                pointer-events: auto !important;
-            }
-            .modal-content {
-                z-index: 1061 !important;
-                position: relative;
-                pointer-events: auto !important;
-                background-color: white !important;
-            }
-            .modal input[type="password"], .modal input[type="text"] {
-                background-color: white !important;
-                color: black !important;
-                pointer-events: auto !important;
-                position: relative;
-                z-index: 1062 !important;
-            }
-            .modal input[type="password"]:focus, .modal input[type="text"]:focus {
-                background-color: white !important;
-                border-color: #86b7fe !important;
-                box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
-            }
-            .modal .form-control {
-                pointer-events: auto !important;
-                z-index: 1062 !important;
-                position: relative;
-                background-color: white !important;
-            }
-            .modal .btn {
-                pointer-events: auto !important;
-                z-index: 1062 !important;
-                position: relative;
-            }
-            .modal .form-check-input {
-                pointer-events: auto !important;
-                z-index: 1062 !important;
-                position: relative;
-            }
-            body.modal-open {
-                overflow: hidden;
-                padding-right: 0px !important;
-            }
-        `;
-        document.head.appendChild(style);
+        // Estilos de modal ahora se manejan globalmente en base.html
 
         function togglePassword(providerId) {
             const checkbox = document.getElementById('show_password_' + providerId);
@@ -339,58 +281,7 @@
                 });
             });
 
-            const allModals = document.querySelectorAll('.modal');
-            allModals.forEach(function(modal) {
-
-                modal.addEventListener('show.bs.modal', function(e) {
-
-                    setTimeout(function() {
-                        const problematicBackdrops = document.querySelectorAll('.modal-backdrop.fade.show');
-                        problematicBackdrops.forEach(function(backdrop, index) {
-
-                            if (index > 0) {
-                                backdrop.remove();
-                            }
-                        });
-                    }, 100);
-                });
-
-                modal.addEventListener('shown.bs.modal', function(e) {
-
-                    const modalDialog = modal.querySelector('.modal-dialog');
-                    const modalContent = modal.querySelector('.modal-content');
-                    
-                    if (modalDialog) {
-                        modalDialog.style.zIndex = '1060';
-                        modalDialog.style.position = 'relative';
-                    }
-                    if (modalContent) {
-                        modalContent.style.zIndex = '1061';
-                        modalContent.style.pointerEvents = 'auto';
-                        modalContent.style.position = 'relative';
-                    }
-
-                    const inputs = modal.querySelectorAll('input, button, .form-control');
-                    inputs.forEach(function(input) {
-                        input.style.pointerEvents = 'auto';
-                        input.style.zIndex = '1062';
-                        input.style.position = 'relative';
-                    });
-                });
-
-                modal.addEventListener('hidden.bs.modal', function(e) {
-                    setTimeout(function() {
-                        const orphanBackdrops = document.querySelectorAll('.modal-backdrop');
-                        orphanBackdrops.forEach(function(backdrop) {
-                            backdrop.remove();
-                        });
-
-                        document.body.classList.remove('modal-open');
-                        document.body.style.overflow = '';
-                        document.body.style.paddingRight = '';
-                    }, 150);
-                });
-            });
+            // Código de manejo de backdrop eliminado - ahora se maneja globalmente en base.html
 
             const changePasswordModals = document.querySelectorAll('[id^="changePasswordModal"]');
             changePasswordModals.forEach(function(modal) {

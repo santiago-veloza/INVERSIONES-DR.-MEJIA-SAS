@@ -43,12 +43,12 @@ class RegistrationForm(FlaskForm):
 
     def __init__(self, *args, **kwargs):
         super(RegistrationForm, self).__init__(*args, **kwargs)
-        # Cargar los proveedores existentes para la asignación
+        # Cargo los proveedores existentes para la asignación
         self.provider_name.choices = [('', '--- Seleccionar Proveedor ---')] + [(p.id, f"{p.razon_social} ({p.nit})") for p in Provider.query.all()]
 
 
 class ProviderForm(FlaskForm):
-    # Datos del proveedor
+    # Implementé datos del proveedor
     nit = StringField('NIT', validators=[DataRequired(), Length(max=20)])
     razon_social = StringField('Razón Social', validators=[DataRequired(), Length(max=255)])
     name = StringField('Nombre Comercial', validators=[Optional(), Length(max=128)])
@@ -57,7 +57,7 @@ class ProviderForm(FlaskForm):
     email = StringField('Correo Electrónico', validators=[Optional(), Email(), Length(max=120)])
     address = TextAreaField('Dirección', validators=[Optional(), Length(max=500)])
     
-    # Datos de acceso del usuario
+    # Implementé datos de acceso del usuario
     username = StringField('Usuario para Acceso', validators=[DataRequired(), Length(min=4, max=20)])
     user_email = StringField('Email del Usuario', validators=[DataRequired(), Email(), Length(max=120)])
     password = PasswordField('Contraseña', validators=[DataRequired(), Length(min=6)])
@@ -94,7 +94,7 @@ class ProviderForm(FlaskForm):
 
 
 class ProviderEditForm(FlaskForm):
-    # Solo datos del proveedor para edición (sin usuario)
+    # Implementé solo datos del proveedor para edición (sin usuario)
     nit = StringField('NIT', validators=[DataRequired(), Length(max=20)])
     razon_social = StringField('Razón Social', validators=[DataRequired(), Length(max=255)])
     name = StringField('Nombre Comercial', validators=[Optional(), Length(max=128)])
@@ -122,31 +122,31 @@ class ProviderEditForm(FlaskForm):
 
 
 class WorkOrderForm(FlaskForm):
-    # Información básica de la orden
+    # Implementé información básica de la orden
     client_name = StringField('Nombre del Paciente', validators=[DataRequired(), Length(max=128)])
     client_cc = StringField('Cédula del Paciente', validators=[DataRequired(), Length(max=20)])
     receipt_number = StringField('Número del Recibo de Venta', validators=[DataRequired(), Length(max=64)])
     
-    # Sede y proveedor
+    # Implementé sede y proveedor
     sede_id = SelectField('Sede Solicitante', coerce=int, validators=[DataRequired()])
     provider_id = SelectField('Proveedor', coerce=int, validators=[DataRequired()])
     
-    # Tipo de lente
+    # Implementé tipo de lente
     lens_type = StringField('Tipo de Lente Solicitado', validators=[DataRequired(), Length(max=128)])
     
-    # Fórmula Ojo Derecho (OD)
+    # Implementé fórmula Ojo Derecho (OD)
     formula_od_esfera = StringField('OD - Esfera', validators=[Optional(), Length(max=10)])
     formula_od_cilindro = StringField('OD - Cilindro', validators=[Optional(), Length(max=10)])
     formula_od_eje = StringField('OD - Eje', validators=[Optional(), Length(max=10)])
     formula_od_adicion = StringField('OD - Adición', validators=[Optional(), Length(max=10)])
     
-    # Fórmula Ojo Izquierdo (OI)
+    # Implementé fórmula Ojo Izquierdo (OI)
     formula_oi_esfera = StringField('OI - Esfera', validators=[Optional(), Length(max=10)])
     formula_oi_cilindro = StringField('OI - Cilindro', validators=[Optional(), Length(max=10)])
     formula_oi_eje = StringField('OI - Eje', validators=[Optional(), Length(max=10)])
     formula_oi_adicion = StringField('OI - Adición', validators=[Optional(), Length(max=10)])
     
-    # Información adicional
+    # Implementé información adicional
     formula_details = TextAreaField('Detalles Adicionales de la Fórmula', validators=[Optional()])
     due_date = DateField('Fecha de Entrega (Estimada)', format='%Y-%m-%d', validators=[Optional()])
     comments = TextAreaField('Comentarios Adicionales', validators=[Optional()])
@@ -157,19 +157,19 @@ class WorkOrderForm(FlaskForm):
         super(WorkOrderForm, self).__init__(*args, **kwargs)
         from app.models import Sede
         
-        # Si es admin_sede, solo mostrar su sede asignada
+        # Si es admin_sede, solo muestro su sede asignada
         if current_user and current_user.role == 'admin_sede' and current_user.sede_id:
             sede = Sede.query.get(current_user.sede_id)
             self.sede_id.choices = [(sede.id, f"{sede.name} - {sede.city}")]
-            # Pre-seleccionar la sede del usuario
+            # Pre-selecciono la sede del usuario
             self.sede_id.data = sede.id
         else:
-            # Para admin y asistente, mostrar todas las sedes
+            # Para admin y asistente, muestro todas las sedes
             self.sede_id.choices = [(s.id, f"{s.name} - {s.city}") for s in Sede.query.filter_by(is_active=True).order_by(Sede.city, Sede.name).all()]
         
-        # Todos los usuarios pueden ver todos los proveedores
+        # Todos los usuarios pueden ver todos los proveedores que implementé
         self.provider_id.choices = [(p.id, f"{p.razon_social} ({p.nit})") for p in Provider.query.order_by(Provider.razon_social).all()]
-        # Agrega una opción vacía si es necesario
+        # Agrego una opción vacía si es necesario
         self.provider_id.choices.insert(0, (0, '--- Seleccionar Proveedor ---'))
 
 
@@ -202,7 +202,7 @@ class PaymentForm(FlaskForm):
     ])
     submit = SubmitField('Registrar Pago')
 
-# Formulario para filtrar órdenes pendientes de pago
+# Implementé formulario para filtrar órdenes pendientes de pago
 class PendingPaymentsFilterForm(FlaskForm):
     provider_id = SelectField('Filtrar por Proveedor', coerce=int, validators=[Optional()])
     submit = SubmitField('Filtrar')
@@ -210,10 +210,10 @@ class PendingPaymentsFilterForm(FlaskForm):
     def __init__(self, providers=None, *args, **kwargs):
         super(PendingPaymentsFilterForm, self).__init__(*args, **kwargs)
         if providers is not None:
-            # Usar la lista de proveedores proporcionada
+            # Uso la lista de proveedores proporcionada
             self.provider_id.choices = [(0, 'Todos los Proveedores')] + [(p.id, p.razon_social or p.name) for p in providers]
         else:
-            # Comportamiento por defecto (todos los proveedores)
+            # Comportamiento por defecto que implementé (todos los proveedores)
             self.provider_id.choices = [(0, 'Todos los Proveedores')] + [(p.id, p.razon_social or p.name) for p in Provider.query.order_by(Provider.name).all()]
 
 class UserForm(FlaskForm):
@@ -285,7 +285,7 @@ class SedeMessageForm(FlaskForm):
         from app.models import Sede
         self.sede_id.choices = [(0, '📢 Todas las Sedes')] + [(s.id, f"🏢 {s.name} - {s.city}") for s in Sede.query.filter_by(is_active=True).order_by(Sede.city, Sede.name).all()]
         
-        # Establecer valor por defecto si no se ha enviado el formulario
+        # Establezco valor por defecto si no se ha enviado el formulario
         if not self.sede_id.data:
             self.sede_id.data = 0
     

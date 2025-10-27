@@ -68,3 +68,6 @@ frontend/static/uploads/*
 .env.local
 .env.development
 .env.production
+
+__pycache__/
+*.pyc

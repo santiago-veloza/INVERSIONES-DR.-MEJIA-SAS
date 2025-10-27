@@ -18,6 +18,21 @@
     <meta name="description" content="Sistema de gestión para Ópticas Dr. Mejía - Inversiones Dr. Mejía SAS">
     <meta name="author" content="Ópticas Dr. Mejía">
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+    
+    <!-- CSS global para ocultar modal backdrops -->
+    <style>
+        .modal-backdrop {
+            display: none !important;
+        }
+        .modal-backdrop.fade.show {
+            display: none !important;
+        }
+        /* Asegurar que el body no se bloquee cuando se abren modales */
+        body.modal-open {
+            overflow: auto !important;
+            padding-right: 0 !important;
+        }
+    </style>
 </head>
     <body class="fade-in-up navbar-present">
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
@@ -589,6 +604,50 @@
         // Inicializar el gestor de sesiones
         const sessionManager = new SessionManager();
         {% endif %}
+    </script>
+    
+    <!-- Script global para eliminar modal backdrops -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configurar todos los modales para no mostrar backdrop
+            const originalModalShow = bootstrap.Modal.prototype.show;
+            bootstrap.Modal.prototype.show = function() {
+                // Configurar el modal sin backdrop
+                this._config.backdrop = false;
+                this._config.keyboard = true;
+                
+                // Llamar al método original con la configuración modificada
+                originalModalShow.call(this);
+                
+                // Eliminar cualquier backdrop que pueda haberse creado
+                setTimeout(() => {
+                    const backdrops = document.querySelectorAll('.modal-backdrop');
+                    backdrops.forEach(backdrop => backdrop.remove());
+                    
+                    // Restaurar scroll del body
+                    document.body.classList.remove('modal-open');
+                    document.body.style.overflow = '';
+                    document.body.style.paddingRight = '';
+                }, 50);
+            };
+            
+            // Observer para eliminar backdrops que se puedan crear dinámicamente
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    mutation.addedNodes.forEach(function(node) {
+                        if (node.nodeType === 1 && node.classList && node.classList.contains('modal-backdrop')) {
+                            node.remove();
+                        }
+                    });
+                });
+            });
+            
+            observer.observe(document.body, { childList: true, subtree: false });
+            
+            // Eliminar backdrops existentes al cargar la página
+            const existingBackdrops = document.querySelectorAll('.modal-backdrop');
+            existingBackdrops.forEach(backdrop => backdrop.remove());
+        });
     </script>
     
     {% block scripts %}{% endblock %} 
