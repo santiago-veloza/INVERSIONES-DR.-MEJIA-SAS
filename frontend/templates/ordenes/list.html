@@ -35,6 +35,8 @@
                             <th>Estado</th>
                             <th>Estado Pago</th>
                             <th>Monto Total</th>
+                            <th>Fecha Entrega</th>
+                            <th>Creado Por</th>
                             <th>Fecha Creación</th>
                             <th>Acciones</th>
                         </tr>
@@ -122,6 +124,20 @@
                             {% endif %}
                         </td>
                         <td>${{ "%.2f"|format(order.total_amount) }}</td>
+                        <td>
+                            {% if order.due_date %}
+                                {{ order.due_date.strftime('%d/%m/%Y') }}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if order.created_by %}
+                                {{ order.created_by.username }}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
                         <td>{{ order.created_at.strftime('%d/%m/%Y') }}</td>
                         <td>
                             <a href="{{ url_for('main.view_order', order_id=order.id) }}" class="btn btn-sm btn-primary me-1" title="Ver Detalle"><i class="fas fa-eye"></i></a>
@@ -131,7 +147,18 @@
                                 {% endif %}
                                 <a href="{{ url_for('main.edit_order', order_id=order.id) }}" class="btn btn-sm btn-info me-1" title="Editar"><i class="fas fa-edit"></i></a>
                             {% endif %}
-                            <a href="{{ url_for('main.update_order_status', order_id=order.id) }}" class="btn btn-sm btn-warning" title="Actualizar Estado"><i class="fas fa-sync-alt"></i></a>
+                            {% if order.status == 'devuelta_proveedor' and (current_user.role in ['admin', 'asistente'] or (current_user.role == 'admin_sede' and current_user.sede_id == order.sede_id)) %}
+                                <form action="{{ url_for('main.mark_order_collected', order_id=order.id) }}" method="POST" style="display: inline;" class="me-1">
+                                    <button type="submit" class="btn btn-sm btn-success" title="Marcar como Recogida" onclick="return confirm('¿Confirma que ha recogido esta orden?');">
+                                        <i class="fas fa-hand-holding-box"></i>
+                                    </button>
+                                </form>
+                            {% endif %}
+                            {% if current_user.role in ['admin', 'asistente'] or (current_user.role == 'proveedor' and current_user.provider and order.provider_id == current_user.provider.id) %}
+                                {% if current_user.role != 'admin_sede' %}
+                                    <a href="{{ url_for('main.update_order_status', order_id=order.id) }}" class="btn btn-sm btn-warning" title="Actualizar Estado"><i class="fas fa-sync-alt"></i></a>
+                                {% endif %}
+                            {% endif %}
                         </td>
                     </tr>
                     {% endfor %}

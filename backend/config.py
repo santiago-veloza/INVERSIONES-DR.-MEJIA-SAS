@@ -23,10 +23,10 @@ class Config:
     
     # Configuraciones de seguridad para sesiones que implementé (simplificado para debug)
     SESSION_COOKIE_SECURE = False  # Deshabilitado temporalmente para desarrollo
-    SESSION_COOKIE_HTTPONLY = True  # Prevenir acceso vía JavaScript
+    SESSION_COOKIE_HTTPONLY = True  
     SESSION_COOKIE_SAMESITE = 'Lax'  # Protección CSRF básica
     
     # Configuración de timeout de sesión que implementé (TIEMPOS REDUCIDOS PARA PRUEBAS)
-    PERMANENT_SESSION_LIFETIME = timedelta(minutes=12)  # 2 minutos para pruebas
-    SESSION_TIMEOUT_WARNING = timedelta(minutes=10)     # Advertencia a 1 minuto
+    PERMANENT_SESSION_LIFETIME = timedelta(minutes=15)  # 15 minutos para pruebas
+    SESSION_TIMEOUT_WARNING = timedelta(minutes=10)     # Advertencia a 10 minutos
     SESSION_REFRESH_EACH_REQUEST = True  # Renovar sesión en cada request

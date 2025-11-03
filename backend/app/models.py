@@ -97,23 +97,23 @@ class WorkOrder(db.Model):
     # Implementé información del paciente
     client_name = db.Column(db.String(128), nullable=False) # Nombre del paciente
     client_cc = db.Column(db.String(20), nullable=False) # Cédula del paciente
+    client_phone = db.Column(db.String(20)) # Teléfono del paciente
+
     
-    # Implementé tipo de lente solicitado
-    lens_type = db.Column(db.String(128), nullable=False) # Tipo de lente solicitado
+    # Implementé clasificación de lentes (nuevo)
+    lens_class = db.Column(db.String(20)) # Progresivo, Bifocal, Monofocal
+    lens_type = db.Column(db.String(128), nullable=False) # Tipo de lente y filtros específicos
+    frame_type = db.Column(db.String(128)) # Tipo de montura
     
-    # Implementé fórmula óptica detallada por ojo
-    formula_od_esfera = db.Column(db.String(10)) # Ojo derecho - Esfera
-    formula_od_cilindro = db.Column(db.String(10)) # Ojo derecho - Cilindro  
-    formula_od_eje = db.Column(db.String(10)) # Ojo derecho - Eje
-    formula_od_adicion = db.Column(db.String(10)) # Ojo derecho - Adición
+    # Implementé fórmula óptica con campos de texto libre
+    formula_od = db.Column(db.Text) # Ojo derecho (texto libre)
+    formula_oi = db.Column(db.Text) # Ojo izquierdo (texto libre)
+    formula_add = db.Column(db.Text) # Adición (texto libre)
+    formula_dp_alt = db.Column(db.Text) # Distancia pupilar y altura (texto libre)
     
-    formula_oi_esfera = db.Column(db.String(10)) # Ojo izquierdo - Esfera
-    formula_oi_cilindro = db.Column(db.String(10)) # Ojo izquierdo - Cilindro
-    formula_oi_eje = db.Column(db.String(10)) # Ojo izquierdo - Eje
-    formula_oi_adicion = db.Column(db.String(10)) # Ojo izquierdo - Adición
-    
-    # Información adicional
+    # Información adicional y observaciones
     formula_details = db.Column(db.Text) # Detalles adicionales de fórmulas ópticas (opcional)
+    observations = db.Column(db.Text) # Observaciones específicas
     
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     due_date = db.Column(db.DateTime)

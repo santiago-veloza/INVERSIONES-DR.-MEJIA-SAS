@@ -37,7 +37,10 @@
                         <i class="fas fa-building fa-2x"></i>
                     </div>
                     <h4 class="mb-1">{{ system_stats.total_sedes }}</h4>
-                    <small class="text-muted">Sedes Activas</small>
+                    <small class="text-muted">Total Sedes</small>
+                    <div class="mt-1">
+                        <small class="badge bg-success">{{ system_stats.total_sedes_active }} activas</small>
+                    </div>
                 </div>
             </div>
         </div>
@@ -330,6 +333,21 @@ function refreshStats() {
     fetch('/api/admin/stats')
         .then(response => response.json())
         .then(data => {
+            // Actualizar estadísticas de sedes
+            const sedesCard = document.querySelector('.col-lg-2:first-child h4');
+            const sedesActiveCard = document.querySelector('.col-lg-2:first-child .badge');
+            if (sedesCard) {
+                sedesCard.textContent = data.total_sedes;
+            }
+            if (sedesActiveCard) {
+                sedesActiveCard.textContent = data.total_sedes_active + ' activas';
+            }
+            
+            // Actualizar otras estadísticas si existen
+            const ordersCard = document.querySelector('.col-lg-2:nth-child(2) h4');
+            if (ordersCard) {
+                ordersCard.textContent = data.total_orders;
+            }
 
             showNotification('Estadísticas actualizadas correctamente', 'success');
 

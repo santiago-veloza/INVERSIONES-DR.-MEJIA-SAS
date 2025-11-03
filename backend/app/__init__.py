@@ -9,6 +9,7 @@ import os
 db = SQLAlchemy()
 login_manager = LoginManager()
 login_manager.login_view = 'main.login'
+login_manager.login_message = 'Por favor, inicie sesión para acceder a esta página.'
 login_manager.login_message_category = 'info'
 csrf = CSRFProtect()
 

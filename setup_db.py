@@ -18,7 +18,7 @@ if __name__ == '__main__':
         
         # Importar los modelos y la aplicación
         from app import create_app, db
-        from app import User, Provider
+        from app.models import User, Provider
         
         # Crear la aplicación
         app = create_app()
@@ -42,25 +42,18 @@ if __name__ == '__main__':
             admin.set_password('admin123')
             db.session.add(admin)
             
-            # Crear usuario asistente
-            asistente = User(
-                username='asistente1',
-                email='asistente@inversiones.com',
-                role='asistente'
-            )
-            asistente.set_password('asistente123')
-            db.session.add(asistente)
-            
             # Crear proveedores de prueba
             proveedores_data = [
-                {'name': 'Ópticas del Valle', 'contact': 'Carlos López', 'email': 'contacto@opticasvalle.com', 'phone': '555-0101'},
-                {'name': 'Lentes Premium', 'contact': 'Ana García', 'email': 'ventas@lentespremium.com', 'phone': '555-0102'},
-                {'name': 'Visión Total', 'contact': 'Miguel Torres', 'email': 'info@visiontotal.com', 'phone': '555-0103'}
+                {'nit': '900123456-1', 'razon_social': 'Ópticas del Valle S.A.S.', 'name': 'Ópticas del Valle', 'contact': 'Carlos López', 'email': 'contacto@opticasvalle.com', 'phone': '555-0101'},
+                {'nit': '900234567-2', 'razon_social': 'Lentes Premium Ltda.', 'name': 'Lentes Premium', 'contact': 'Ana García', 'email': 'ventas@lentespremium.com', 'phone': '555-0102'},
+                {'nit': '900345678-3', 'razon_social': 'Visión Total S.A.S.', 'name': 'Visión Total', 'contact': 'Miguel Torres', 'email': 'info@visiontotal.com', 'phone': '555-0103'}
             ]
             
             for i, prov_data in enumerate(proveedores_data, 1):
                 # Crear proveedor
                 provider = Provider(
+                    nit=prov_data['nit'],
+                    razon_social=prov_data['razon_social'],
                     name=prov_data['name'],
                     contact_person=prov_data['contact'],
                     email=prov_data['email'],
@@ -83,8 +76,7 @@ if __name__ == '__main__':
             # Guardar todos los cambios
             db.session.commit()
             print("✅ Usuarios creados correctamente:")
-            print("   � admin / admin123 (Administrador)")
-            print("   👤 asistente1 / asistente123 (Asistente)")
+            print("   🔐 admin / admin123 (Administrador)")
             print("   👤 proveedor1 / proveedor1123 (Proveedor)")
             print("   👤 proveedor2 / proveedor2123 (Proveedor)")
             print("   👤 proveedor3 / proveedor3123 (Proveedor)")

@@ -339,8 +339,12 @@ def admin_dashboard():
     current_month = datetime.now().month
     current_year = datetime.now().year
     
-    # Obtengo todas las sedes
+    # Obtengo todas las sedes activas para estadísticas
     sedes = Sede.query.filter_by(is_active=True).order_by(Sede.name).all()
+    
+    # Obtengo todas las sedes (activas e inactivas) para el conteo total
+    total_sedes_all = Sede.query.count()
+    total_sedes_active = len(sedes)
     
     sede_stats = []
     
@@ -444,7 +448,8 @@ def admin_dashboard():
     
     # Estadísticas generales del sistema
     system_stats = {
-        'total_sedes': len(sedes),
+        'total_sedes': total_sedes_all,  # Total de sedes (activas + inactivas)
+        'total_sedes_active': total_sedes_active,  # Solo sedes activas
         'total_orders_system': sum([s['total_orders'] for s in sede_stats]),
         'total_sales_system': sum([s['total_sales'] for s in sede_stats]),
         'total_pending_payments': sum([s['pending_payments'] for s in sede_stats]),
@@ -493,10 +498,16 @@ def api_admin_stats():
         WorkOrder.status.in_(['enviada', 'aceptada', 'en_proceso'])
     ).count()
     
+    # Información de sedes actualizada
+    total_sedes_all = Sede.query.count()
+    total_sedes_active = Sede.query.filter_by(is_active=True).count()
+    
     return jsonify({
         'total_orders': total_orders,
         'orders_this_month': orders_this_month,
         'pending_orders': pending_orders,
+        'total_sedes': total_sedes_all,
+        'total_sedes_active': total_sedes_active,
         'timestamp': datetime.now().isoformat()
     })
 
@@ -939,26 +950,24 @@ def create_order():
             order_number=order_number,
             client_name=form.client_name.data,
             client_cc=form.client_cc.data,
+            client_phone=form.client_phone.data,
             receipt_number=form.receipt_number.data,
             lens_type=form.lens_type.data,
             sede_id=form.sede_id.data,
             provider_id=form.provider_id.data,
-            # Fórmula Ojo Derecho
-            formula_od_esfera=form.formula_od_esfera.data,
-            formula_od_cilindro=form.formula_od_cilindro.data,
-            formula_od_eje=form.formula_od_eje.data,
-            formula_od_adicion=form.formula_od_adicion.data,
-            # Fórmula Ojo Izquierdo
-            formula_oi_esfera=form.formula_oi_esfera.data,
-            formula_oi_cilindro=form.formula_oi_cilindro.data,
-            formula_oi_eje=form.formula_oi_eje.data,
-            formula_oi_adicion=form.formula_oi_adicion.data,
+
+            lens_class=form.lens_class.data,
+            frame_type=form.frame_type.data,
+            # Fórmula con campos de texto libre
+            formula_od=form.formula_od.data,
+            formula_oi=form.formula_oi.data,
+            formula_add=form.formula_add.data,
+            formula_dp_alt=form.formula_dp_alt.data,
             # Información adicional
             formula_details=form.formula_details.data,
-            due_date=form.due_date.data,
+            observations=form.observations.data,
             comments=form.comments.data,
             created_by_user_id=current_user.id,
-            total_amount=form.total_amount.data if form.total_amount.data else 0.0,
             status='enviada'  # Enviar automáticamente al proveedor
         )
         db.session.add(order)
@@ -1013,6 +1022,12 @@ def view_order(order_id):
 def edit_order(order_id):
     order = WorkOrder.query.get_or_404(order_id)
     
+    # Verifico si la orden puede ser editada (no debe haber sido aceptada por el proveedor)
+    non_editable_statuses = ['aceptada', 'en_proceso', 'devuelta_proveedor', 'recibida_optica', 'finalizada']
+    if order.status in non_editable_statuses:
+        flash('No se puede editar esta orden porque ya ha sido aceptada por el proveedor y está en proceso.', 'warning')
+        return redirect(url_for('main.view_order', order_id=order.id))
+    
     # Verifico permisos para admin_sede: solo puede editar órdenes de su sede
     if current_user.role == 'admin_sede':
         if order.sede_id != current_user.sede_id:
@@ -1033,6 +1048,76 @@ def edit_order(order_id):
         flash(f'Orden de Trabajo N° {order.order_number} actualizada exitosamente.', 'success')
         return redirect(url_for('main.view_order', order_id=order.id))
     return render_template('ordenes/create_edit.html', title=f'Editar Orden {order.order_number}', form=form, order=order)
+
+@bp.route('/order/accept/<int:order_id>', methods=['GET', 'POST'])
+@login_required
+def accept_order_with_price(order_id):
+    """Ruta específica para que el proveedor acepte una orden estableciendo el precio"""
+    order = WorkOrder.query.get_or_404(order_id)
+    
+    # Solo proveedores pueden acceder y solo si es su orden
+    if current_user.role != 'proveedor':
+        flash('No tienes permiso para acceder a esta página.', 'danger')
+        return redirect(url_for('main.view_order', order_id=order_id))
+    
+    if order.provider_id != current_user.provider.id:
+        flash('No puedes aceptar órdenes de otros proveedores.', 'danger')
+        return redirect(url_for('main.view_order', order_id=order_id))
+    
+    # Solo se puede aceptar si está en estado 'enviada'
+    if order.status != 'enviada':
+        flash('Esta orden ya no puede ser aceptada.', 'warning')
+        return redirect(url_for('main.view_order', order_id=order_id))
+    
+    from app.forms import ProviderAcceptOrderForm
+    form = ProviderAcceptOrderForm()
+    
+    if form.validate_on_submit():
+        # Aceptar la orden y establecer el precio
+        order.status = 'aceptada'
+        order.total_amount = form.total_amount.data
+        order.due_date = form.estimated_delivery.data
+        
+        # Agregar comentarios del proveedor
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M')
+        if order.comments is None:
+            order.comments = ''
+        
+        provider_comment = f"\n[{timestamp}] {current_user.username} aceptó la orden con monto: ${form.total_amount.data:,.0f} COP."
+        if form.provider_comments.data:
+            provider_comment += f" Comentarios: {form.provider_comments.data}"
+        
+        order.comments += provider_comment
+        
+        db.session.commit()
+        
+        # Notificar a la sede que la orden fue aceptada
+        sede_admins = User.query.filter_by(role='admin_sede', sede_id=order.sede_id, is_active=True).all()
+        for admin_user in sede_admins:
+            notification = Notification(
+                user_id=admin_user.id,
+                message=f'✅ ¡Orden aceptada! El proveedor {order.provider.name} ha aceptado la orden N° {order.order_number} por ${order.total_amount:,.0f} COP.',
+                work_order_id=order.id
+            )
+            db.session.add(notification)
+        
+        # También notificar a administradores centrales
+        optica_users = User.query.filter(User.role.in_(['admin', 'asistente'])).all()
+        for u in optica_users:
+            notification = Notification(
+                user_id=u.id,
+                message=f'✅ Orden aceptada: {order.provider.name} aceptó la orden N° {order.order_number} por ${order.total_amount:,.0f} COP.',
+                work_order_id=order.id
+            )
+            db.session.add(notification)
+        
+        db.session.commit()
+        
+        flash(f'¡Orden aceptada exitosamente por ${form.total_amount.data:,.0f} COP!', 'success')
+        return redirect(url_for('main.view_order', order_id=order_id))
+    
+    return render_template('ordenes/accept_order.html', title='Aceptar Orden', form=form, order=order)
+
 
 @bp.route('/order/update_status/<int:order_id>', methods=['GET', 'POST'])
 @login_required
@@ -1073,6 +1158,11 @@ def update_order_status(order_id):
 
 
     if form.validate_on_submit():
+        # Si un proveedor trata de aceptar, redirigir a la página de aceptar con precio
+        if current_user.role == 'proveedor' and form.status.data == 'aceptada' and order.status == 'enviada':
+            flash('Para aceptar una orden, debes establecer el precio del trabajo.', 'info')
+            return redirect(url_for('main.accept_order_with_price', order_id=order_id))
+        
         old_status = order.status
         order.status = form.status.data
         
@@ -1651,6 +1741,67 @@ def resubmit_order(order_id):
         return redirect(url_for('main.view_order', order_id=order.id))
     
     return render_template('ordenes/resubmit.html', title=f'Reenviar Orden {order.order_number}', form=form, order=order)
+
+@bp.route('/order/mark_collected/<int:order_id>', methods=['POST'])
+@login_required
+@role_required('admin', 'asistente', 'admin_sede')
+@csrf.exempt
+def mark_order_collected(order_id):
+    """Marcar una orden como recogida (cambiar de devuelta_proveedor a recibida_optica)"""
+    order = WorkOrder.query.get_or_404(order_id)
+    
+    # Verificar que la orden esté en el estado correcto
+    if order.status != 'devuelta_proveedor':
+        flash('Solo se pueden marcar como recogidas las órdenes que estén terminadas por el proveedor.', 'warning')
+        return redirect(url_for('main.view_order', order_id=order_id))
+    
+    # Verificar permisos para admin_sede: solo puede marcar órdenes de su sede
+    if current_user.role == 'admin_sede':
+        if order.sede_id != current_user.sede_id:
+            flash('No tienes permisos para marcar órdenes de otras sedes como recogidas.', 'danger')
+            return redirect(url_for('main.list_orders'))
+    
+    try:
+        # Cambiar estado a recibida_optica
+        old_status = order.status
+        order.status = 'recibida_optica'
+        
+        # Agregar comentario sobre la recogida
+        if order.comments is None:
+            order.comments = ''
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M')
+        order.comments += f"\n[{timestamp}] {current_user.username} marcó la orden como recogida de {order.provider.name}."
+        
+        db.session.flush()  # Para asegurar que order.id esté disponible
+        
+        # Notificar al proveedor que la orden fue recogida
+        provider_user = User.query.filter_by(provider_id=order.provider_id, role='proveedor').first()
+        if provider_user:
+            notification = Notification(
+                user_id=provider_user.id,
+                message=f'✅ Orden recogida. La sede {order.sede.name} ha recogido la orden N° {order.order_number} de {order.client_name}.',
+                work_order_id=order.id
+            )
+            db.session.add(notification)
+        
+        # Notificar a administradores centrales
+        optica_users = User.query.filter(User.role.in_(['admin', 'asistente'])).all()
+        for u in optica_users:
+            notification = Notification(
+                user_id=u.id,
+                message=f'📦 Orden recogida. La sede {order.sede.name} recogió la orden N° {order.order_number} de {order.client_name}.',
+                work_order_id=order.id
+            )
+            db.session.add(notification)
+        
+        db.session.commit()
+        flash(f'Orden N° {order.order_number} marcada como recogida exitosamente.', 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al marcar la orden como recogida: {str(e)}', 'error')
+    
+    return redirect(url_for('main.view_order', order_id=order_id))
 
 # Ruta de prueba para verificar notificaciones
 @bp.route('/debug/notifications')

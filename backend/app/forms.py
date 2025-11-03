@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
 from wtforms import StringField, PasswordField, SubmitField, TextAreaField, SelectField, DateField, FloatField, BooleanField
-from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError, Optional
+from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError, Optional, NumberRange
 from app.models import User, Provider, WorkOrder
 
 class LoginForm(FlaskForm):
@@ -125,32 +125,36 @@ class WorkOrderForm(FlaskForm):
     # Implementé información básica de la orden
     client_name = StringField('Nombre del Paciente', validators=[DataRequired(), Length(max=128)])
     client_cc = StringField('Cédula del Paciente', validators=[DataRequired(), Length(max=20)])
+    client_phone = StringField('Teléfono del Paciente', validators=[Optional(), Length(max=20)])
     receipt_number = StringField('Número del Recibo de Venta', validators=[DataRequired(), Length(max=64)])
     
     # Implementé sede y proveedor
     sede_id = SelectField('Sede Solicitante', coerce=int, validators=[DataRequired()])
     provider_id = SelectField('Proveedor', coerce=int, validators=[DataRequired()])
     
-    # Implementé tipo de lente
-    lens_type = StringField('Tipo de Lente Solicitado', validators=[DataRequired(), Length(max=128)])
+
     
-    # Implementé fórmula Ojo Derecho (OD)
-    formula_od_esfera = StringField('OD - Esfera', validators=[Optional(), Length(max=10)])
-    formula_od_cilindro = StringField('OD - Cilindro', validators=[Optional(), Length(max=10)])
-    formula_od_eje = StringField('OD - Eje', validators=[Optional(), Length(max=10)])
-    formula_od_adicion = StringField('OD - Adición', validators=[Optional(), Length(max=10)])
+    # Implementé clasificación y tipo de lentes
+    lens_class = SelectField('Clase de Lentes', choices=[
+        ('', 'Seleccionar...'),
+        ('progresivo', 'Progresivo'),
+        ('bifocal', 'Bifocal'), 
+        ('monofocal', 'Monofocal')
+    ], validators=[Optional()])
+    lens_type = StringField('Tipo de Lente y Filtros', validators=[DataRequired(), Length(max=128)])
+    frame_type = StringField('Tipo de Montura', validators=[Optional(), Length(max=128)])
     
-    # Implementé fórmula Ojo Izquierdo (OI)
-    formula_oi_esfera = StringField('OI - Esfera', validators=[Optional(), Length(max=10)])
-    formula_oi_cilindro = StringField('OI - Cilindro', validators=[Optional(), Length(max=10)])
-    formula_oi_eje = StringField('OI - Eje', validators=[Optional(), Length(max=10)])
-    formula_oi_adicion = StringField('OI - Adición', validators=[Optional(), Length(max=10)])
+    # Implementé fórmula con campos de texto libre
+    formula_od = TextAreaField('OD (Ojo Derecho)', validators=[Optional(), Length(max=200)])
+    formula_oi = TextAreaField('OI (Ojo Izquierdo)', validators=[Optional(), Length(max=200)])
+    formula_add = TextAreaField('ADD (Adición)', validators=[Optional(), Length(max=200)])
+    formula_dp_alt = TextAreaField('DP y ALT (Distancia Pupilar y Altura)', validators=[Optional(), Length(max=200)])
     
     # Implementé información adicional
     formula_details = TextAreaField('Detalles Adicionales de la Fórmula', validators=[Optional()])
-    due_date = DateField('Fecha de Entrega (Estimada)', format='%Y-%m-%d', validators=[Optional()])
+    observations = TextAreaField('Observaciones', validators=[Optional()])
     comments = TextAreaField('Comentarios Adicionales', validators=[Optional()])
-    total_amount = FloatField('Monto Total al Proveedor', validators=[Optional()])
+    # Nota: due_date y total_amount son establecidos por el proveedor al aceptar la orden
     submit = SubmitField('Crear Orden de Trabajo')
 
     def __init__(self, current_user=None, *args, **kwargs):
@@ -323,6 +327,26 @@ class ChangePasswordForm(FlaskForm):
     def validate_current_password(self, current_password):
         if not self.user.check_password(current_password.data):
             raise ValidationError('La contraseña actual es incorrecta.')
+
+
+class ProviderAcceptOrderForm(FlaskForm):
+    """Formulario para que el proveedor acepte una orden y establezca el precio"""
+    total_amount = FloatField('Monto a Cobrar a la Sede', 
+                             validators=[DataRequired(), NumberRange(min=0.01, message='El monto debe ser mayor a cero')],
+                             description='Indique el monto total que cobrará por esta orden de trabajo')
+    estimated_delivery = DateField('Fecha Estimada de Entrega', 
+                                 format='%Y-%m-%d', 
+                                 validators=[DataRequired()],
+                                 description='¿Cuándo estará lista la orden?')
+    provider_comments = TextAreaField('Comentarios del Proveedor', 
+                                    validators=[Optional()],
+                                    description='Información adicional sobre el trabajo a realizar')
+    submit = SubmitField('Aceptar Orden')
+
+    def validate_estimated_delivery(self, estimated_delivery):
+        from datetime import datetime, date
+        if estimated_delivery.data and estimated_delivery.data <= date.today():
+            raise ValidationError('La fecha de entrega debe ser posterior a hoy.')
 
 
 class SedeUserEditForm(FlaskForm):
