@@ -4,7 +4,7 @@
         <!-- Encabezado mejorado -->
         <div class="row mb-4">
             <div class="col-12">
-                <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
                     <div class="card-body text-white p-4">
                         <h1 class="mb-0 fw-bold">
                             <i class="fas fa-clipboard-list me-3"></i>
@@ -34,7 +34,7 @@
                 <div class="col-lg-8">
                     <!-- Información del Paciente -->
                     <div class="card mb-4 shadow-sm border-0">
-                        <div class="card-header text-white" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                        <div class="card-header text-white" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
                             <h5 class="mb-0">
                                 <i class="fas fa-user me-2"></i>Información del Paciente
                             </h5>
@@ -88,7 +88,7 @@
                                     {% for error in form.sede_id.errors %}
                                         <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
                                     {% endfor %}
-                                    <small class="text-muted">Sede que solicita la orden de trabajo</small>
+                                    <small class="text-muted">¿Qué sede está solicitando esta orden?</small>
                                 </div>
                                 <div class="col-md-6">
                                     {{ form.provider_id.label(class="form-label fw-bold") }}
@@ -207,24 +207,8 @@
                         <div class="card-body">
                             <div class="mb-4">
                                 {{ form.formula_details.label(class="form-label fw-bold") }}
-                                {{ form.formula_details(class="form-control", rows=4, placeholder="Detalles adicionales de la fórmula o especificaciones especiales...") }}
+                                {{ form.formula_details(class="form-control", rows=6, placeholder="Detalles adicionales de la fórmula o especificaciones especiales...") }}
                                 {% for error in form.formula_details.errors %}
-                                    <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
-                                {% endfor %}
-                            </div>
-                            
-                            <div class="mb-4">
-                                {{ form.observations.label(class="form-label fw-bold") }}
-                                {{ form.observations(class="form-control", rows=4, placeholder="Observaciones específicas sobre la orden...") }}
-                                {% for error in form.observations.errors %}
-                                    <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
-                                {% endfor %}
-                            </div>
-                            
-                            <div class="mb-4">
-                                {{ form.comments.label(class="form-label fw-bold") }}
-                                {{ form.comments(class="form-control", rows=4, placeholder="Comentarios adicionales sobre la orden...") }}
-                                {% for error in form.comments.errors %}
                                     <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
                                 {% endfor %}
                             </div>

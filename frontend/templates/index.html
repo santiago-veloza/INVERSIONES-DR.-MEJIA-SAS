@@ -86,48 +86,81 @@
                         <h5><i class="fas fa-bolt me-2"></i> Acceso Rápido</h5>
                     </div>
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-xl-3 col-lg-4 col-md-6 mb-3">
-                                <a href="{{ url_for('main.create_order') }}" class="btn btn-success btn-lg w-100 action-buttons">
-                                    <i class="fas fa-plus fs-1 mb-2"></i><br>
-                                    <span class="fw-bold">Crear Nueva Orden</span>
+                        <!-- Acciones principales - Grid uniforme -->
+                        <div class="row g-3">
+                            <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+                                <a href="{{ url_for('main.create_order') }}" class="btn btn-success w-100 quick-action-btn">
+                                    <div class="quick-action-content">
+                                        <i class="fas fa-plus quick-action-icon"></i>
+                                        <div class="quick-action-text">
+                                            <span class="fw-bold">Crear Nueva Orden</span>
+                                            <small class="d-block text-light opacity-75">Generar nueva orden de trabajo</small>
+                                        </div>
+                                    </div>
                                 </a>
                             </div>
-                            <div class="col-xl-3 col-lg-4 col-md-6 mb-3">
-                                <a href="{{ url_for('main.list_orders') }}" class="btn btn-info btn-lg w-100 action-buttons">
-                                    <i class="fas fa-list fs-1 mb-2"></i><br>
-                                    <span class="fw-bold">Ver Todas las Órdenes</span>
+                            <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+                                <a href="{{ url_for('main.list_orders') }}" class="btn btn-info w-100 quick-action-btn">
+                                    <div class="quick-action-content">
+                                        <i class="fas fa-list quick-action-icon"></i>
+                                        <div class="quick-action-text">
+                                            <span class="fw-bold">Ver Todas las Órdenes</span>
+                                            <small class="d-block text-light opacity-75">Gestionar órdenes existentes</small>
+                                        </div>
+                                    </div>
                                 </a>
                             </div>
-                            <div class="col-xl-3 col-lg-4 col-md-6 mb-3">
-                                <a href="{{ url_for('main.list_providers') }}" class="btn btn-warning btn-lg w-100 action-buttons">
-                                    <i class="fas fa-industry fs-1 mb-2"></i><br>
-                                    <span class="fw-bold">Gestionar Proveedores</span>
+                            <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+                                <a href="{{ url_for('main.list_providers') }}" class="btn btn-warning w-100 quick-action-btn">
+                                    <div class="quick-action-content">
+                                        <i class="fas fa-industry quick-action-icon"></i>
+                                        <div class="quick-action-text">
+                                            <span class="fw-bold">Gestionar Proveedores</span>
+                                            <small class="d-block text-dark opacity-75">Administrar red de proveedores</small>
+                                        </div>
+                                    </div>
                                 </a>
                             </div>
-                            <div class="col-xl-3 col-lg-4 col-md-6 mb-3">
-                                <a href="{{ url_for('main.list_pending_payments') }}" class="btn btn-danger btn-lg w-100 action-buttons">
-                                    <i class="fas fa-dollar-sign fs-1 mb-2"></i><br>
-                                    <span class="fw-bold">Pagos Pendientes</span>
+                            <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+                                <a href="{{ url_for('main.list_pending_payments') }}" class="btn btn-danger w-100 quick-action-btn">
+                                    <div class="quick-action-content">
+                                        <i class="fas fa-dollar-sign quick-action-icon"></i>
+                                        <div class="quick-action-text">
+                                            <span class="fw-bold">Pagos Pendientes</span>
+                                            <small class="d-block text-light opacity-75">Revisar pagos por procesar</small>
+                                        </div>
+                                    </div>
                                 </a>
                             </div>
                         </div>
-                        <div class="row mt-3">
-                            {% if current_user.role in ['admin', 'asistente'] %}
-                            <div class="col-lg-6 mb-3">
-                                <a href="{{ url_for('main.send_sede_message') }}" class="btn btn-primary btn-lg w-100 action-buttons">
-                                    <i class="fas fa-paper-plane fs-2 mb-2"></i><br>
-                                    <span class="fw-bold">Enviar Mensaje a Sedes</span>
+                        
+                        <!-- Acciones adicionales para admin -->
+                        {% if current_user.role in ['admin', 'asistente'] %}
+                        <div class="row g-3 mt-2">
+                            <div class="col-xl-6 col-lg-6 col-md-12 mb-3">
+                                <a href="{{ url_for('main.send_sede_message') }}" class="btn btn-primary w-100 quick-action-btn">
+                                    <div class="quick-action-content">
+                                        <i class="fas fa-paper-plane quick-action-icon"></i>
+                                        <div class="quick-action-text">
+                                            <span class="fw-bold">Enviar Mensaje a Sedes</span>
+                                            <small class="d-block text-light opacity-75">Comunicación directa con todas las sedes</small>
+                                        </div>
+                                    </div>
                                 </a>
                             </div>
-                            <div class="col-lg-6 mb-3">
-                                <a href="{{ url_for('main.list_sede_messages') }}" class="btn btn-outline-primary btn-lg w-100 action-buttons">
-                                    <i class="fas fa-envelope-open fs-2 mb-2"></i><br>
-                                    <span class="fw-bold">Ver Mensajes Enviados</span>
+                            <div class="col-xl-6 col-lg-6 col-md-12 mb-3">
+                                <a href="{{ url_for('main.list_sede_messages') }}" class="btn btn-outline-primary w-100 quick-action-btn outline-style">
+                                    <div class="quick-action-content">
+                                        <i class="fas fa-envelope-open quick-action-icon text-primary"></i>
+                                        <div class="quick-action-text">
+                                            <span class="fw-bold text-primary">Ver Mensajes Enviados</span>
+                                            <small class="d-block text-muted">Historial de comunicaciones</small>
+                                        </div>
+                                    </div>
                                 </a>
                             </div>
-                            {% endif %}
                         </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -176,26 +209,43 @@
                         <h5><i class="fas fa-bolt me-2"></i> Acceso Rápido - Mi Sede</h5>
                     </div>
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-lg-4 col-md-6 mb-3">
-                                <a href="{{ url_for('main.my_sede_messages') }}" class="btn btn-primary btn-lg w-100 action-buttons">
-                                    <i class="fas fa-envelope fs-1 mb-2"></i><br>
-                                    <span class="fw-bold">Mis Mensajes</span>
-                                    {% if sede_messages_count > 0 %}
-                                        <span class="badge bg-light text-primary ms-2">{{ sede_messages_count }}</span>
-                                    {% endif %}
+                        <!-- Accesos rápidos para Admin de Sede - Grid uniforme -->
+                        <div class="row g-3">
+                            <div class="col-xl-4 col-lg-4 col-md-6 mb-3">
+                                <a href="{{ url_for('main.my_sede_messages') }}" class="btn btn-primary w-100 quick-action-btn">
+                                    <div class="quick-action-content">
+                                        <i class="fas fa-envelope quick-action-icon"></i>
+                                        <div class="quick-action-text">
+                                            <span class="fw-bold">Mis Mensajes
+                                                {% if sede_messages_count > 0 %}
+                                                    <span class="badge bg-light text-primary ms-1">{{ sede_messages_count }}</span>
+                                                {% endif %}
+                                            </span>
+                                            <small class="d-block text-light opacity-75">Comunicaciones recibidas</small>
+                                        </div>
+                                    </div>
                                 </a>
                             </div>
-                            <div class="col-lg-4 col-md-6 mb-3">
-                                <a href="{{ url_for('main.sede_payments') }}" class="btn btn-outline-info btn-lg w-100 action-buttons">
-                                    <i class="fas fa-credit-card fs-1 mb-2"></i><br>
-                                    <span class="fw-bold">Mis Pagos</span>
+                            <div class="col-xl-4 col-lg-4 col-md-6 mb-3">
+                                <a href="{{ url_for('main.sede_payments') }}" class="btn btn-info w-100 quick-action-btn">
+                                    <div class="quick-action-content">
+                                        <i class="fas fa-credit-card quick-action-icon"></i>
+                                        <div class="quick-action-text">
+                                            <span class="fw-bold">Mis Pagos</span>
+                                            <small class="d-block text-light opacity-75">Historial de pagos y facturas</small>
+                                        </div>
+                                    </div>
                                 </a>
                             </div>
-                            <div class="col-lg-4 col-md-6 mb-3">
-                                <a href="{{ url_for('main.list_orders') }}" class="btn btn-outline-secondary btn-lg w-100 action-buttons">
-                                    <i class="fas fa-clipboard-list fs-1 mb-2"></i><br>
-                                    <span class="fw-bold">Órdenes de Mi Sede</span>
+                            <div class="col-xl-4 col-lg-4 col-md-6 mb-3">
+                                <a href="{{ url_for('main.list_orders') }}" class="btn btn-secondary w-100 quick-action-btn">
+                                    <div class="quick-action-content">
+                                        <i class="fas fa-clipboard-list quick-action-icon"></i>
+                                        <div class="quick-action-text">
+                                            <span class="fw-bold">Órdenes de Mi Sede</span>
+                                            <small class="d-block text-light opacity-75">Gestión de órdenes activas</small>
+                                        </div>
+                                    </div>
                                 </a>
                             </div>
                         </div>
@@ -262,28 +312,41 @@
                         <h5><i class="fas fa-tools me-2"></i> Acciones Rápidas</h5>
                     </div>
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-lg-4 col-md-6 mb-3">
-                                <a href="{{ url_for('main.list_orders') }}" class="btn btn-primary btn-lg w-100 action-buttons">
-                                    <i class="fas fa-tasks fs-1 mb-2"></i><br>
-                                    <span class="fw-bold">Ver Mis Órdenes</span>
-                                    <small class="d-block mt-2">Gestionar todas mis órdenes asignadas</small>
+                        <!-- Acciones rápidas para Proveedor - Grid uniforme -->
+                        <div class="row g-3">
+                            <div class="col-xl-4 col-lg-4 col-md-6 mb-3">
+                                <a href="{{ url_for('main.list_orders') }}" class="btn btn-primary w-100 quick-action-btn">
+                                    <div class="quick-action-content">
+                                        <i class="fas fa-tasks quick-action-icon"></i>
+                                        <div class="quick-action-text">
+                                            <span class="fw-bold">Ver Mis Órdenes</span>
+                                            <small class="d-block text-light opacity-75">Gestionar todas mis órdenes asignadas</small>
+                                        </div>
+                                    </div>
                                 </a>
                             </div>
-                            <div class="col-lg-4 col-md-6 mb-3">
-                                <a href="{{ url_for('main.view_notifications') }}" class="btn btn-warning btn-lg w-100 action-buttons">
-                                    <i class="fas fa-bell fs-1 mb-2"></i><br>
-                                    <span class="fw-bold">Notificaciones</span>
-                                    <small class="d-block mt-2">Ver nuevas órdenes y actualizaciones</small>
+                            <div class="col-xl-4 col-lg-4 col-md-6 mb-3">
+                                <a href="{{ url_for('main.view_notifications') }}" class="btn btn-warning w-100 quick-action-btn">
+                                    <div class="quick-action-content">
+                                        <i class="fas fa-bell quick-action-icon"></i>
+                                        <div class="quick-action-text">
+                                            <span class="fw-bold">Notificaciones</span>
+                                            <small class="d-block text-dark opacity-75">Ver nuevas órdenes y actualizaciones</small>
+                                        </div>
+                                    </div>
                                 </a>
                             </div>
-                            <div class="col-lg-4 col-md-6 mb-3">
-                                <div class="card border-success dashboard-card">
-                                    <div class="card-body text-center">
-                                        <i class="fas fa-money-bill-wave fs-1 text-success mb-2"></i>
-                                        <h6 class="text-success fw-bold">💰 Estado de Pagos</h6>
-                                        <p class="mb-1"><strong>Pagadas:</strong> <span class="badge bg-success">{{ orders_paid }}</span></p>
-                                        <p class="mb-0"><strong>Pendientes:</strong> <span class="badge bg-warning">{{ orders_pending_payment }}</span></p>
+                            <div class="col-xl-4 col-lg-4 col-md-6 mb-3">
+                                <div class="quick-action-btn btn btn-success position-relative overflow-hidden">
+                                    <div class="quick-action-content">
+                                        <i class="fas fa-money-bill-wave quick-action-icon"></i>
+                                        <div class="quick-action-text">
+                                            <span class="fw-bold">Estado de Pagos</span>
+                                            <small class="d-block text-light opacity-75">
+                                                Pagadas: <span class="badge bg-light text-success">{{ orders_paid }}</span> | 
+                                                Pendientes: <span class="badge bg-light text-warning">{{ orders_pending_payment }}</span>
+                                            </small>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

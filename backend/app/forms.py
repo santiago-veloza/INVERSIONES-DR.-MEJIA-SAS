@@ -19,7 +19,13 @@ class LoginForm(FlaskForm):
     def __init__(self, *args, **kwargs):
         super(LoginForm, self).__init__(*args, **kwargs)
         from app.models import Sede
-        self.sede_id.choices = [(0, '--- Seleccionar Sede ---')] + [(s.id, f"{s.name} - {s.city}") for s in Sede.query.filter_by(is_active=True).order_by(Sede.city, Sede.name).all()]
+        sedes_list = []
+        for s in Sede.query.filter_by(is_active=True).order_by(Sede.name).all():
+            if s.city and s.city not in ['Selecciona tu ciudad', 'selecciona tu ciudad', '']:
+                sedes_list.append((s.id, f"{s.name} - {s.city}"))
+            else:
+                sedes_list.append((s.id, s.name))
+        self.sede_id.choices = [(0, '--- Seleccionar Sede ---')] + sedes_list
 
 class RegistrationForm(FlaskForm):
     username = StringField('Usuario', validators=[DataRequired(), Length(min=4, max=64)])
@@ -164,17 +170,28 @@ class WorkOrderForm(FlaskForm):
         # Si es admin_sede, solo muestro su sede asignada
         if current_user and current_user.role == 'admin_sede' and current_user.sede_id:
             sede = Sede.query.get(current_user.sede_id)
-            self.sede_id.choices = [(sede.id, f"{sede.name} - {sede.city}")]
+            # Solo muestro la ciudad si no es un placeholder
+            if sede.city and sede.city not in ['Selecciona tu ciudad', 'selecciona tu ciudad', '']:
+                self.sede_id.choices = [(sede.id, f"{sede.name} - {sede.city}")]
+            else:
+                self.sede_id.choices = [(sede.id, sede.name)]
             # Pre-selecciono la sede del usuario
             self.sede_id.data = sede.id
         else:
             # Para admin y asistente, muestro todas las sedes
-            self.sede_id.choices = [(s.id, f"{s.name} - {s.city}") for s in Sede.query.filter_by(is_active=True).order_by(Sede.city, Sede.name).all()]
+            sedes_list = []
+            for s in Sede.query.filter_by(is_active=True).order_by(Sede.name).all():
+                # Solo muestro la ciudad si no es un placeholder
+                if s.city and s.city not in ['Selecciona tu ciudad', 'selecciona tu ciudad', '']:
+                    sedes_list.append((s.id, f"{s.name} - {s.city}"))
+                else:
+                    sedes_list.append((s.id, s.name))
+            self.sede_id.choices = [(0, '--- Seleccionar Sede Solicitante ---')] + sedes_list
         
         # Todos los usuarios pueden ver todos los proveedores que implementé
         self.provider_id.choices = [(p.id, f"{p.razon_social} ({p.nit})") for p in Provider.query.order_by(Provider.razon_social).all()]
         # Agrego una opción vacía si es necesario
-        self.provider_id.choices.insert(0, (0, '--- Seleccionar Proveedor ---'))
+        self.provider_id.choices.insert(0, (0, 'Seleccionar Proveedor'))
 
 
 class WorkOrderStatusForm(FlaskForm):
@@ -259,7 +276,13 @@ class SedeAdminForm(FlaskForm):
     def __init__(self, *args, **kwargs):
         super(SedeAdminForm, self).__init__(*args, **kwargs)
         from app.models import Sede
-        self.sede_id.choices = [(s.id, f"{s.name} - {s.city}") for s in Sede.query.filter_by(is_active=True).order_by(Sede.city, Sede.name).all()]
+        sedes_list = []
+        for s in Sede.query.filter_by(is_active=True).order_by(Sede.name).all():
+            if s.city and s.city not in ['Selecciona tu ciudad', 'selecciona tu ciudad', '']:
+                sedes_list.append((s.id, f"{s.name} - {s.city}"))
+            else:
+                sedes_list.append((s.id, s.name))
+        self.sede_id.choices = sedes_list
 
     def validate_username(self, username):
         user = User.query.filter_by(username=username.data).first()
@@ -287,7 +310,13 @@ class SedeMessageForm(FlaskForm):
     def __init__(self, *args, **kwargs):
         super(SedeMessageForm, self).__init__(*args, **kwargs)
         from app.models import Sede
-        self.sede_id.choices = [(0, '📢 Todas las Sedes')] + [(s.id, f"🏢 {s.name} - {s.city}") for s in Sede.query.filter_by(is_active=True).order_by(Sede.city, Sede.name).all()]
+        sedes_list = []
+        for s in Sede.query.filter_by(is_active=True).order_by(Sede.name).all():
+            if s.city and s.city not in ['Selecciona tu ciudad', 'selecciona tu ciudad', '']:
+                sedes_list.append((s.id, f"🏢 {s.name} - {s.city}"))
+            else:
+                sedes_list.append((s.id, f"🏢 {s.name}"))
+        self.sede_id.choices = [(0, '📢 Todas las Sedes')] + sedes_list
         
         # Establezco valor por defecto si no se ha enviado el formulario
         if not self.sede_id.data:

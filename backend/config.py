@@ -27,6 +27,6 @@ class Config:
     SESSION_COOKIE_SAMESITE = 'Lax'  # Protección CSRF básica
     
     # Configuración de timeout de sesión que implementé (TIEMPOS REDUCIDOS PARA PRUEBAS)
-    PERMANENT_SESSION_LIFETIME = timedelta(minutes=15)  # 15 minutos para pruebas
-    SESSION_TIMEOUT_WARNING = timedelta(minutes=10)     # Advertencia a 10 minutos
+    PERMANENT_SESSION_LIFETIME = timedelta(minutes=12)  # 12 minutos para pruebas
+    SESSION_TIMEOUT_WARNING = timedelta(minutes=11)     # Advertencia a 11 minutos
     SESSION_REFRESH_EACH_REQUEST = True  # Renovar sesión en cada request

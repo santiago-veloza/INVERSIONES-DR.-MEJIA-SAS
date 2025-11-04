@@ -24,7 +24,7 @@
                     </thead>
                 <tbody>
                     {% for provider in providers %}
-                    <tr>
+                    <tr class="clickable-row" data-provider-id="{{ provider.id }}" style="cursor: pointer;">
                         <td>{{ provider.nit or '-' }}</td>
                         <td>
                             <strong>{{ provider.razon_social or provider.name or '-' }}</strong>
@@ -273,6 +273,30 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
+            // Agregar evento de clic a todas las filas de proveedores
+            document.querySelectorAll('.clickable-row').forEach(row => {
+                row.addEventListener('click', function(e) {
+                    // Evitar que el clic en los botones de acción redirija
+                    if (e.target.closest('.btn') || e.target.closest('button') || e.target.closest('form')) {
+                        return;
+                    }
+                    
+                    const providerId = this.getAttribute('data-provider-id');
+                    // Abrir el modal de credenciales
+                    const credentialsModal = new bootstrap.Modal(document.getElementById('credentialsModal' + providerId));
+                    credentialsModal.show();
+                });
+                
+                // Agregar efecto visual al pasar el mouse
+                row.addEventListener('mouseenter', function() {
+                    this.style.backgroundColor = '#f8f9fa';
+                });
+                
+                row.addEventListener('mouseleave', function() {
+                    this.style.backgroundColor = '';
+                });
+            });
+
             // Configurar event listeners para botones de copiar
             document.querySelectorAll('.copy-btn').forEach(function(button) {
                 button.addEventListener('click', function() {

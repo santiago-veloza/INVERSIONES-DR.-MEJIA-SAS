@@ -446,6 +446,79 @@ body {
     letter-spacing: 0.5px;
 }
 
+/* Alineación mejorada para iconos en headers de formularios */
+.card-header h5 {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0;
+}
+
+.card-header h5 i {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    margin-right: 0.75rem;
+    font-size: 1rem;
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* Mejoras específicas para iconos Font Awesome */
+.fa, .fas, .far, .fal, .fad, .fab {
+    vertical-align: middle;
+    line-height: 1;
+}
+
+/* Alineación de iconos en títulos */
+h1 i, h2 i, h3 i, h4 i, h5 i, h6 i {
+    vertical-align: middle;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.5rem;
+}
+
+/* Centrar iconos en headers de cards */
+.card-header .fas,
+.card-header .fa {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.25rem;
+    text-align: center;
+}
+
+/* Corrección adicional para círculos de iconos en detail cards */
+.card-body .bg-gradient.rounded-circle {
+    position: relative;
+}
+
+.card-body .bg-gradient.rounded-circle i {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1rem;
+    line-height: 1;
+}
+
+/* Asegurar que los contenedores de iconos mantengan sus dimensiones */
+.bg-secondary.bg-gradient.rounded-circle,
+.bg-success.bg-gradient.rounded-circle,
+.bg-primary.bg-gradient.rounded-circle,
+.bg-info.bg-gradient.rounded-circle,
+.bg-warning.bg-gradient.rounded-circle,
+.bg-danger.bg-gradient.rounded-circle {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
 .form-control,
 .form-select {
     border: 2px solid var(--gray-300);
@@ -1020,6 +1093,8 @@ body {
 .fas, .fa {
     margin-right: 0.5rem;
     opacity: 0.8;
+    vertical-align: middle;
+    line-height: 1;
 }
 
 /* Efectos de hover para iconos */
@@ -1027,6 +1102,110 @@ body {
 .nav-link:hover .fa {
     opacity: 1;
     transform: scale(1.1);
+}
+
+/* Alineación específica para iconos en botones */
+.btn i {
+    vertical-align: middle;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.5rem;
+    line-height: 1;
+}
+
+/* Iconos en elementos de navegación */
+.nav-link i {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1rem;
+    margin-right: 0.5rem;
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* Iconos en dropdown items */
+.dropdown-item i {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.25rem;
+    margin-right: 0.75rem;
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* Iconos en alertas */
+.alert i {
+    vertical-align: middle;
+    display: inline-flex;
+    align-items: center;
+    margin-right: 0.5rem;
+}
+
+/* Iconos en badges */
+.badge i {
+    vertical-align: middle;
+    margin-right: 0.25rem;
+    line-height: 1;
+}
+
+/* Iconos en tablas */
+.table i {
+    vertical-align: middle;
+    line-height: 1;
+}
+
+/* Fix para iconos que aparecen desalineados */
+i.fas, i.fa, i.far, i.fal, i.fad, i.fab {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    vertical-align: middle !important;
+    line-height: 1 !important;
+}
+
+/* Corrección específica para iconos en círculos de cards */
+.bg-gradient.rounded-circle {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+}
+
+.bg-gradient.rounded-circle i {
+    font-size: 1rem !important;
+    width: auto !important;
+    height: auto !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Corrección específica para iconos problemáticos */
+.fa-glasses,
+.fa-dollar-sign,
+.fa-user,
+.fa-clipboard,
+.fa-info-circle,
+.fa-clipboard-list {
+    text-align: center !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Alineación para contenedores flexbox con iconos */
+.d-flex.align-items-center i {
+    flex-shrink: 0;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
 /* Container principal */
@@ -1426,6 +1605,152 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
     background: var(--primary-dark);
+}
+
+/* ==========================================
+   BOTONES DE ACCESO RÁPIDO UNIFORMES
+========================================== */
+
+/* Botones de acceso rápido con iconos centrados */
+.quick-access-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem 1rem;
+    min-height: 140px;
+    text-decoration: none;
+    border-radius: var(--border-radius-lg);
+    transition: var(--transition);
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    color: var(--white);
+    box-shadow: var(--shadow-md);
+    border: none;
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.quick-access-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+    color: var(--white);
+    text-decoration: none;
+    background: linear-gradient(135deg, var(--primary-dark) 0%, #084298 100%);
+}
+
+.quick-access-btn i {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+    margin-right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    line-height: 1;
+}
+
+.quick-access-btn .btn-text {
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.3;
+    margin: 0;
+}
+
+/* Variaciones de color para diferentes botones */
+.quick-access-btn.btn-success {
+    background: linear-gradient(135deg, var(--success-color) 0%, #146c43 100%);
+}
+
+.quick-access-btn.btn-success:hover {
+    background: linear-gradient(135deg, #146c43 0%, #0f5132 100%);
+}
+
+.quick-access-btn.btn-warning {
+    background: linear-gradient(135deg, var(--warning-color) 0%, #e25d0e 100%);
+}
+
+.quick-access-btn.btn-warning:hover {
+    background: linear-gradient(135deg, #e25d0e 0%, #cc2500 100%);
+}
+
+.quick-access-btn.btn-info {
+    background: linear-gradient(135deg, var(--info-color) 0%, #3dd5f3 100%);
+}
+
+.quick-access-btn.btn-info:hover {
+    background: linear-gradient(135deg, #3dd5f3 0%, #0dcaf0 100%);
+}
+
+.quick-access-btn.btn-danger {
+    background: linear-gradient(135deg, var(--danger-color) 0%, #b02a37 100%);
+}
+
+.quick-access-btn.btn-danger:hover {
+    background: linear-gradient(135deg, #b02a37 0%, #842029 100%);
+}
+
+/* Responsive para botones de acceso rápido */
+@media (max-width: 768px) {
+    .quick-access-btn {
+        min-height: 120px;
+        padding: 1.25rem 0.75rem;
+    }
+    
+    .quick-access-btn i {
+        font-size: 2rem;
+        width: 50px;
+        height: 50px;
+        margin-bottom: 0.5rem;
+    }
+    
+    .quick-access-btn .btn-text {
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .quick-access-btn {
+        min-height: 100px;
+        padding: 1rem 0.5rem;
+    }
+    
+    .quick-access-btn i {
+        font-size: 1.75rem;
+        width: 45px;
+        height: 45px;
+        margin-bottom: 0.4rem;
+    }
+    
+    .quick-access-btn .btn-text {
+        font-size: 0.75rem;
+        line-height: 1.2;
+    }
+}
+
+/* Grid uniforme para botones de acceso rápido */
+.quick-access-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+
+@media (max-width: 768px) {
+    .quick-access-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .quick-access-grid {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 0.5rem;
+    }
 }
 
 /* ==========================================

@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
     <div class="d-flex justify-content-between align-items-center mb-4 first-content-element">
-        <h1>
+        <h1 class="d-flex align-items-center">
             {% if current_user.role == 'proveedor' %}
-                <i class="fas fa-tasks"></i> Mis Órdenes de Trabajo
+                <i class="fas fa-tasks me-2"></i> Mis Órdenes de Trabajo
             {% else %}
-                <i class="fas fa-list"></i> Órdenes de Trabajo
+                <i class="fas fa-list me-2"></i> Órdenes de Trabajo
             {% endif %}
         </h1>
         {% if current_user.role == 'admin' or current_user.role == 'asistente' or current_user.role == 'admin_sede' %}
@@ -16,7 +16,7 @@
     </div>
     {% if current_user.role == 'admin' or current_user.role == 'asistente' %}
     <div class="alert alert-primary">
-        <h6><i class="fas fa-building"></i> Panel de la Óptica</h6>
+        <h6 class="d-flex align-items-center"><i class="fas fa-building me-2"></i> Panel de la Óptica</h6>
         <p class="mb-0">Gestión completa de todas las órdenes enviadas a proveedores.</p>
     </div>
     {% endif %}
@@ -31,6 +31,7 @@
                             <th>Cliente</th>
                             <th>Sede</th>
                             <th>Tipo de Lente</th>
+                            <th>Clase de Lente</th>
                             <th>Proveedor</th>
                             <th>Estado</th>
                             <th>Estado Pago</th>
@@ -43,7 +44,7 @@
                     </thead>
                 <tbody>
                     {% for order in orders %}
-                    <tr>
+                    <tr class="clickable-row" data-order-id="{{ order.id }}" style="cursor: pointer;">
                         <td>{{ order.order_number }}</td>
                         <td>
                             <span class="badge bg-secondary">{{ order.receipt_number or 'N/A' }}</span>
@@ -64,6 +65,9 @@
                         </td>
                         <td>
                             <span class="badge bg-info">{{ order.lens_type or 'N/A' }}</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-primary">{{ order.lens_class or 'N/A' }}</span>
                         </td>
                         <td>{{ order.provider.razon_social or order.provider.name }}</td>
                         <td>
@@ -169,4 +173,36 @@
     {% else %}
         <p>No hay órdenes de trabajo registradas.</p>
     {% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Agregar evento de clic a todas las filas de órdenes
+    document.querySelectorAll('.clickable-row').forEach(row => {
+        row.addEventListener('click', function(e) {
+            // Evitar que el clic en los botones de acción redirija
+            if (e.target.closest('.btn') || e.target.closest('form')) {
+                return;
+            }
+            
+            const orderId = this.getAttribute('data-order-id');
+            // Construir la URL dinámicamente
+            window.location.href = '/order/' + orderId;
+        });
+        
+        // Agregar efecto visual al pasar el mouse
+        row.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = '#f8f9fa';
+        });
+        
+        row.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = '';
+        });
+    });
+});
+</script>
+
+
+
+
+
 {% endblock %}

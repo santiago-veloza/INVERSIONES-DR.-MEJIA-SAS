@@ -603,14 +603,7 @@
                         </div>
                         {% endif %}
 
-                        {% if order.comments %}
-                        <div class="alert alert-secondary border-left-secondary mt-3">
-                            <h6 class="alert-heading">
-                                <i class="fas fa-comment-alt me-1"></i>Comentarios Internos:
-                            </h6>
-                            <div class="mt-2">{{ order.comments | replace('\n', '<br>') | safe }}</div>
-                        </div>
-                        {% endif %}
+
                     </div>
                 </div>
             </div>

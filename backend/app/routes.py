@@ -2,7 +2,7 @@ from flask import render_template, flash, redirect, url_for, request, current_ap
 from flask_login import current_user, login_user, logout_user, login_required
 from app import db, login_manager, csrf
 from app import bp
-from app.models import User, Provider, WorkOrder, Payment, Notification, Sede, SedeMessage
+from app.models import User, Provider, WorkOrder, Payment, Notification, Sede, SedeMessage, AuditLog
 from app.forms import (
     LoginForm, RegistrationForm, ProviderForm, ProviderEditForm, WorkOrderForm,
     WorkOrderStatusForm, PaymentForm, PendingPaymentsFilterForm, UserForm, SedeAdminForm, SedeMessageForm,
@@ -18,6 +18,12 @@ import html
 import re
 import mimetypes  # Uso mimetypes en lugar de python-magic para simplicidad
 from datetime import datetime
+
+# Sistema de Seguridad y Auditoría
+from app.security import (
+    audit_action, detect_suspicious_activity, log_security_event, log_failed_login, 
+    log_unauthorized_access, log_data_change, check_permissions, EventTypes, Severity, Category
+)
 
 # Configuración de sanitización que implementé para seguridad
 ALLOWED_TAGS = ['b', 'i', 'em', 'strong', 'p', 'br', 'ul', 'ol', 'li']
@@ -154,6 +160,7 @@ def role_required(*roles):
 
 # --- Rutas de Autenticación que desarrollé ---
 @bp.route('/login', methods=['GET', 'POST'])
+@detect_suspicious_activity()
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
@@ -176,6 +183,16 @@ def login():
         
         # Valido que el usuario existe, password es correcto y está activo
         if user is None or not user.check_password(password) or not user.is_active:
+            # Registrar intento fallido de login
+            reason = 'Invalid credentials'
+            if user and not user.is_active:
+                reason = 'Account inactive'
+            elif user and not user.check_password(password):
+                reason = 'Invalid password'
+            elif not user:
+                reason = 'User not found'
+            
+            log_failed_login(username, reason)
             flash('Usuario o contraseña inválidos o cuenta inactiva.', 'danger')
             return redirect(url_for('main.login'))
         
@@ -208,6 +225,23 @@ def login():
         # Login exitoso
         login_user(user, remember=remember_me)
         
+        # Registrar login exitoso en auditoría
+        metadata = {
+            'user_type': user_type,
+            'sede_id': sede_id if user_type == 'sede' else None,
+            'remember_me': remember_me,
+            'role': user.role
+        }
+        
+        AuditLog.log_action(
+            action_type=EventTypes.LOGIN_SUCCESS,
+            description=f"Login exitoso - Tipo: {user_type}",
+            user=user,
+            severity=Severity.INFO,
+            category=Category.USER_ACTION,
+            metadata=metadata
+        )
+        
         # Inicializar timeout de sesión
         from flask import session
         from datetime import datetime
@@ -238,6 +272,7 @@ def login():
 
 @bp.route('/logout')
 @login_required
+@audit_action(EventTypes.LOGOUT, "Usuario cerró sesión", severity=Severity.INFO)
 def logout():
     logout_user()
     flash('Has cerrado sesión.', 'info')
@@ -935,6 +970,8 @@ def list_orders():
 @bp.route('/order/new', methods=['GET', 'POST'])
 @login_required
 @role_required('admin', 'asistente', 'admin_sede')
+@audit_action(EventTypes.CREATE_ORDER, "Crear nueva orden de trabajo", 
+              resource_type='WorkOrder', severity=Severity.INFO, requires_attention=False)
 def create_order():
     form = WorkOrderForm(current_user=current_user)
     
@@ -1078,16 +1115,7 @@ def accept_order_with_price(order_id):
         order.total_amount = form.total_amount.data
         order.due_date = form.estimated_delivery.data
         
-        # Agregar comentarios del proveedor
-        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M')
-        if order.comments is None:
-            order.comments = ''
-        
-        provider_comment = f"\n[{timestamp}] {current_user.username} aceptó la orden con monto: ${form.total_amount.data:,.0f} COP."
-        if form.provider_comments.data:
-            provider_comment += f" Comentarios: {form.provider_comments.data}"
-        
-        order.comments += provider_comment
+
         
         db.session.commit()
         
@@ -1121,6 +1149,8 @@ def accept_order_with_price(order_id):
 
 @bp.route('/order/update_status/<int:order_id>', methods=['GET', 'POST'])
 @login_required
+@audit_action(EventTypes.UPDATE_ORDER, "Actualizar estado de orden", 
+              resource_type='WorkOrder', severity=Severity.INFO, requires_attention=True)
 def update_order_status(order_id):
     order = WorkOrder.query.get_or_404(order_id)
 
@@ -1171,18 +1201,7 @@ def update_order_status(order_id):
             order.rejection_reason = form.rejection_reason.data
             order.rejection_count = (order.rejection_count or 0) + 1
         
-        # Asegurar que comments sea string antes de concatenar
-        if order.comments is None:
-            order.comments = ''
-        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M')
-        if form.comments.data:
-            order.comments += f"\n[{timestamp}] {current_user.username} cambió el estado a '{order.status}'. Comentarios: {form.comments.data}"
-        else:
-            order.comments += f"\n[{timestamp}] {current_user.username} cambió el estado a '{order.status}'."
-        
-        # Agregar razón de rechazo a los comentarios si aplica
-        if order.status == 'rechazada' and form.rejection_reason.data:
-            order.comments += f"\n[{timestamp}] Razón del rechazo: {form.rejection_reason.data}"
+
         
         db.session.commit()
 
@@ -1410,6 +1429,8 @@ def admin_users():
 @bp.route('/admin/user/edit/<int:user_id>', methods=['GET', 'POST'])
 @login_required
 @role_required('admin')
+@audit_action(EventTypes.UPDATE_USER, "Editar información de usuario", 
+              resource_type='User', severity=Severity.INFO, requires_attention=True)
 def edit_user(user_id):
     user = User.query.get_or_404(user_id)
     form = UserForm(original_user=user, obj=user) # obj pre-pobla el formulario
@@ -1460,6 +1481,231 @@ def reports():
     else:
         # Para asistentes, mostrar página básica de reportes
         return render_template('reports/reports.html', title='Reportes')
+
+# --- Sistema de Auditoría y Monitoreo de Seguridad ---
+@bp.route('/admin/audit_logs')
+@login_required
+@role_required('admin')
+@audit_action('VIEW_AUDIT_LOGS', "Acceso a logs de auditoría", 
+              severity=Severity.INFO, category=Category.SECURITY, requires_attention=False)
+def view_audit_logs():
+    """Panel de administración para revisar logs de auditoría y seguridad"""
+    page = request.args.get('page', 1, type=int)
+    per_page = 50
+    
+    # Filtros opcionales
+    severity_filter = request.args.get('severity', '')
+    category_filter = request.args.get('category', '')
+    user_filter = request.args.get('user', '')
+    action_filter = request.args.get('action', '')
+    requires_attention = request.args.get('requires_attention', '')
+    
+    # Query base
+    query = AuditLog.query
+    
+    # Aplicar filtros
+    if severity_filter:
+        query = query.filter(AuditLog.severity == severity_filter)
+    
+    if category_filter:
+        query = query.filter(AuditLog.category == category_filter)
+    
+    if user_filter:
+        query = query.filter(AuditLog.username.ilike(f'%{user_filter}%'))
+    
+    if action_filter:
+        query = query.filter(AuditLog.action_type.ilike(f'%{action_filter}%'))
+    
+    if requires_attention == 'true':
+        query = query.filter(AuditLog.requires_attention == True)
+    elif requires_attention == 'false':
+        query = query.filter(AuditLog.requires_attention == False)
+    
+    # Ordenar por fecha (más recientes primero)
+    query = query.order_by(AuditLog.timestamp.desc())
+    
+    # Paginación
+    logs = query.paginate(
+        page=page, per_page=per_page, 
+        error_out=False
+    )
+    
+    # Estadísticas rápidas para el dashboard
+    total_logs = AuditLog.query.count()
+    
+    # Logs críticos de las últimas 24 horas
+    from datetime import datetime, timedelta
+    yesterday = datetime.utcnow() - timedelta(days=1)
+    
+    critical_recent = AuditLog.query.filter(
+        AuditLog.timestamp >= yesterday,
+        AuditLog.severity == Severity.CRITICAL
+    ).count()
+    
+    # Logs que requieren atención
+    attention_required = AuditLog.query.filter(
+        AuditLog.requires_attention == True,
+        AuditLog.reviewed == False
+    ).count()
+    
+    # Eventos de seguridad recientes
+    security_events = AuditLog.query.filter(
+        AuditLog.category == Category.SECURITY,
+        AuditLog.timestamp >= yesterday
+    ).count()
+    
+    # Intentos de login fallidos
+    failed_logins = AuditLog.query.filter(
+        AuditLog.action_type == EventTypes.LOGIN_FAILED,
+        AuditLog.timestamp >= yesterday
+    ).count()
+    
+    stats = {
+        'total_logs': total_logs,
+        'critical_recent': critical_recent,
+        'attention_required': attention_required,
+        'security_events': security_events,
+        'failed_logins': failed_logins
+    }
+    
+    # Valores únicos para filtros
+    severity_options = [Severity.INFO, Severity.WARNING, Severity.ERROR, Severity.CRITICAL, Severity.SECURITY]
+    category_options = [Category.USER_ACTION, Category.SECURITY, Category.SYSTEM, Category.ANOMALY, Category.ATTACK]
+    
+    return render_template('admin/audit_logs.html',
+                        title='Logs de Auditoría y Seguridad',
+                        logs=logs,
+                        stats=stats,
+                        severity_options=severity_options,
+                        category_options=category_options,
+                        current_filters={
+                            'severity': severity_filter,
+                            'category': category_filter,
+                            'user': user_filter,
+                            'action': action_filter,
+                            'requires_attention': requires_attention
+                        })
+
+@bp.route('/admin/audit_log/<int:log_id>')
+@login_required
+@role_required('admin')
+def view_audit_log_detail(log_id):
+    """Ver detalle completo de un log de auditoría"""
+    log = AuditLog.query.get_or_404(log_id)
+    
+    # Marcar como revisado al verlo
+    if not log.reviewed:
+        log.reviewed = True
+        log.reviewed_at = datetime.utcnow()
+        log.reviewed_by_user_id = current_user.id
+        db.session.commit()
+    
+    return render_template('admin/audit_log_detail.html',
+                        title=f'Detalle de Log #{log.id}',
+                        log=log)
+
+@bp.route('/admin/audit_log/<int:log_id>/mark_reviewed', methods=['POST'])
+@login_required
+@role_required('admin')
+@csrf.exempt
+def mark_audit_log_reviewed(log_id):
+    """Marcar un log de auditoría como revisado"""
+    log = AuditLog.query.get_or_404(log_id)
+    
+    try:
+        log.reviewed = True
+        log.reviewed_at = datetime.utcnow()
+        log.reviewed_by_user_id = current_user.id
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Log marcado como revisado'
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
+
+@bp.route('/admin/security_dashboard')
+@login_required
+@role_required('admin')
+def security_dashboard():
+    """Dashboard específico para monitoreo de seguridad"""
+    from datetime import datetime, timedelta
+    from sqlalchemy import func, and_
+    
+    # Rangos de tiempo
+    last_24h = datetime.utcnow() - timedelta(days=1)
+    last_7d = datetime.utcnow() - timedelta(days=7)
+    last_30d = datetime.utcnow() - timedelta(days=30)
+    
+    # Estadísticas de seguridad
+    security_stats = {
+        # Eventos críticos
+        'critical_24h': AuditLog.query.filter(
+            AuditLog.severity == Severity.CRITICAL,
+            AuditLog.timestamp >= last_24h
+        ).count(),
+        
+        # Intentos de login fallidos
+        'failed_logins_24h': AuditLog.query.filter(
+            AuditLog.action_type == EventTypes.LOGIN_FAILED,
+            AuditLog.timestamp >= last_24h
+        ).count(),
+        
+        # Actividades sospechosas
+        'suspicious_24h': AuditLog.query.filter(
+            AuditLog.action_type == EventTypes.SUSPICIOUS_ACTIVITY,
+            AuditLog.timestamp >= last_24h
+        ).count(),
+        
+        # Intentos de acceso no autorizado
+        'unauthorized_24h': AuditLog.query.filter(
+            AuditLog.action_type == EventTypes.UNAUTHORIZED_ACCESS,
+            AuditLog.timestamp >= last_24h
+        ).count(),
+        
+        # Logs que requieren atención
+        'attention_required': AuditLog.query.filter(
+            AuditLog.requires_attention == True,
+            AuditLog.reviewed == False
+        ).count(),
+    }
+    
+    # Top IPs con actividad sospechosa
+    suspicious_ips = db.session.query(
+        AuditLog.ip_address,
+        func.count(AuditLog.id).label('count')
+    ).filter(
+        AuditLog.action_type == EventTypes.SUSPICIOUS_ACTIVITY,
+        AuditLog.timestamp >= last_7d,
+        AuditLog.ip_address.isnot(None)
+    ).group_by(AuditLog.ip_address).order_by(func.count(AuditLog.id).desc()).limit(10).all()
+    
+    # Usuarios con más intentos fallidos
+    failed_login_users = db.session.query(
+        AuditLog.username,
+        func.count(AuditLog.id).label('count')
+    ).filter(
+        AuditLog.action_type == EventTypes.LOGIN_FAILED,
+        AuditLog.timestamp >= last_7d
+    ).group_by(AuditLog.username).order_by(func.count(AuditLog.id).desc()).limit(10).all()
+    
+    # Eventos recientes críticos
+    recent_critical = AuditLog.query.filter(
+        AuditLog.severity.in_([Severity.CRITICAL, Severity.ERROR]),
+        AuditLog.timestamp >= last_24h
+    ).order_by(AuditLog.timestamp.desc()).limit(10).all()
+    
+    return render_template('admin/security_dashboard.html',
+                        title='Dashboard de Seguridad',
+                        security_stats=security_stats,
+                        suspicious_ips=suspicious_ips,
+                        failed_login_users=failed_login_users,
+                        recent_critical=recent_critical)
 
 # --- Sistema de Notificaciones que desarrollé ---
 @bp.route('/notifications')
@@ -1570,10 +1816,10 @@ def list_sede_messages():
         messages_dict.append(msg_dict)
     
     return render_template('messages/list.html', 
-                         title='Mensajes Enviados', 
-                         messages=messages, 
-                         messages_json=messages_dict,
-                         current_date=current_date)
+                        title='Mensajes Enviados', 
+                        messages=messages, 
+                        messages_json=messages_dict,
+                        current_date=current_date)
 
 @bp.route('/messages/my')
 @login_required
@@ -1620,10 +1866,10 @@ def my_sede_messages():
         messages_dict.append(msg_dict)
     
     return render_template('messages/my_messages.html', 
-                         title='Mis Mensajes', 
-                         messages=messages, 
-                         messages_json=messages_dict,
-                         current_date=current_date)
+                        title='Mis Mensajes', 
+                        messages=messages, 
+                        messages_json=messages_dict,
+                        current_date=current_date)
 
 @bp.route('/messages/archive/<int:message_id>')
 @login_required
@@ -1656,8 +1902,8 @@ def change_my_password():
         return redirect(url_for('main.index'))
     
     return render_template('auth/change_my_password.html', 
-                         title='Cambiar Mi Contraseña', 
-                         form=form)
+                        title='Cambiar Mi Contraseña', 
+                        form=form)
 
 @bp.context_processor
 def inject_notifications():
@@ -1718,11 +1964,7 @@ def resubmit_order(order_id):
         order.resubmitted_at = datetime.utcnow()
         order.resubmitted_by_user_id = current_user.id
         
-        # Agregar comentario sobre el reenvío
-        if order.comments is None:
-            order.comments = ''
-        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M')
-        order.comments += f"\n[{timestamp}] {current_user.username} reenvió la orden después del rechazo. Ajustes realizados."
+
         
         db.session.flush()  # Para asegurar que order.id esté disponible
         
@@ -1766,11 +2008,7 @@ def mark_order_collected(order_id):
         old_status = order.status
         order.status = 'recibida_optica'
         
-        # Agregar comentario sobre la recogida
-        if order.comments is None:
-            order.comments = ''
-        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M')
-        order.comments += f"\n[{timestamp}] {current_user.username} marcó la orden como recogida de {order.provider.name}."
+
         
         db.session.flush()  # Para asegurar que order.id esté disponible
         

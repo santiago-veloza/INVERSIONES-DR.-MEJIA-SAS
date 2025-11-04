@@ -196,3 +196,111 @@ class SedeMessage(db.Model):
 
     def __repr__(self):
         return f'<SedeMessage {self.id}: {self.title}>'
+
+
+class AuditLog(db.Model):
+    """
+    Tabla para registrar todas las actividades del sistema:
+    - Acciones de usuarios (login, logout, crear orden, etc.)
+    - Intentos de acceso no autorizado
+    - Actividades anómalas o sospechosas
+    - Cambios en datos críticos
+    - Intentos de hackeo o ataques
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    
+    # Información del usuario (puede ser None para intentos no autenticados)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    user = db.relationship('User', backref='audit_logs', foreign_keys=[user_id])
+    username = db.Column(db.String(64), nullable=True)  # Para casos donde no hay user_id
+    
+    # Información de la acción
+    action_type = db.Column(db.String(50), nullable=False)  # 'LOGIN', 'LOGOUT', 'CREATE_ORDER', 'UNAUTHORIZED_ACCESS', 'SUSPICIOUS_ACTIVITY', etc.
+    description = db.Column(db.Text, nullable=False)  # Descripción detallada de la acción
+    resource_type = db.Column(db.String(50), nullable=True)  # 'ORDER', 'USER', 'PROVIDER', 'SYSTEM', etc.
+    resource_id = db.Column(db.String(50), nullable=True)  # ID del recurso afectado
+    
+    # Información de seguridad
+    ip_address = db.Column(db.String(45), nullable=True)  # IPv4 o IPv6
+    user_agent = db.Column(db.Text, nullable=True)  # Navegador y sistema operativo
+    session_id = db.Column(db.String(255), nullable=True)  # ID de sesión
+    
+    # Severidad y categorización
+    severity = db.Column(db.String(20), default='INFO')  # 'INFO', 'WARNING', 'ERROR', 'CRITICAL', 'SECURITY'
+    category = db.Column(db.String(30), default='USER_ACTION')  # 'USER_ACTION', 'SECURITY', 'SYSTEM', 'ANOMALY', 'ATTACK'
+    
+    # Datos adicionales (JSON para flexibilidad)
+    extra_data = db.Column(db.Text, nullable=True)  # JSON con información adicional
+    
+    # Información temporal
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    
+    # Flags de estado
+    is_reviewed = db.Column(db.Boolean, default=False)  # Si ya fue revisado por un admin
+    requires_attention = db.Column(db.Boolean, default=False)  # Si requiere atención inmediata
+    reviewed = db.Column(db.Boolean, default=False)  # Para compatibilidad
+    reviewed_at = db.Column(db.DateTime, nullable=True)  # Fecha de revisión
+    reviewed_by_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # Quién lo revisó
+    
+    def __repr__(self):
+        return f'<AuditLog {self.id}: {self.action_type} by {self.username or "Anonymous"} at {self.timestamp}>'
+    
+    @staticmethod
+    def log_action(action_type, description, user=None, ip=None, user_agent=None, 
+                   resource_type=None, resource_id=None, severity='INFO', 
+                   category='USER_ACTION', metadata=None, requires_attention=False):
+        """
+        Método estático para crear fácilmente un log de auditoría
+        """
+        import json
+        from flask import request, session
+        
+        # Obtener información de la request si no se proporciona
+        if ip is None and request:
+            ip = request.environ.get('HTTP_X_FORWARDED_FOR', request.environ.get('REMOTE_ADDR'))
+        
+        if user_agent is None and request:
+            user_agent = request.headers.get('User-Agent')
+        
+        session_id = None
+        if session:
+            session_id = session.get('_id', None)
+        
+        # Serializar metadata si es un dict
+        metadata_json = None
+        if metadata:
+            metadata_json = json.dumps(metadata) if isinstance(metadata, dict) else str(metadata)
+        
+        # Verificar si el usuario está autenticado y tiene id
+        user_id = None
+        username = 'Anonymous'
+        
+        if user and hasattr(user, 'id') and hasattr(user, 'is_authenticated'):
+            if user.is_authenticated:
+                user_id = user.id
+                username = user.username
+        
+        log_entry = AuditLog(
+            user_id=user_id,
+            username=username,
+            action_type=action_type,
+            description=description,
+            resource_type=resource_type,
+            resource_id=str(resource_id) if resource_id else None,
+            ip_address=ip,
+            user_agent=user_agent,
+            session_id=session_id,
+            severity=severity,
+            category=category,
+            extra_data=metadata_json,
+            requires_attention=requires_attention
+        )
+        
+        try:
+            db.session.add(log_entry)
+            db.session.commit()
+            return log_entry
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error creating audit log: {e}")
+            return None

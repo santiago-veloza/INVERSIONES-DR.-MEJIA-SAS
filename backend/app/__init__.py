@@ -42,7 +42,82 @@ def create_app(config_class=Config):
 
     app.register_blueprint(bp)
 
-    # Middleware de timeout de sesión que implementé
+    # Middleware de seguridad y timeout de sesión que implementé
+    @app.before_request
+    def security_middleware():
+        # Primero ejecutar detección de actividades sospechosas
+        from app.security import (
+            suspicious_activities, failed_attempts, rate_limits,
+            log_security_event, EventTypes, Severity
+        )
+        from flask import request
+        from flask_login import current_user
+        from datetime import datetime, timedelta
+        import re
+        
+        ip = request.environ.get('HTTP_X_FORWARDED_FOR', request.environ.get('REMOTE_ADDR'))
+        user_agent = request.headers.get('User-Agent', '')
+        endpoint = request.endpoint or 'unknown'
+        
+        # Detectar patrones sospechosos globalmente
+        suspicious_flags = []
+        
+        # 1. Rate limiting básico por IP
+        current_time = datetime.utcnow()
+        rate_limits[ip] = [t for t in rate_limits[ip] if current_time - t < timedelta(minutes=1)]
+        rate_limits[ip].append(current_time)
+        
+        if len(rate_limits[ip]) > 30:  # Más de 30 requests por minuto
+            suspicious_flags.append('RATE_LIMIT_EXCEEDED')
+        
+        # 2. Detectar patrones de ataque en User-Agent
+        suspicious_ua_patterns = [
+            r'sqlmap', r'nikto', r'burp', r'nmap', r'masscan',
+            r'python-requests', r'wget', r'curl.*bot', r'scanner',
+            r'exploit', r'hack', r'injection'
+        ]
+        
+        for pattern in suspicious_ua_patterns:
+            if re.search(pattern, user_agent, re.IGNORECASE):
+                suspicious_flags.append(f'SUSPICIOUS_USER_AGENT:{pattern}')
+        
+        # 3. Detectar intentos de acceso a rutas no existentes sospechosas
+        if endpoint == 'static' and any(x in request.path.lower() for x in ['.php', '.asp', '.jsp', 'admin', 'wp-', 'config', '.env']):
+            suspicious_flags.append('SUSPICIOUS_PATH_ACCESS')
+        
+        # 4. Detectar parámetros sospechosos
+        for param_name, param_value in request.args.items():
+            if any(x in str(param_value).lower() for x in ['<script', 'javascript:', 'union select', 'drop table', '../', '..\\', 'eval(']):
+                suspicious_flags.append(f'SUSPICIOUS_PARAMETER:{param_name}')
+        
+        # 5. Detectar contenido POST sospechoso
+        if request.method == 'POST' and request.form:
+            for field_name, field_value in request.form.items():
+                if isinstance(field_value, str) and any(x in field_value.lower() for x in ['<script', 'javascript:', 'union select', 'drop table']):
+                    suspicious_flags.append(f'SUSPICIOUS_POST_DATA:{field_name}')
+        
+        # Registrar actividad sospechosa si se detectó algo
+        if suspicious_flags:
+            severity = Severity.CRITICAL if len(suspicious_flags) >= 3 else Severity.WARNING
+            
+            metadata = {
+                'flags': suspicious_flags,
+                'endpoint': endpoint,
+                'path': request.path,
+                'method': request.method,
+                'args': dict(request.args),
+                'rate_limit_count': len(rate_limits[ip]),
+                'user_agent': user_agent[:200]  # Limitar longitud
+            }
+            
+            log_security_event(
+                event_type=EventTypes.SUSPICIOUS_ACTIVITY,
+                description=f"Actividad sospechosa detectada: {', '.join(suspicious_flags)}",
+                severity=severity,
+                user=current_user if current_user.is_authenticated else None,
+                metadata=metadata
+            )
+    
     @app.before_request
     def check_session_timeout():
         from flask import session, request
