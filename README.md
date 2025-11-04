@@ -338,7 +338,7 @@ Este proyecto es propiedad de **Inversiones Dr. Mejía SAS**. Todos los derechos
 
 **Santiago Veloza**  
 Desarrollador Full Stack  
-📧 santiago.veloza@example.com  
+📧 santiagoveloza91@gmail.com
 🔗 LinkedIn: [santiago-veloza](https://linkedin.com/in/santiago-veloza)
 
 ---
