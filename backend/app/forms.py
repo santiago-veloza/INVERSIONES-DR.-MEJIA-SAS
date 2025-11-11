@@ -143,9 +143,9 @@ class WorkOrderForm(FlaskForm):
     # Implementé clasificación y tipo de lentes
     lens_class = SelectField('Clase de Lentes', choices=[
         ('', 'Seleccionar...'),
-        ('progresivo', 'Progresivo'),
-        ('bifocal', 'Bifocal'), 
-        ('monofocal', 'Monofocal')
+        ('Progresivo', 'Progresivo'),
+        ('Bifocal', 'Bifocal'), 
+        ('Monofocal', 'Monofocal')
     ], validators=[Optional()])
     lens_type = StringField('Tipo de Lente y Filtros', validators=[DataRequired(), Length(max=128)])
     frame_type = StringField('Tipo de Montura', validators=[Optional(), Length(max=128)])

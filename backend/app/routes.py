@@ -466,6 +466,21 @@ def admin_dashboard():
         # Nota: Esto es una estimación. Para mayor precisión, el modelo necesita un campo updated_at
         avg_completion_days = 7  # Valor fijo por ahora, se puede calcular cuando se agregue updated_at
         
+        # Estadísticas de tipos de lentes por sede
+        lens_types_sede = db.session.query(
+            WorkOrder.lens_class,
+            func.count(WorkOrder.id).label('count')
+        ).filter(
+            and_(
+                WorkOrder.sede_id == sede.id,
+                WorkOrder.lens_class.isnot(None)
+            )
+        ).group_by(WorkOrder.lens_class).all()
+        
+        lens_breakdown = {}
+        for lens_type in lens_types_sede:
+            lens_breakdown[lens_type.lens_class] = lens_type.count
+        
         sede_stats.append({
             'sede': sede,
             'total_orders': total_orders,
@@ -478,8 +493,47 @@ def admin_dashboard():
             'total_sales': total_sales,
             'pending_payments': pending_payments,
             'completion_rate': completion_rate,
-            'avg_completion_days': avg_completion_days
+            'avg_completion_days': avg_completion_days,
+            'lens_breakdown': lens_breakdown
         })
+    
+    # Estadísticas de tipos de lentes más vendidos
+    lens_stats = db.session.query(
+        WorkOrder.lens_class,
+        func.count(WorkOrder.id).label('count'),
+        func.sum(WorkOrder.total_amount).label('total_sales')
+    ).filter(
+        WorkOrder.lens_class.isnot(None)
+    ).group_by(WorkOrder.lens_class).all()
+    
+    # Estadísticas de tipos de lentes este mes
+    lens_stats_month = db.session.query(
+        WorkOrder.lens_class,
+        func.count(WorkOrder.id).label('count'),
+        func.sum(WorkOrder.total_amount).label('total_sales')
+    ).filter(
+        and_(
+            WorkOrder.lens_class.isnot(None),
+            extract('month', WorkOrder.created_at) == current_month,
+            extract('year', WorkOrder.created_at) == current_year
+        )
+    ).group_by(WorkOrder.lens_class).all()
+    
+    # Procesar estadísticas de lentes
+    lens_data = {}
+    lens_data_month = {}
+    
+    for lens_stat in lens_stats:
+        lens_data[lens_stat.lens_class] = {
+            'count': lens_stat.count,
+            'total_sales': lens_stat.total_sales or 0
+        }
+    
+    for lens_stat in lens_stats_month:
+        lens_data_month[lens_stat.lens_class] = {
+            'count': lens_stat.count,
+            'total_sales': lens_stat.total_sales or 0
+        }
     
     # Estadísticas generales del sistema
     system_stats = {
@@ -504,6 +558,8 @@ def admin_dashboard():
                          system_stats=system_stats,
                          top_sedes_month=top_sedes_month,
                          top_sedes_orders=top_sedes_orders,
+                         lens_data=lens_data,
+                         lens_data_month=lens_data_month,
                          current_month=current_month,
                          current_year=current_year)
 
@@ -516,6 +572,17 @@ def api_admin_stats():
     """API endpoint para obtener estadísticas en tiempo real"""
     from sqlalchemy import func, and_, extract
     from datetime import datetime
+    
+    # Normalizar lens_class existentes (migración one-time)
+    try:
+        # Actualizar datos existentes en minúsculas a formato con mayúscula inicial
+        WorkOrder.query.filter_by(lens_class='progresivo').update({'lens_class': 'Progresivo'})
+        WorkOrder.query.filter_by(lens_class='bifocal').update({'lens_class': 'Bifocal'})
+        WorkOrder.query.filter_by(lens_class='monofocal').update({'lens_class': 'Monofocal'})
+        db.session.commit()
+    except Exception as e:
+        print(f"Error normalizando lens_class: {e}")
+        db.session.rollback()
     
     current_month = datetime.now().month
     current_year = datetime.now().year
@@ -537,12 +604,52 @@ def api_admin_stats():
     total_sedes_all = Sede.query.count()
     total_sedes_active = Sede.query.filter_by(is_active=True).count()
     
+    # Estadísticas de tipos de lentes actualizadas
+    lens_stats = db.session.query(
+        WorkOrder.lens_class,
+        func.count(WorkOrder.id).label('count')
+    ).filter(
+        WorkOrder.lens_class.isnot(None)
+    ).group_by(WorkOrder.lens_class).all()
+    
+    lens_stats_month = db.session.query(
+        WorkOrder.lens_class,
+        func.count(WorkOrder.id).label('count')
+    ).filter(
+        and_(
+            WorkOrder.lens_class.isnot(None),
+            extract('month', WorkOrder.created_at) == current_month,
+            extract('year', WorkOrder.created_at) == current_year
+        )
+    ).group_by(WorkOrder.lens_class).all()
+    
+    # Procesar estadísticas de lentes
+    lens_data = {}
+    lens_data_month = {}
+    
+    for lens_stat in lens_stats:
+        lens_data[lens_stat.lens_class] = lens_stat.count
+    
+    for lens_stat in lens_stats_month:
+        lens_data_month[lens_stat.lens_class] = lens_stat.count
+    
+    # Asegurar que siempre hay valores para los tipos principales de lentes
+    for lens_type in ['Progresivo', 'Bifocal', 'Monofocal']:
+        if lens_type not in lens_data:
+            lens_data[lens_type] = 0
+        if lens_type not in lens_data_month:
+            lens_data_month[lens_type] = 0
+    
     return jsonify({
         'total_orders': total_orders,
         'orders_this_month': orders_this_month,
         'pending_orders': pending_orders,
         'total_sedes': total_sedes_all,
         'total_sedes_active': total_sedes_active,
+        'lens_data': lens_data,
+        'lens_data_month': lens_data_month,
+        'current_month': current_month,
+        'current_year': current_year,
         'timestamp': datetime.now().isoformat()
     })
 
@@ -958,14 +1065,35 @@ def sede_payments():
 @bp.route('/orders')
 @login_required
 def list_orders():
+    # Obtener filtro opcional por sede desde la URL
+    sede_filter = request.args.get('sede', type=int)
+    
     if current_user.role == 'proveedor' and current_user.provider:
         orders = WorkOrder.query.filter_by(provider_id=current_user.provider.id).order_by(WorkOrder.created_at.desc()).all()
     elif current_user.role == 'admin_sede' and current_user.sede_id:
         # Admin de sede solo ve órdenes de su sede
         orders = WorkOrder.query.filter_by(sede_id=current_user.sede_id).order_by(WorkOrder.created_at.desc()).all()
-    else: # admin, asistente, o proveedor sin asignación (que no debería pasar en la práctica)
-        orders = WorkOrder.query.order_by(WorkOrder.created_at.desc()).all()
-    return render_template('ordenes/list.html', title='Lista de Órdenes de Trabajo', orders=orders)
+    else: # admin, asistente
+        base_query = WorkOrder.query
+        
+        # Si se especifica filtro por sede, aplicarlo
+        if sede_filter:
+            base_query = base_query.filter_by(sede_id=sede_filter)
+        
+        orders = base_query.order_by(WorkOrder.created_at.desc()).all()
+    
+    # Obtener información de la sede filtrada para el título
+    sede_info = None
+    if sede_filter:
+        sede_info = Sede.query.get(sede_filter)
+    
+    # Crear título dinámico
+    if sede_info:
+        title = f'Órdenes de {sede_info.name} - {sede_info.city}'
+    else:
+        title = 'Lista de Órdenes de Trabajo'
+    
+    return render_template('ordenes/list.html', title=title, orders=orders, sede_filter=sede_filter, sede_info=sede_info)
 
 @bp.route('/order/new', methods=['GET', 'POST'])
 @login_required

@@ -1754,6 +1754,700 @@ body {
 }
 
 /* ==========================================
+   ESTILOS DE IMPRESIÓN PROFESIONAL
+========================================== */
+
+@media print {
+    /* OCULTAR ELEMENTOS NO NECESARIOS EN IMPRESIÓN */
+    button,
+    .btn,
+    .btn-info,
+    .btn-success, 
+    .btn-secondary,
+    .btn-primary,
+    .btn-outline-primary,
+    .btn-outline-info,
+    .btn-group,
+    nav,
+    .navbar,
+    .nav,
+    header[role="banner"],
+    .fas,
+    .fa,
+    i[class*="fa-"],
+    canvas,
+    #lensChart {
+        display: none !important;
+    }
+    
+    /* Ocultar la columna de acciones en tablas */
+    .table th:last-child,
+    .table td:last-child {
+        display: none !important;
+    }
+    
+    /* Ocultar botones del header pero mantener título */
+    .d-flex.justify-content-between > div:last-child {
+        display: none !important;
+    }
+    
+    .d-flex.justify-content-between > div:first-child {
+        display: block !important;
+    }
+    
+    /* CONFIGURACIÓN DE PÁGINA */
+    @page {
+        margin: 1cm;
+        size: A4;
+    }
+    
+    /* MOSTRAR CONTENIDO PRINCIPAL */
+    body,
+    .container,
+    .container-fluid,
+    .row,
+    .col,
+    .col-12,
+    .col-md-6,
+    .col-lg-2,
+    .card,
+    .card-body,
+    .card-header,
+    .table,
+    .table-responsive,
+    thead,
+    tbody,
+    tr,
+    td,
+    th,
+    h1, h2, h3, h4, h5, h6,
+    p,
+    small,
+    .badge,
+    .progress,
+    .progress-bar,
+    span,
+    div:not(.btn):not(.btn-group):not(nav):not(.navbar) {
+        visibility: visible !important;
+        display: block !important;
+    }
+    
+    /* DISEÑO DE BOOTSTRAP PRESERVADO */
+    .container-fluid {
+        width: 100% !important;
+        padding: 10px !important;
+        margin: 0 !important;
+    }
+    
+    .row {
+        display: block !important;
+        width: 100% !important;
+        margin: 0 !important;
+        page-break-inside: avoid !important;
+    }
+    
+    .row::after {
+        content: "" !important;
+        display: table !important;
+        clear: both !important;
+    }
+    
+    .col,
+    .col-12,
+    .col-md-6,
+    .col-md-4,
+    .col-sm-6 {
+        padding: 0 0.5rem !important;
+        margin-bottom: 1rem !important;
+        box-sizing: border-box !important;
+    }
+    
+    .mb-3 {
+        margin-bottom: 0.75rem !important;
+    }
+    
+    .mb-4 {
+        margin-bottom: 1rem !important;
+    }
+    
+    /* Anchos de columnas específicos para impresión */
+    .col-md-6 {
+        width: 50% !important;
+        float: left !important;
+        display: block !important;
+        box-sizing: border-box !important;
+    }
+    
+    .col-12 {
+        width: 100% !important;
+        clear: both !important;
+        float: none !important;
+        display: block !important;
+    }
+    
+    .col-4 {
+        width: 33.33% !important;
+        float: left !important;
+        display: block !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Limpiar floats después de secciones */
+    .col-12::after,
+    .col-md-6:nth-child(2n)::after {
+        content: "" !important;
+        display: table !important;
+        clear: both !important;
+    }
+    
+
+    
+    /* Diseño mejorado - 2 filas de 3 columnas para estadísticas */
+    .row.mb-4 .col-lg-2 {
+        width: 33.33% !important;
+        flex: 0 0 33.33% !important;
+        padding: 0 0.5rem !important;
+        margin-bottom: 0.75rem !important;
+        float: left !important;
+        display: block !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Limpiar después de cada 3 tarjetas (nueva fila) */
+    .row.mb-4 .col-lg-2:nth-child(3n+1) {
+        clear: left !important;
+    }
+    
+    /* Ajustar las tarjetas de estadísticas */
+    .row.mb-4 .card {
+        width: 100% !important;
+        min-height: 90px !important;
+        margin-bottom: 0 !important;
+        page-break-inside: avoid !important;
+    }
+    
+    .row.mb-4 .card-body {
+        padding: 0.75rem 0.5rem !important;
+        text-align: center !important;
+    }
+    
+    .row.mb-4 h4 {
+        font-size: 1.4rem !important;
+        margin: 0.25rem 0 !important;
+        font-weight: bold !important;
+    }
+    
+    .row.mb-4 small {
+        font-size: 0.75rem !important;
+        display: block !important;
+        margin-top: 0.25rem !important;
+    }
+    
+    /* DISEÑO DE TARJETAS */
+    .card {
+        border: 1px solid #dee2e6 !important;
+        border-radius: 0.375rem !important;
+        margin-bottom: 0.5rem !important;
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+        height: auto !important;
+        min-height: 100px !important;
+        box-sizing: border-box !important;
+    }
+    
+    .card-body {
+        padding: 0.75rem !important;
+        text-align: center !important;
+    }
+    
+    .card-header {
+        background-color: #007bff !important;
+        color: white !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        padding: 0.5rem 0.75rem !important;
+        margin-bottom: 0 !important;
+        border-bottom: 1px solid #dee2e6 !important;
+        text-align: center !important;
+        font-size: 0.9rem !important;
+        font-weight: bold !important;
+    }
+    
+    /* Mejorar el diseño de las estadísticas */
+    .card-body h4 {
+        font-size: 1.5rem !important;
+        margin: 0.25rem 0 !important;
+        color: #000 !important;
+        font-weight: bold !important;
+    }
+    
+    .card-body small {
+        font-size: 0.8rem !important;
+        color: #666 !important;
+        display: block !important;
+        margin-top: 0.25rem !important;
+    }
+    
+    /* Texto centrado en tarjetas */
+    .text-center {
+        text-align: center !important;
+    }
+    
+    /* TABLAS OPTIMIZADAS PARA IMPRESIÓN */
+    .table-responsive {
+        overflow: visible !important;
+        -webkit-overflow-scrolling: auto !important;
+        border: none !important;
+        margin-top: 1rem !important;
+    }
+    
+    .table {
+        width: 100% !important;
+        margin-bottom: 0 !important;
+        border-collapse: collapse !important;
+        font-size: 10px !important;
+        table-layout: fixed !important;
+    }
+    
+    .table th,
+    .table td {
+        padding: 0.4rem 0.2rem !important;
+        vertical-align: middle !important;
+        border: 1px solid #ccc !important;
+        word-wrap: break-word !important;
+        text-align: center !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+    
+    .table thead th {
+        vertical-align: middle !important;
+        border: 2px solid #333 !important;
+        background-color: #007bff !important;
+        color: white !important;
+        font-weight: bold !important;
+        font-size: 9px !important;
+        text-transform: uppercase !important;
+        padding: 0.3rem 0.2rem !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    
+    .table tbody tr:nth-child(even) {
+        background-color: #f9f9f9 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    
+    /* Anchos específicos para cada columna de la tabla */
+    .table th:nth-child(1), .table td:nth-child(1) { width: 12% !important; } /* Sede */
+    .table th:nth-child(2), .table td:nth-child(2) { width: 8% !important; }  /* Ciudad */
+    .table th:nth-child(3), .table td:nth-child(3) { width: 10% !important; } /* Encargado */
+    .table th:nth-child(4), .table td:nth-child(4) { width: 7% !important; }  /* Órdenes Totales */
+    .table th:nth-child(5), .table td:nth-child(5) { width: 7% !important; }  /* Órdenes Mes */
+    .table th:nth-child(6), .table td:nth-child(6) { width: 6% !important; }  /* Progresivos */
+    .table th:nth-child(7), .table td:nth-child(7) { width: 6% !important; }  /* Bifocales */
+    .table th:nth-child(8), .table td:nth-child(8) { width: 6% !important; }  /* Monofocales */
+    .table th:nth-child(9), .table td:nth-child(9) { width: 7% !important; }  /* Completadas */
+    .table th:nth-child(10), .table td:nth-child(10) { width: 7% !important; } /* En Progreso */
+    .table th:nth-child(11), .table td:nth-child(11) { width: 6% !important; } /* Listas */
+    .table th:nth-child(12), .table td:nth-child(12) { width: 8% !important; } /* Ventas Mes */
+    .table th:nth-child(13), .table td:nth-child(13) { width: 8% !important; } /* Ventas Totales */
+    .table th:nth-child(14), .table td:nth-child(14) { width: 8% !important; } /* Pendientes Pago */
+    .table th:nth-child(15), .table td:nth-child(15) { width: 8% !important; } /* % Completadas */
+    .table th:nth-child(16), .table td:nth-child(16) { width: 6% !important; } /* Días Promedio */
+    
+    /* BADGES Y ELEMENTOS VISUALES */
+    .badge {
+        display: inline-block !important;
+        padding: 0.25em 0.4em !important;
+        font-size: 0.75em !important;
+        font-weight: 700 !important;
+        line-height: 1 !important;
+        text-align: center !important;
+        border-radius: 0.25rem !important;
+        border: 1px solid #000 !important;
+    }
+    
+    .bg-primary {
+        background-color: #0d6efd !important;
+        color: white !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    
+    .bg-success {
+        background-color: #198754 !important;
+        color: white !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    
+    .bg-info {
+        background-color: #0dcaf0 !important;
+        color: black !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    
+    .bg-warning {
+        background-color: #ffc107 !important;
+        color: black !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    
+    .bg-danger {
+        background-color: #dc3545 !important;
+        color: white !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    
+    /* FORMATO DE TEXTO */
+    .text-center {
+        text-align: center !important;
+    }
+    
+    .text-muted {
+        color: #6c757d !important;
+    }
+    
+    h1, h2, h3, h4, h5, h6 {
+        page-break-after: avoid !important;
+        color: #000 !important;
+    }
+    
+    h4 {
+        font-size: 1.5rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    small {
+        font-size: 0.875em !important;
+    }
+    
+    /* ESPACIADO Y MÁRGENES */
+    .mb-4 {
+        margin-bottom: 0.75rem !important;
+    }
+    
+    .mb-3 {
+        margin-bottom: 0.5rem !important;
+    }
+    
+    /* Espaciado específico para secciones */
+    .container-fluid > .row {
+        margin-bottom: 0.75rem !important;
+    }
+    
+    /* Evitar saltos de página innecesarios */
+    .card {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+    
+    /* Sección de títulos principales */
+    .card-header h5 {
+        margin: 0 !important;
+        font-size: 0.95rem !important;
+        text-align: center !important;
+    }
+    
+    /* Ajustar la altura de las secciones de estadísticas */
+    .row:first-child .card-body {
+        min-height: auto !important;
+        padding: 0.5rem !important;
+    }
+    
+    /* Mejorar la sección de tipos de lentes */
+    .border.rounded {
+        border: 1px solid #ccc !important;
+        padding: 0.5rem !important;
+        margin-bottom: 0.3rem !important;
+        text-align: center !important;
+        page-break-inside: avoid !important;
+    }
+    
+    .bg-light {
+        background-color: #f8f9fa !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    
+    /* Sección de tipos de lentes más compacta */
+    .card-header.bg-warning {
+        background-color: #ffc107 !important;
+        color: #000 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        text-align: center !important;
+        font-size: 1rem !important;
+        font-weight: bold !important;
+        padding: 0.5rem !important;
+    }
+    
+    /* Organizar las estadísticas de lentes en 2 columnas */
+    .card-body .row .col-md-6 {
+        width: 50% !important;
+        float: left !important;
+        padding: 0.5rem !important;
+    }
+    
+    .col-md-6 .row .col-4 {
+        width: 33.33% !important;
+        float: left !important;
+        padding: 0.25rem !important;
+    }
+    
+    /* Títulos de secciones */
+    h6.text-muted {
+        font-size: 0.85rem !important;
+        margin-bottom: 0.5rem !important;
+        color: #555 !important;
+        font-weight: bold !important;
+        text-align: center !important;
+    }
+    
+    h5.mb-1 {
+        font-size: 1.1rem !important;
+        margin-bottom: 0.2rem !important;
+        font-weight: bold !important;
+    }
+    
+    h4.mb-1 {
+        font-size: 1.2rem !important;
+        margin-bottom: 0.2rem !important;
+        font-weight: bold !important;
+    }
+    
+    /* EVITAR SALTOS DE PÁGINA */
+    .card,
+    .row,
+    .col {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+    
+    /* AJUSTES DEL BODY PARA IMPRESIÓN */
+    body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+        color: black !important;
+        font-size: 12px !important;
+    }
+    
+    /* Título principal del dashboard */
+    .h3.mb-0 {
+        font-size: 1.5rem !important;
+        margin-bottom: 0.5rem !important;
+        text-align: center !important;
+        page-break-after: avoid !important;
+    }
+    
+    /* Subtítulo */
+    .text-muted.mb-0 {
+        font-size: 0.9rem !important;
+        text-align: center !important;
+        margin-bottom: 1rem !important;
+    }
+    
+    /* Organizar las secciones Top 5 */
+    .card-header.bg-success,
+    .card-header.bg-info {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        font-size: 0.9rem !important;
+        text-align: center !important;
+        padding: 0.5rem !important;
+    }
+    
+    .card-header.bg-success {
+        background-color: #198754 !important;
+        color: white !important;
+    }
+    
+    .card-header.bg-info {
+        background-color: #0dcaf0 !important;
+        color: black !important;
+    }
+    
+    /* Contenido de las tarjetas Top 5 */
+    .card-body .d-flex {
+        margin-bottom: 0.5rem !important;
+        padding: 0.3rem 0 !important;
+        border-bottom: 1px solid #eee !important;
+    }
+    
+    .card-body .d-flex:last-child {
+        border-bottom: none !important;
+    }
+    
+    /* Texto en secciones Top 5 */
+    .card-body strong {
+        font-size: 0.8rem !important;
+    }
+    
+    .card-body small {
+        font-size: 0.75rem !important;
+    }
+}
+
+/* ESTILOS ESPECÍFICOS PARA PANTALLA (NO IMPRESIÓN) */
+@media screen {
+    .btn-group .btn {
+        margin: 0 1px;
+    }
+    
+    .table th {
+        position: sticky;
+        top: 0;
+        background-color: #f8f9fa !important;
+        z-index: 10;
+    }
+    
+    .progress {
+        min-width: 80px;
+    }
+    
+    .badge {
+        min-width: 35px;
+    }
+    
+    /* Estilos para filas clickeables */
+    .table tbody tr.clickable-row {
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    .table tbody tr.clickable-row:hover {
+        background: linear-gradient(135deg, #e3f2fd 0%, #f0f8ff 100%) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,123,255,0.15);
+        cursor: pointer;
+        border-left: 4px solid #007bff;
+    }
+    
+    .table tbody tr.clickable-row:active {
+        background: linear-gradient(135deg, #bbdefb 0%, #e1f5fe 100%) !important;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0,123,255,0.25);
+    }
+    
+    /* Indicador visual de que es clickeable */
+    .table tbody tr.clickable-row::after {
+        content: "👁️ Ver detalles";
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        opacity: 0;
+        transition: all 0.3s ease;
+        font-size: 10px;
+        background: rgba(0,123,255,0.9);
+        color: white;
+        padding: 2px 6px;
+        border-radius: 12px;
+        white-space: nowrap;
+        font-weight: 500;
+        z-index: 5;
+    }
+    
+    .table tbody tr.clickable-row:hover::after {
+        opacity: 1;
+        transform: translateY(-50%) scale(1.05);
+    }
+    
+    /* Efecto de pulso sutil para llamar la atención */
+    .table tbody tr.clickable-row:hover {
+        animation: subtle-pulse 2s infinite;
+    }
+    
+    @keyframes subtle-pulse {
+        0%, 100% { box-shadow: 0 4px 12px rgba(0,123,255,0.15); }
+        50% { box-shadow: 0 6px 16px rgba(0,123,255,0.25); }
+    }
+    
+    /* Tooltip mejorado */
+    .table tbody tr[title]:hover::before {
+        content: attr(title);
+        position: absolute;
+        background: rgba(0,0,0,0.8);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        white-space: nowrap;
+        z-index: 1000;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        margin-bottom: 5px;
+    }
+    
+    /* Estilos del Modal */
+    .modal-dialog {
+        margin: 1.75rem auto;
+    }
+    
+    .modal-content {
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+    }
+    
+    .modal-header {
+        padding: 1.5rem;
+        border-bottom: none;
+    }
+    
+    .modal-body {
+        padding: 2rem;
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+    
+    .modal-footer {
+        padding: 1.5rem;
+        border-top: 1px solid #e9ecef;
+    }
+    
+    /* Animación de entrada del modal */
+    .modal.fade .modal-dialog {
+        transition: transform 0.3s ease-out;
+        transform: translate(0, -50px);
+    }
+    
+    .modal.show .modal-dialog {
+        transform: none;
+    }
+    
+    /* Badges más grandes en el modal */
+    .modal-body .badge {
+        font-size: 0.85rem;
+        padding: 0.5em 0.75em;
+    }
+    
+    /* Mejora visual para los títulos de sección en el modal */
+    .modal-body h6.border-bottom {
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        font-weight: 600;
+    }
+    
+    /* Espaciado mejorado en el modal */
+    .modal-body .mb-2 {
+        margin-bottom: 0.75rem !important;
+        padding: 0.25rem 0;
+    }
+    
+    .modal-body .mb-2:last-child {
+        margin-bottom: 0 !important;
+    }
+}
+
+/* ==========================================
    MEJORAS RESPONSIVE ADICIONALES
 ========================================== */
 

@@ -100,6 +100,107 @@
             </div>
         </div>
     </div>
+    <!-- Estadísticas de Tipos de Lentes -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-glasses"></i> 
+                        Estadísticas de Tipos de Lentes
+                    </h5>
+                    <div class="d-flex align-items-center">
+                        <small id="last-updated" class="text-muted me-3">
+                            Actualizado: <span id="update-time">Cargando...</span>
+                        </small>
+                        <button id="refresh-stats" class="btn btn-outline-dark btn-sm" onclick="refreshDashboardStats()" title="Actualizar estadísticas">
+                            <i class="fas fa-sync-alt"></i> Actualizar
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Estadísticas Generales de Lentes -->
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-3">Totales del Sistema</h6>
+                            {% set total_lentes = lens_data.get('Progresivo', {}).get('count', 0) + lens_data.get('Bifocal', {}).get('count', 0) + lens_data.get('Monofocal', {}).get('count', 0) %}
+                            <div class="row">
+                                <div class="col-4">
+                                    <div class="text-center p-3 border rounded">
+                                        <h4 class="mb-1 text-primary" id="total-progresivo-count">{{ lens_data.get('Progresivo', {}).get('count', 0) }}</h4>
+                                        <small class="text-muted">Progresivos</small>
+                                        {% if total_lentes > 0 %}
+                                        <br><small class="badge bg-primary" id="total-progresivo-percent">{{ "%.1f"|format((lens_data.get('Progresivo', {}).get('count', 0) / total_lentes * 100)) }}%</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="text-center p-3 border rounded">
+                                        <h4 class="mb-1 text-info" id="total-bifocal-count">{{ lens_data.get('Bifocal', {}).get('count', 0) }}</h4>
+                                        <small class="text-muted">Bifocales</small>
+                                        {% if total_lentes > 0 %}
+                                        <br><small class="badge bg-info" id="total-bifocal-percent">{{ "%.1f"|format((lens_data.get('Bifocal', {}).get('count', 0) / total_lentes * 100)) }}%</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="text-center p-3 border rounded">
+                                        <h4 class="mb-1 text-success" id="total-monofocal-count">{{ lens_data.get('Monofocal', {}).get('count', 0) }}</h4>
+                                        <small class="text-muted">Monofocales</small>
+                                        {% if total_lentes > 0 %}
+                                        <br><small class="badge bg-success" id="total-monofocal-percent">{{ "%.1f"|format((lens_data.get('Monofocal', {}).get('count', 0) / total_lentes * 100)) }}%</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Estadísticas del Mes Actual -->
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-3">Este Mes ({{ current_month }}/{{ current_year }})</h6>
+                            {% set total_lentes_month = lens_data_month.get('Progresivo', {}).get('count', 0) + lens_data_month.get('Bifocal', {}).get('count', 0) + lens_data_month.get('Monofocal', {}).get('count', 0) %}
+                            <div class="row">
+                                <div class="col-4">
+                                    <div class="text-center p-3 border rounded bg-light">
+                                        <h5 class="mb-1 text-primary" id="month-progresivo-count">{{ lens_data_month.get('Progresivo', {}).get('count', 0) }}</h5>
+                                        <small class="text-muted">Progresivos</small>
+                                        {% if total_lentes_month > 0 %}
+                                        <br><small class="badge bg-primary" id="month-progresivo-percent">{{ "%.1f"|format((lens_data_month.get('Progresivo', {}).get('count', 0) / total_lentes_month * 100)) }}%</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="text-center p-3 border rounded bg-light">
+                                        <h5 class="mb-1 text-info" id="month-bifocal-count">{{ lens_data_month.get('Bifocal', {}).get('count', 0) }}</h5>
+                                        <small class="text-muted">Bifocales</small>
+                                        {% if total_lentes_month > 0 %}
+                                        <br><small class="badge bg-info" id="month-bifocal-percent">{{ "%.1f"|format((lens_data_month.get('Bifocal', {}).get('count', 0) / total_lentes_month * 100)) }}%</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="text-center p-3 border rounded bg-light">
+                                        <h5 class="mb-1 text-success" id="month-monofocal-count">{{ lens_data_month.get('Monofocal', {}).get('count', 0) }}</h5>
+                                        <small class="text-muted">Monofocales</small>
+                                        {% if total_lentes_month > 0 %}
+                                        <br><small class="badge bg-success" id="month-monofocal-percent">{{ "%.1f"|format((lens_data_month.get('Monofocal', {}).get('count', 0) / total_lentes_month * 100)) }}%</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Gráfico de Lentes -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <canvas id="lensChart" width="400" height="100"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <div class="row mb-4">
         <div class="col-md-6">
             <div class="card border-0 shadow-sm">
@@ -183,6 +284,9 @@
                                     <th class="border-0 text-center">Encargado</th>
                                     <th class="border-0 text-center">Órdenes Totales</th>
                                     <th class="border-0 text-center">Órdenes Mes</th>
+                                    <th class="border-0 text-center">Progresivos</th>
+                                    <th class="border-0 text-center">Bifocales</th>
+                                    <th class="border-0 text-center">Monofocales</th>
                                     <th class="border-0 text-center">Completadas</th>
                                     <th class="border-0 text-center">En Progreso</th>
                                     <th class="border-0 text-center">Listas</th>
@@ -196,7 +300,9 @@
                             </thead>
                             <tbody>
                                 {% for sede_stat in sede_stats %}
-                                <tr>
+                                <tr onclick="openSedeModal({{ sede_stat.sede.id }}, '{{ sede_stat.sede.name }}', '{{ sede_stat.sede.city }}', '{{ sede_stat.sede.manager or 'Sin asignar' }}', '{{ sede_stat.sede.phone or 'Sin teléfono' }}', '{{ sede_stat.sede.address or 'Sin dirección' }}', {{ sede_stat.total_orders }}, {{ sede_stat.orders_this_month }}, {{ sede_stat.orders_completed }}, {{ sede_stat.orders_in_progress }}, {{ sede_stat.orders_ready }}, {{ sede_stat.sales_this_month }}, {{ sede_stat.total_sales }}, {{ sede_stat.pending_payments }}, {{ sede_stat.completion_rate }}, {{ sede_stat.lens_breakdown.get('Progresivo', 0) }}, {{ sede_stat.lens_breakdown.get('Bifocal', 0) }}, {{ sede_stat.lens_breakdown.get('Monofocal', 0) }})" 
+                                    class="clickable-row" 
+                                    style="cursor: pointer; position: relative;">
                                     <td>
                                         <div>
                                             <strong>{{ sede_stat.sede.name }}</strong>
@@ -213,6 +319,16 @@
                                     </td>
                                     <td class="text-center">
                                         <span class="badge bg-warning fs-6">{{ sede_stat.orders_this_month }}</span>
+                                    </td>
+                                    <!-- Tipos de Lentes -->
+                                    <td class="text-center">
+                                        <span class="badge bg-primary fs-6">{{ sede_stat.lens_breakdown.get('Progresivo', 0) }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info fs-6">{{ sede_stat.lens_breakdown.get('Bifocal', 0) }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-success fs-6">{{ sede_stat.lens_breakdown.get('Monofocal', 0) }}</span>
                                     </td>
                                     <td class="text-center">
                                         <span class="badge bg-success fs-6">{{ sede_stat.orders_completed }}</span>
@@ -271,8 +387,8 @@
                                                 <i class="fas fa-eye"></i>
                                             </button>
                                             <a href="{{ url_for('main.list_orders') }}?sede={{ sede_stat.sede.id }}" 
-                                               class="btn btn-outline-info btn-sm"
-                                               title="Ver órdenes">
+                                                class="btn btn-outline-info btn-sm"
+                                                title="Ver órdenes">
                                                 <i class="fas fa-list"></i>
                                             </a>
                                         </div>
@@ -287,9 +403,144 @@
         </div>
     </div>
 </div>
+
+<!-- Modal para Detalles de Sede -->
+<div class="modal fade" id="sedeDetailsModal" tabindex="-1" aria-labelledby="sedeDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="sedeDetailsModalLabel">
+                    <i class="fas fa-building me-2"></i>
+                    Detalles Completos de la Sede
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <!-- Información Básica -->
+                    <div class="col-md-6">
+                        <h6 class="text-primary border-bottom pb-2 mb-3">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Información Básica
+                        </h6>
+                        <div class="mb-2">
+                            <strong>Nombre:</strong>
+                            <span id="modal-sede-name" class="text-muted"></span>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Ciudad:</strong>
+                            <span id="modal-sede-city" class="text-muted"></span>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Encargado:</strong>
+                            <span id="modal-sede-manager" class="text-muted"></span>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Teléfono:</strong>
+                            <span id="modal-sede-phone" class="text-muted"></span>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Dirección:</strong>
+                            <span id="modal-sede-address" class="text-muted"></span>
+                        </div>
+                    </div>
+                    
+                    <!-- Estadísticas de Órdenes -->
+                    <div class="col-md-6">
+                        <h6 class="text-success border-bottom pb-2 mb-3">
+                            <i class="fas fa-chart-bar me-1"></i>
+                            Estadísticas de Órdenes
+                        </h6>
+                        <div class="mb-2">
+                            <strong>Órdenes Totales:</strong>
+                            <span id="modal-total-orders" class="badge bg-secondary ms-2"></span>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Órdenes Este Mes:</strong>
+                            <span id="modal-orders-month" class="badge bg-warning ms-2"></span>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Completadas:</strong>
+                            <span id="modal-orders-completed" class="badge bg-success ms-2"></span>
+                        </div>
+                        <div class="mb-2">
+                            <strong>En Progreso:</strong>
+                            <span id="modal-orders-progress" class="badge bg-info ms-2"></span>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Listas para Recoger:</strong>
+                            <span id="modal-orders-ready" class="badge bg-primary ms-2"></span>
+                        </div>
+                        <div class="mb-2">
+                            <strong>% Completadas:</strong>
+                            <span id="modal-completion-rate" class="badge bg-dark ms-2"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr class="my-4">
+                
+                <div class="row">
+                    <!-- Tipos de Lentes -->
+                    <div class="col-md-6">
+                        <h6 class="text-info border-bottom pb-2 mb-3">
+                            <i class="fas fa-glasses me-1"></i>
+                            Tipos de Lentes
+                        </h6>
+                        <div class="mb-2">
+                            <strong>Progresivos:</strong>
+                            <span id="modal-lens-progresivo" class="badge bg-primary ms-2"></span>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Bifocales:</strong>
+                            <span id="modal-lens-bifocal" class="badge bg-info ms-2"></span>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Monofocales:</strong>
+                            <span id="modal-lens-monofocal" class="badge bg-success ms-2"></span>
+                        </div>
+                    </div>
+                    
+                    <!-- Información Financiera -->
+                    <div class="col-md-6">
+                        <h6 class="text-warning border-bottom pb-2 mb-3">
+                            <i class="fas fa-dollar-sign me-1"></i>
+                            Información Financiera
+                        </h6>
+                        <div class="mb-2">
+                            <strong>Ventas Este Mes:</strong>
+                            <span id="modal-sales-month" class="text-success fw-bold ms-2"></span>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Ventas Totales:</strong>
+                            <span id="modal-sales-total" class="text-primary fw-bold ms-2"></span>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Pagos Pendientes:</strong>
+                            <span id="modal-pending-payments" class="text-danger fw-bold ms-2"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a id="modal-view-orders" href="#" class="btn btn-primary">
+                    <i class="fas fa-list me-1"></i>
+                    Ver Órdenes de esta Sede
+                </a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-
+    // Inicializar gráfico de tipos de lentes
+    initLensChart();
+    
     const table = document.getElementById('sedesTable');
     const headers = table.querySelectorAll('th');
     
@@ -427,6 +678,123 @@ function showNotification(message, type) {
     }, 3000);
 }
 
+function initLensChart() {
+    const ctx = document.getElementById('lensChart').getContext('2d');
+    
+    // Datos del servidor (desde el template)
+    const lensData = {
+        progresivo: {{ lens_data.get('Progresivo', {}).get('count', 0) }},
+        bifocal: {{ lens_data.get('Bifocal', {}).get('count', 0) }},
+        monofocal: {{ lens_data.get('Monofocal', {}).get('count', 0) }}
+    };
+    
+    const lensDataMonth = {
+        progresivo: {{ lens_data_month.get('Progresivo', {}).get('count', 0) }},
+        bifocal: {{ lens_data_month.get('Bifocal', {}).get('count', 0) }},
+        monofocal: {{ lens_data_month.get('Monofocal', {}).get('count', 0) }}
+    };
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Progresivos', 'Bifocales', 'Monofocales'],
+            datasets: [
+                {
+                    label: 'Total General',
+                    data: [lensData.progresivo, lensData.bifocal, lensData.monofocal],
+                    backgroundColor: [
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(23, 162, 184, 0.8)',
+                        'rgba(40, 167, 69, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(23, 162, 184, 1)',
+                        'rgba(40, 167, 69, 1)'
+                    ],
+                    borderWidth: 1
+                },
+                {
+                    label: 'Este Mes ({{ current_month }}/{{ current_year }})',
+                    data: [lensDataMonth.progresivo, lensDataMonth.bifocal, lensDataMonth.monofocal],
+                    backgroundColor: [
+                        'rgba(54, 162, 235, 0.4)',
+                        'rgba(23, 162, 184, 0.4)',
+                        'rgba(40, 167, 69, 0.4)'
+                    ],
+                    borderColor: [
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(23, 162, 184, 1)',
+                        'rgba(40, 167, 69, 1)'
+                    ],
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Distribución de Tipos de Lentes'
+                },
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+}
+
+function openSedeModal(sedeId, name, city, manager, phone, address, totalOrders, ordersMonth, ordersCompleted, ordersProgress, ordersReady, salesMonth, salesTotal, pendingPayments, completionRate, lensProgresivo, lensBifocal, lensMonofocal) {
+    // Llenar información básica
+    document.getElementById('modal-sede-name').textContent = name;
+    document.getElementById('modal-sede-city').textContent = city;
+    document.getElementById('modal-sede-manager').textContent = manager;
+    document.getElementById('modal-sede-phone').textContent = phone;
+    document.getElementById('modal-sede-address').textContent = address;
+    
+    // Llenar estadísticas de órdenes
+    document.getElementById('modal-total-orders').textContent = totalOrders;
+    document.getElementById('modal-orders-month').textContent = ordersMonth;
+    document.getElementById('modal-orders-completed').textContent = ordersCompleted;
+    document.getElementById('modal-orders-progress').textContent = ordersProgress;
+    document.getElementById('modal-orders-ready').textContent = ordersReady;
+    document.getElementById('modal-completion-rate').textContent = completionRate + '%';
+    
+    // Llenar tipos de lentes
+    document.getElementById('modal-lens-progresivo').textContent = lensProgresivo;
+    document.getElementById('modal-lens-bifocal').textContent = lensBifocal;
+    document.getElementById('modal-lens-monofocal').textContent = lensMonofocal;
+    
+    // Llenar información financiera
+    document.getElementById('modal-sales-month').textContent = '$' + salesMonth.toLocaleString();
+    document.getElementById('modal-sales-total').textContent = '$' + salesTotal.toLocaleString();
+    document.getElementById('modal-pending-payments').textContent = '$' + pendingPayments.toLocaleString();
+    
+    // Configurar enlace para ver órdenes
+    document.getElementById('modal-view-orders').href = `/orders?sede=${sedeId}`;
+    
+    // Actualizar título del modal
+    document.getElementById('sedeDetailsModalLabel').innerHTML = `
+        <i class="fas fa-building me-2"></i>
+        Detalles de ${name}
+    `;
+    
+    // Abrir modal
+    const modal = new bootstrap.Modal(document.getElementById('sedeDetailsModal'));
+    modal.show();
+}
+
 function viewSedeDetails(sedeId) {
     fetch(`/api/admin/sede/${sedeId}`)
         .then(response => response.json())
@@ -440,29 +808,145 @@ function viewSedeDetails(sedeId) {
             showNotification('Error al cargar datos de la sede', 'error');
         });
 }
+
+// Función para actualizar las estadísticas del dashboard
+function refreshDashboardStats() {
+    const refreshBtn = document.getElementById('refresh-stats');
+    const originalHtml = refreshBtn.innerHTML;
+    
+    // Mostrar indicador de carga
+    refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Actualizando...';
+    refreshBtn.disabled = true;
+    
+    // Hacer petición AJAX para obtener estadísticas actualizadas
+    fetch('/api/admin/stats')
+        .then(response => response.json())
+        .then(data => {
+            // Actualizar elementos del DOM con los nuevos datos
+            console.log('Estadísticas actualizadas:', data);
+            console.log('Datos de lentes totales:', data.lens_data);
+            console.log('Datos de lentes del mes:', data.lens_data_month);
+            
+            // Actualizar estadísticas de lentes - Totales del Sistema
+            updateLensStats('total', data.lens_data);
+            
+            // Actualizar estadísticas de lentes - Este mes
+            updateLensStats('month', data.lens_data_month);
+            
+            // Actualizar hora de última actualización
+            updateLastUpdatedTime();
+            
+            // Mostrar mensaje de éxito
+            showNotification('Estadísticas de lentes actualizadas correctamente', 'success');
+        })
+        .catch(error => {
+            console.error('Error al actualizar estadísticas:', error);
+            showNotification('Error al actualizar las estadísticas', 'error');
+        })
+        .finally(() => {
+            // Restaurar botón original
+            refreshBtn.innerHTML = originalHtml;
+            refreshBtn.disabled = false;
+        });
+}
+
+// Función para mostrar notificaciones
+function showNotification(message, type) {
+    const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+    const notification = document.createElement('div');
+    notification.className = `alert ${alertClass} alert-dismissible fade show position-fixed`;
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 1050; min-width: 300px;';
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Remover automáticamente después de 3 segundos
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+// Auto-actualizar estadísticas cada 5 minutos
+setInterval(function() {
+    console.log('Auto-actualizando estadísticas...');
+    refreshDashboardStats();
+}, 300000); // 5 minutos = 300000 ms
+
+// Función para actualizar estadísticas de lentes
+function updateLensStats(period, lensData) {
+    // Calcular totales
+    const progresivo = lensData.Progresivo || 0;
+    const bifocal = lensData.Bifocal || 0;
+    const monofocal = lensData.Monofocal || 0;
+    const total = progresivo + bifocal + monofocal;
+    
+    // Agregar efecto visual de actualización
+    const elements = [
+        `${period}-progresivo-count`,
+        `${period}-bifocal-count`, 
+        `${period}-monofocal-count`
+    ];
+    
+    elements.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.style.transition = 'all 0.3s ease';
+            element.style.transform = 'scale(1.1)';
+            element.style.color = '#28a745';
+            
+            setTimeout(() => {
+                element.style.transform = 'scale(1)';
+                element.style.color = '';
+            }, 300);
+        }
+    });
+    
+    // Actualizar contadores
+    document.getElementById(`${period}-progresivo-count`).textContent = progresivo;
+    document.getElementById(`${period}-bifocal-count`).textContent = bifocal;
+    document.getElementById(`${period}-monofocal-count`).textContent = monofocal;
+    
+    // Actualizar porcentajes solo si hay total
+    if (total > 0) {
+        const progresivoPercent = ((progresivo / total) * 100).toFixed(1);
+        const bifocalPercent = ((bifocal / total) * 100).toFixed(1);
+        const monofocalPercent = ((monofocal / total) * 100).toFixed(1);
+        
+        // Actualizar elementos de porcentaje si existen
+        const progresivoPercentEl = document.getElementById(`${period}-progresivo-percent`);
+        const bifocalPercentEl = document.getElementById(`${period}-bifocal-percent`);
+        const monofocalPercentEl = document.getElementById(`${period}-monofocal-percent`);
+        
+        if (progresivoPercentEl) progresivoPercentEl.textContent = `${progresivoPercent}%`;
+        if (bifocalPercentEl) bifocalPercentEl.textContent = `${bifocalPercent}%`;
+        if (monofocalPercentEl) monofocalPercentEl.textContent = `${monofocalPercent}%`;
+    }
+    
+    console.log(`Estadísticas de lentes ${period} actualizadas:`, {progresivo, bifocal, monofocal, total});
+}
+
+// Función para actualizar la hora de última actualización
+function updateLastUpdatedTime() {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('es-ES', { 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit' 
+    });
+    document.getElementById('update-time').textContent = timeString;
+}
+
+// Inicialización del dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Dashboard cargado completamente');
+    updateLastUpdatedTime();
+});
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-<style>
-@media print {
-    .btn, .card-header {
-        -webkit-print-color-adjust: exact !important;
-    }
-}
 
-.table th {
-    position: sticky;
-    top: 0;
-    background-color: #f8f9fa !important;
-    z-index: 10;
-}
-
-.progress {
-    min-width: 80px;
-}
-
-.badge {
-    min-width: 35px;
-}
-</style>
 {% endblock %}
