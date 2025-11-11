@@ -251,9 +251,8 @@ function filterMessages(type) {
     event.target.classList.add('active');
 }
 
-// Configurar event listeners al cargar el DOM
 document.addEventListener('DOMContentLoaded', function() {
-    // Event listeners para botones de filtro
+
     document.querySelectorAll('.filter-btn').forEach(function(button) {
         button.addEventListener('click', function() {
             const filter = this.getAttribute('data-filter');
@@ -261,7 +260,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Event listeners para botones de ver mensaje
     document.querySelectorAll('.view-message-btn').forEach(function(button) {
         button.addEventListener('click', function() {
             const messageId = parseInt(this.getAttribute('data-message-id'));

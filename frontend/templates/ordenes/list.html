@@ -176,20 +176,19 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Agregar evento de clic a todas las filas de órdenes
+
     document.querySelectorAll('.clickable-row').forEach(row => {
         row.addEventListener('click', function(e) {
-            // Evitar que el clic en los botones de acción redirija
+
             if (e.target.closest('.btn') || e.target.closest('form')) {
                 return;
             }
             
             const orderId = this.getAttribute('data-order-id');
-            // Construir la URL dinámicamente
+
             window.location.href = '/order/' + orderId;
         });
-        
-        // Agregar efecto visual al pasar el mouse
+
         row.addEventListener('mouseenter', function() {
             this.style.backgroundColor = '#f8f9fa';
         });
@@ -200,9 +199,5 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
-
-
-
-
 
 {% endblock %}

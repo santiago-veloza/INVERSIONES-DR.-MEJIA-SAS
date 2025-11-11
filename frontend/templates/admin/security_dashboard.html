@@ -4,7 +4,7 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
-            <!-- Header -->
+            
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2><i class="fas fa-shield-alt text-primary"></i> Dashboard de Seguridad</h2>
                 <div class="btn-group">
@@ -18,7 +18,6 @@
                 </div>
             </div>
 
-            <!-- Alerta de seguridad -->
             {% if security_stats.critical_24h > 0 or security_stats.suspicious_24h > 5 %}
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 <i class="fas fa-exclamation-triangle"></i>
@@ -28,7 +27,6 @@
             </div>
             {% endif %}
 
-            <!-- Estadísticas Principales -->
             <div class="row mb-4">
                 <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
                     <div class="card {% if security_stats.critical_24h > 0 %}bg-danger text-white{% else %}bg-success text-white{% endif %}">
@@ -90,7 +88,7 @@
             </div>
 
             <div class="row">
-                <!-- IPs Sospechosas -->
+                
                 <div class="col-lg-6 mb-4">
                     <div class="card">
                         <div class="card-header bg-warning text-dark">
@@ -146,7 +144,6 @@
                     </div>
                 </div>
 
-                <!-- Usuarios con Fallos de Login -->
                 <div class="col-lg-6 mb-4">
                     <div class="card">
                         <div class="card-header bg-info text-white">
@@ -200,7 +197,6 @@
                 </div>
             </div>
 
-            <!-- Eventos Críticos Recientes -->
             {% if recent_critical %}
             <div class="row">
                 <div class="col-12">
@@ -270,23 +266,22 @@
 
 <script>
 function viewIPDetails(ip) {
-    // Redirigir a logs filtrados por IP
+
     window.open(`{{ url_for('main.view_audit_logs') }}?ip=${ip}`, '_blank');
 }
 
 function blockIP(ip) {
     if (confirm(`¿Está seguro de que quiere bloquear la IP ${ip}?`)) {
         alert('Funcionalidad de bloqueo de IP pendiente de implementación en firewall.');
-        // Aquí se implementaría la lógica para bloquear IP en firewall
+
     }
 }
 
 function exportSecurityReport() {
-    // Generar reporte de seguridad
+
     window.open('{{ url_for("main.view_audit_logs") }}?severity=CRITICAL&export=security_report', '_blank');
 }
 
-// Auto-refresh cada 60 segundos si hay eventos críticos
 {% if security_stats.critical_24h > 0 or security_stats.attention_required > 0 %}
 let refreshTimer;
 function startAutoRefresh() {
@@ -309,7 +304,6 @@ document.addEventListener('visibilitychange', () => {
 startAutoRefresh();
 {% endif %}
 
-// Mostrar notificación si hay eventos críticos
 {% if security_stats.critical_24h > 0 %}
 if (Notification.permission === "granted") {
     new Notification("⚠️ Eventos de Seguridad Críticos", {

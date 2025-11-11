@@ -18,8 +18,7 @@
     <meta name="description" content="Sistema de gestión para Ópticas Dr. Mejía - Inversiones Dr. Mejía SAS">
     <meta name="author" content="Ópticas Dr. Mejía">
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
-    
-    <!-- CSS global para ocultar modal backdrops -->
+
     <style>
         .modal-backdrop {
             display: none !important;
@@ -27,7 +26,7 @@
         .modal-backdrop.fade.show {
             display: none !important;
         }
-        /* Asegurar que el body no se bloquee cuando se abren modales */
+        
         body.modal-open {
             overflow: auto !important;
             padding-right: 0 !important;
@@ -226,8 +225,7 @@
     <script>
 
         document.addEventListener('DOMContentLoaded', function() {
-            
-            // Inicializar dropdowns de Bootstrap explícitamente
+
             const dropdownElementList = [].slice.call(document.querySelectorAll('[data-bs-toggle="dropdown"]'));
             const dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
                 return new bootstrap.Dropdown(dropdownToggleEl);
@@ -264,8 +262,7 @@
             const originalText = element.textContent;
             const spinner = document.createElement('i');
             spinner.className = 'fas fa-spinner fa-spin me-2';
-            
-            // Limpiar contenido y agregar spinner de forma segura
+
             element.textContent = '';
             element.appendChild(spinner);
             element.appendChild(document.createTextNode('Cargando...'));
@@ -278,7 +275,7 @@
         }
 
         function confirmAction(message) {
-            // Escapar el mensaje para prevenir XSS
+
             const sanitizedMessage = document.createElement('div');
             sanitizedMessage.textContent = message;
             return confirm('¿Está seguro que desea ' + sanitizedMessage.textContent + '?');
@@ -371,7 +368,6 @@
             });
         }
 
-        // Sistema de Detección de Inactividad y Timeout de Sesión
         {% if current_user.is_authenticated %}
         class SessionManager {
             constructor() {
@@ -385,22 +381,20 @@
             }
             
             init() {
-                // SOLO navegación específica cuenta como actividad
+
                 this.addNavigationListeners();
                 this.addFormSubmissionListeners();
                 this.addButtonClickListeners();
-                
-                // Iniciar verificación periódica
+
                 this.startPeriodicCheck();
             }
             
             addNavigationListeners() {
-                // Detectar cambios de página
+
                 window.addEventListener('beforeunload', () => {
                     this.onUserActivity();
                 });
-                
-                // Detectar navegación con enlaces
+
                 document.addEventListener('click', (e) => {
                     if (e.target.tagName === 'A' && e.target.href) {
                         this.onUserActivity();
@@ -409,12 +403,11 @@
             }
             
             addFormSubmissionListeners() {
-                // Detectar envío de formularios
+
                 document.addEventListener('submit', () => {
                     this.onUserActivity();
                 }, true);
-                
-                // Detectar clicks en botones de envío
+
                 document.addEventListener('click', (e) => {
                     if (e.target.type === 'submit' || 
                         e.target.classList.contains('btn-primary') ||
@@ -426,9 +419,9 @@
             }
             
             addButtonClickListeners() {
-                // Solo botones específicos cuentan como actividad
+
                 document.addEventListener('click', (e) => {
-                    // Botones de acciones específicas
+
                     if (e.target.closest('.dropdown-menu') ||
                         e.target.closest('.nav-link') ||
                         e.target.classList.contains('btn') ||
@@ -439,18 +432,16 @@
             }
             
             onUserActivity() {
-                // Indicador visual de actividad (para debugging)
+
                 console.log('🔄 Actividad detectada - Sesión extendida:', new Date().toLocaleTimeString());
-                
-                // Extender sesión cuando hay actividad
+
                 if (!this.extending) {
                     this.extending = true;
                     this.extendSession().finally(() => {
                         this.extending = false;
                     });
                 }
-                
-                // Ocultar advertencia si está visible
+
                 if (this.warningShown) {
                     this.hideWarning();
                 }
@@ -471,13 +462,11 @@
                         this.forceLogout('Su sesión ha expirado');
                         return;
                     }
-                    
-                    // Mostrar advertencia si quedan menos de 2 minutos
+
                     if (data.should_warn && !this.warningShown) {
                         this.showWarning(Math.round(data.time_remaining));
                     }
-                    
-                    // Logout automático si el tiempo se agotó
+
                     if (data.time_remaining <= 0) {
                         this.forceLogout('Tiempo de sesión agotado');
                     }
@@ -509,8 +498,7 @@
                 this.warningShown = true;
                 const minutes = Math.floor(timeRemaining / 60);
                 const seconds = timeRemaining % 60;
-                
-                // Crear modal de advertencia si no existe
+
                 if (!document.getElementById('sessionWarningModal')) {
                     this.createWarningModal();
                 }
@@ -525,8 +513,7 @@
                     keyboard: false
                 });
                 bsModal.show();
-                
-                // Actualizar contador cada segundo
+
                 this.countdownInterval = setInterval(() => {
                     timeRemaining--;
                     const mins = Math.floor(timeRemaining / 60);
@@ -593,48 +580,41 @@
             }
             
             forceLogout(reason) {
-                // Limpiar intervalos
+
                 if (this.countdownInterval) {
                     clearInterval(this.countdownInterval);
                 }
-                
-                // Mostrar mensaje y redirigir
+
                 alert(`${reason}. Será redirigido al login.`);
                 window.location.href = this.logoutUrl;
             }
         }
-        
-        // Inicializar el gestor de sesiones
+
         const sessionManager = new SessionManager();
         {% endif %}
     </script>
-    
-    <!-- Script global para eliminar modal backdrops -->
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Configurar todos los modales para no mostrar backdrop
+
             const originalModalShow = bootstrap.Modal.prototype.show;
             bootstrap.Modal.prototype.show = function() {
-                // Configurar el modal sin backdrop
+
                 this._config.backdrop = false;
                 this._config.keyboard = true;
-                
-                // Llamar al método original con la configuración modificada
+
                 originalModalShow.call(this);
-                
-                // Eliminar cualquier backdrop que pueda haberse creado
+
                 setTimeout(() => {
                     const backdrops = document.querySelectorAll('.modal-backdrop');
                     backdrops.forEach(backdrop => backdrop.remove());
-                    
-                    // Restaurar scroll del body
+
                     document.body.classList.remove('modal-open');
                     document.body.style.overflow = '';
                     document.body.style.paddingRight = '';
                 }, 50);
             };
-            
-            // Observer para eliminar backdrops que se puedan crear dinámicamente
+
             const observer = new MutationObserver(function(mutations) {
                 mutations.forEach(function(mutation) {
                     mutation.addedNodes.forEach(function(node) {
@@ -646,8 +626,7 @@
             });
             
             observer.observe(document.body, { childList: true, subtree: false });
-            
-            // Eliminar backdrops existentes al cargar la página
+
             const existingBackdrops = document.querySelectorAll('.modal-backdrop');
             existingBackdrops.forEach(backdrop => backdrop.remove());
         });

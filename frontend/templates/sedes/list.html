@@ -265,7 +265,6 @@
         </div>
     </div>
 
-    <!-- Modal Cambiar Contraseña Admin Sede {{ sede.id }} -->
     {% set sede_admin = sede.administrators|selectattr('role', 'equalto', 'admin_sede')|first %}
     {% if sede_admin %}
     <div class="modal fade" id="changeSedeAdminPasswordModal{{ sede.id }}" tabindex="-1">
@@ -344,8 +343,6 @@
             }
         }
 
-
-
         function toggleAdminPasswordVisibility() {
             const checkbox = document.getElementById('show_admin_passwords');
             const password = document.getElementById('admin_password');
@@ -376,7 +373,6 @@
             }
         }
 
-        // Configurar event listeners al cargar el DOM
         document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('.toggle-status-btn').forEach(function(button) {
                 button.addEventListener('click', function() {
@@ -386,7 +382,6 @@
                 });
             });
 
-            // Validación del formulario de nueva sede
             const addSedeForm = document.querySelector('#addSedeModal form');
             if (addSedeForm) {
                 addSedeForm.addEventListener('submit', function(e) {
@@ -409,7 +404,6 @@
                 });
             }
 
-            // Validación de formularios de cambio de contraseña
             document.querySelectorAll('form[action*="change_sede_admin_password"]').forEach(function(form) {
                 form.addEventListener('submit', function(e) {
                     const formData = new FormData(form);

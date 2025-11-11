@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
     <div class="container-fluid px-3">
-        <!-- Encabezado elegante con gradiente -->
+        
         <div class="row mb-4">
             <div class="col-12">
                 <div class="card border-0 shadow-lg" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
@@ -88,9 +88,9 @@
         
         <div class="row">
             <div class="col-lg-8">
-                <!-- Información General Compacta con Cards -->
+                
                 <div class="row mb-4">
-                    <!-- Card: Información del Cliente -->
+                    
                     <div class="col-md-6 mb-3">
                         <div class="card h-100 border-0 shadow-sm">
                             <div class="card-body">
@@ -127,7 +127,6 @@
                         </div>
                     </div>
 
-                    <!-- Card: Información de la Orden -->
                     <div class="col-md-6 mb-3">
                         <div class="card h-100 border-0 shadow-sm">
                             <div class="card-body">
@@ -160,9 +159,8 @@
                     </div>
                 </div>
 
-                <!-- Cards: Sede y Proveedor -->
                 <div class="row mb-4">
-                    <!-- Card: Sede -->
+                    
                     <div class="col-md-6 mb-3">
                         <div class="card h-100 border-0 shadow-sm">
                             <div class="card-body">
@@ -188,7 +186,6 @@
                         </div>
                     </div>
 
-                    <!-- Card: Proveedor -->
                     <div class="col-md-6 mb-3">
                         <div class="card h-100 border-0 shadow-sm">
                             <div class="card-body">
@@ -220,9 +217,8 @@
                     </div>
                 </div>
 
-                <!-- Cards: Tipo de Lentes y Monto -->
                 <div class="row mb-4">
-                    <!-- Card: Especificaciones de Lente -->
+                    
                     <div class="col-md-6 mb-3">
                         <div class="card h-100 border-0 shadow-sm">
                             <div class="card-body">
@@ -254,7 +250,6 @@
                         </div>
                     </div>
 
-                    <!-- Card: Información Financiera -->
                     <div class="col-md-6 mb-3">
                         <div class="card h-100 border-0 shadow-sm">
                             <div class="card-body">
@@ -286,7 +281,7 @@
                         </div>
                     </div>
                 </div>
-                <!-- Fórmula Óptica Simplificada -->
+                
                 <div class="card mb-4 shadow-sm border-0">
                     <div class="card-header text-white" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
                         <div class="d-flex align-items-center">
@@ -296,7 +291,7 @@
                     </div>
                     <div class="card-body">
                         <div class="row g-4">
-                            <!-- OD (Ojo Derecho) -->
+                            
                             {% if order.formula_od %}
                             <div class="col-md-6">
                                 <div class="card border-0 bg-primary bg-opacity-10">
@@ -314,8 +309,7 @@
                                 </div>
                             </div>
                             {% endif %}
-                            
-                            <!-- OI (Ojo Izquierdo) -->
+
                             {% if order.formula_oi %}
                             <div class="col-md-6">
                                 <div class="card border-0 bg-success bg-opacity-10">
@@ -333,8 +327,7 @@
                                 </div>
                             </div>
                             {% endif %}
-                            
-                            <!-- ADD (Adición) -->
+
                             {% if order.formula_add %}
                             <div class="col-md-6">
                                 <div class="card border-0 bg-warning bg-opacity-10">
@@ -352,8 +345,7 @@
                                 </div>
                             </div>
                             {% endif %}
-                            
-                            <!-- DP Y ALT -->
+
                             {% if order.formula_dp_alt %}
                             <div class="col-md-6">
                                 <div class="card border-0 bg-info bg-opacity-10">
@@ -372,16 +364,14 @@
                             </div>
                             {% endif %}
                         </div>
-                        
-                        <!-- Mensaje si no hay fórmula -->
+
                         {% if not (order.formula_od or order.formula_oi or order.formula_add or order.formula_dp_alt) %}
                         <div class="text-center py-4">
                             <i class="fas fa-eye-slash fa-3x text-muted opacity-50 mb-3"></i>
                             <p class="text-muted">No se ha especificado información de fórmula óptica</p>
                         </div>
                         {% endif %}
-                        
-                        <!-- Detalles Adicionales y Observaciones -->
+
                         {% if order.formula_details or order.observations %}
                         <div class="border-top pt-4 mt-4">
                             <div class="row g-3">
@@ -426,7 +416,6 @@
                     </div>
                 </div>
 
-                <!-- Estado de la Orden Mejorado -->
                 <div class="card mb-4 shadow-sm border-0">
                     <div class="card-header text-white" style="background: linear-gradient(135deg, #ffc107 0%, #ff8f00 100%);">
                         <div class="d-flex align-items-center">
@@ -435,7 +424,7 @@
                         </div>
                     </div>
                     <div class="card-body">
-                        <!-- Estado Visual con Timeline -->
+                        
                         <div class="row mb-4">
                             <div class="col-12">
                                 <div class="d-flex align-items-center justify-content-center p-4 rounded" 
@@ -529,7 +518,6 @@
                             </div>
                         </div>
 
-                        <!-- Información Adicional del Estado -->
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <div class="card border-0 bg-light">
@@ -568,8 +556,7 @@
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- Nota informativa cuando no se puede editar la orden -->
+
                         {% if order.status in ['aceptada', 'en_proceso', 'devuelta_proveedor', 'recibida_optica', 'finalizada'] and (current_user.role == 'admin_sede' and current_user.sede_id == order.sede_id) %}
                         <div class="alert alert-info mt-3">
                             <h6 class="alert-heading">
@@ -603,14 +590,12 @@
                         </div>
                         {% endif %}
 
-
                     </div>
                 </div>
             </div>
 
-            <!-- Sidebar con información adicional -->
             <div class="col-lg-4">
-                <!-- Historial de Pagos Mejorado -->
+                
                 <div class="card mb-4 shadow-sm border-0">
                     <div class="card-header text-white" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
                         <div class="d-flex align-items-center">
@@ -620,7 +605,7 @@
                     </div>
                     <div class="card-body p-0">
                         {% if payments %}
-                            <!-- Resumen Financiero -->
+                            
                             <div class="p-3 border-bottom" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
                                 {% set total_pagado = payments | sum(attribute='amount') %}
                                 {% set saldo = order.total_amount - total_pagado if order.total_amount else 0 %}
@@ -657,8 +642,7 @@
                                     {% endif %}
                                 </div>
                             </div>
-                            
-                            <!-- Lista de Pagos -->
+
                             <div class="p-3">
                                 {% for payment in payments %}
                                     <div class="card border-0 bg-light mb-3">
@@ -714,7 +698,6 @@
                     </div>
                 </div>
 
-                <!-- Información de Contacto -->
                 <div class="card mb-4 shadow-sm border-0">
                     <div class="card-header text-white" style="background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);">
                         <div class="d-flex align-items-center">
@@ -723,13 +706,12 @@
                         </div>
                     </div>
                     <div class="card-body">
-                        <!-- ID de la Orden -->
+                        
                         <div class="text-center mb-3 p-3 bg-light rounded">
                             <small class="text-muted d-block">ID de la Orden</small>
                             <strong class="fs-5">#{{ order.id }}</strong>
                         </div>
 
-                        <!-- Contactos del Proveedor -->
                         {% if order.provider.contact_person or order.provider.phone or order.provider.email %}
                         <div class="mb-3">
                             <h6 class="text-primary mb-2 fw-bold">
@@ -760,7 +742,6 @@
                         </div>
                         {% endif %}
 
-                        <!-- Contacto de la Sede -->
                         {% if order.sede.phone %}
                         <div class="mb-0">
                             <h6 class="text-warning mb-2 fw-bold">
@@ -779,7 +760,6 @@
             </div>
         </div>
 
-        <!-- Botones de Acción Mejorados -->
         <div class="row">
             <div class="col-12">
                 <div class="card shadow-sm border-0">
@@ -913,7 +893,6 @@
                                     </div>
                                 {% endif %}
 
-                                <!-- Botones de Administración -->
                                 {% if current_user.role in ['admin', 'asistente'] or (current_user.role == 'proveedor' and current_user.provider and order.provider_id == current_user.provider.id) %}
                                 <div class="col-md-4">
                                     <a href="{{ url_for('main.update_order_status', order_id=order.id) }}" 
@@ -942,7 +921,6 @@
                                 {% endif %}
                             {% endif %}
 
-                            <!-- Botón Volver siempre visible -->
                             <div class="col-12">
                                 <div class="text-center pt-3 border-top">
                                     <a href="{{ url_for('main.list_orders') }}" class="btn btn-secondary px-5">

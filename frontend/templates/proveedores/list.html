@@ -227,7 +227,6 @@
     {% endif %}
 
     <script>
-        // Estilos de modal ahora se manejan globalmente en base.html
 
         function togglePassword(providerId) {
             const checkbox = document.getElementById('show_password_' + providerId);
@@ -255,8 +254,7 @@
 
                 const button = element.parentElement.querySelector('button');
                 const originalIcon = button.innerHTML;
-                
-                // Crear ícono de éxito de forma segura
+
                 const checkIcon = document.createElement('i');
                 checkIcon.className = 'fas fa-check text-success';
                 
@@ -273,21 +271,20 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Agregar evento de clic a todas las filas de proveedores
+
             document.querySelectorAll('.clickable-row').forEach(row => {
                 row.addEventListener('click', function(e) {
-                    // Evitar que el clic en los botones de acción redirija
+
                     if (e.target.closest('.btn') || e.target.closest('button') || e.target.closest('form')) {
                         return;
                     }
                     
                     const providerId = this.getAttribute('data-provider-id');
-                    // Abrir el modal de credenciales
+
                     const credentialsModal = new bootstrap.Modal(document.getElementById('credentialsModal' + providerId));
                     credentialsModal.show();
                 });
-                
-                // Agregar efecto visual al pasar el mouse
+
                 row.addEventListener('mouseenter', function() {
                     this.style.backgroundColor = '#f8f9fa';
                 });
@@ -297,15 +294,12 @@
                 });
             });
 
-            // Configurar event listeners para botones de copiar
             document.querySelectorAll('.copy-btn').forEach(function(button) {
                 button.addEventListener('click', function() {
                     const targetId = this.getAttribute('data-target');
                     copyToClipboard(targetId);
                 });
             });
-
-            // Código de manejo de backdrop eliminado - ahora se maneja globalmente en base.html
 
             const changePasswordModals = document.querySelectorAll('[id^="changePasswordModal"]');
             changePasswordModals.forEach(function(modal) {
