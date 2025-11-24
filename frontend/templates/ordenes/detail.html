@@ -1,25 +1,43 @@
 {% extends "base.html" %}
 {% block content %}
-    <div class="container-fluid px-3">
+    <div class="container-lg px-3">
         
-        <div class="row mb-4">
+        <div class="row mb-1">
             <div class="col-12">
-                <div class="card border-0 shadow-lg" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
-                    <div class="card-body text-white p-4">
+                <div class="card border-0 shadow-sm gradient-primary">
+                    <div class="card-body text-white p-3">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <h1 class="mb-2 fw-bold">
-                                    <i class="fas fa-clipboard-list me-3"></i>Orden N° {{ order.order_number }}
-                                </h1>
-                                <p class="mb-0 opacity-75">
-                                    <i class="fas fa-user me-2"></i>{{ order.client_name }}
-                                    {% if order.client_cc %} • CC: {{ order.client_cc }}{% endif %}
-                                    {% if order.client_phone %} • Tel: {{ order.client_phone }}{% endif %}
-                                </p>
+                                <h3 class="mb-0 fw-bold">
+                                    <i class="fas fa-clipboard-list me-2"></i>Orden N° {{ order.order_number }}
+                                </h3>
+                            </div>
+                            
+                            <div class="d-flex gap-5 me-4">
+                                <div class="text-end">
+                                    <div class="text-white-50 small mb-1">ORDEN VENTA</div>
+                                    {% if order.receipt_number %}
+                                        <div class="text-white fw-bold fs-5">{{ order.receipt_number }}</div>
+                                    {% else %}
+                                        <div class="text-white-50 small">No especificado</div>
+                                    {% endif %}
+                                </div>
+                                <div class="text-end">
+                                    <div class="text-white-50 small mb-1">ORDEN LABORATORIO</div>
+                                    {% if order.orden_laboratorio %}
+                                        <div class="text-white fw-bold fs-5">{{ order.orden_laboratorio }}</div>
+                                    {% else %}
+                                        <div class="text-white-50 small">No especificado</div>
+                                    {% endif %}
+                                </div>
                             </div>
                             <div class="text-end">
                                 <div class="mb-2">
-                                    {% if current_user.role == 'proveedor' %}
+                                    {% if order.pending_admin_review and order.status == 'pendiente_envio' %}
+                                        <span class="badge bg-warning text-dark fs-6 px-3 py-2">
+                                            <i class="fas fa-hourglass-half me-1"></i>Pendiente Completar Admin
+                                        </span>
+                                    {% elif current_user.role == 'proveedor' %}
                                         {% if order.status == 'enviada' %}
                                             <span class="badge bg-warning text-dark fs-6 px-3 py-2">
                                                 <i class="fas fa-inbox me-1"></i>Pendiente Respuesta
@@ -73,11 +91,17 @@
                                     <a href="{{ url_for('main.list_orders') }}" class="btn btn-outline-light btn-sm">
                                         <i class="fas fa-arrow-left me-1"></i>Volver
                                     </a>
-                                    {% if (current_user.role in ['admin', 'asistente'] or (current_user.role == 'admin_sede' and current_user.sede_id == order.sede_id)) and order.status not in ['aceptada', 'en_proceso', 'devuelta_proveedor', 'recibida_optica', 'finalizada'] %}
+                                    {% if order.pending_admin_review and order.status == 'pendiente_envio' and current_user.role == 'admin' %}
+                                        <a href="{{ url_for('main.complete_lens_specs', order_id=order.id) }}" class="btn btn-warning btn-sm">
+                                            <i class="fas fa-edit me-1"></i>Completar Especificaciones
+                                        </a>
+                                    {% elif (current_user.role in ['admin', 'asistente'] or (current_user.role == 'admin_sede' and current_user.sede_id == order.sede_id)) and order.status not in ['aceptada', 'en_proceso', 'devuelta_proveedor', 'recibida_optica', 'finalizada'] %}
                                         <a href="{{ url_for('main.edit_order', order_id=order.id) }}" class="btn btn-outline-light btn-sm">
                                             <i class="fas fa-edit me-1"></i>Editar
                                         </a>
                                     {% endif %}
+                                    
+
                                 </div>
                             </div>
                         </div>
@@ -85,339 +109,377 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="row">
-            <div class="col-lg-8">
-                
-                <div class="row mb-4">
-                    
-                    <div class="col-md-6 mb-3">
-                        <div class="card h-100 border-0 shadow-sm">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center mb-3">
-                                    <div class="bg-primary bg-gradient rounded-circle p-2 me-3">
-                                        <i class="fas fa-user text-white"></i>
-                                    </div>
-                                    <h6 class="mb-0 fw-bold text-primary">Información del Cliente</h6>
-                                </div>
-                                <div class="mb-2">
-                                    <small class="text-muted">Nombre:</small><br>
-                                    <strong class="fs-6">{{ order.client_name }}</strong>
-                                </div>
-                                {% if order.client_cc %}
-                                <div class="mb-2">
-                                    <small class="text-muted">Cédula:</small><br>
-                                    <span>{{ order.client_cc }}</span>
-                                </div>
-                                {% endif %}
-                                {% if order.client_phone %}
-                                <div class="mb-2">
-                                    <small class="text-muted">Teléfono:</small><br>
-                                    <span><i class="fas fa-phone me-1"></i>{{ order.client_phone }}</span>
-                                </div>
-                                {% endif %}
-                                {% if order.receipt_number %}
-                                <div class="mb-2">
-                                    <small class="text-muted">Recibo de Venta:</small><br>
-                                    <span class="badge bg-secondary">{{ order.receipt_number }}</span>
-                                </div>
-                                {% endif %}
+            <div class="col-12">
 
-                            </div>
-                        </div>
-                    </div>
 
-                    <div class="col-md-6 mb-3">
-                        <div class="card h-100 border-0 shadow-sm">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center mb-3">
-                                    <div class="bg-success bg-gradient rounded-circle p-2 me-3">
-                                        <i class="fas fa-clipboard text-white"></i>
-                                    </div>
-                                    <h6 class="mb-0 fw-bold text-success">Detalles de la Orden</h6>
-                                </div>
-                                <div class="mb-2">
-                                    <small class="text-muted">Número:</small><br>
-                                    <strong class="fs-6">{{ order.order_number }}</strong>
-                                </div>
-                                <div class="mb-2">
-                                    <small class="text-muted">Creada:</small><br>
-                                    <span>{{ order.created_at.strftime('%d/%m/%Y %H:%M') }}</span>
-                                </div>
-                                {% if order.due_date %}
-                                <div class="mb-2">
-                                    <small class="text-muted">Fecha de Entrega:</small><br>
-                                    <span class="badge bg-warning text-dark">{{ order.due_date.strftime('%d/%m/%Y') }}</span>
-                                </div>
-                                {% endif %}
-                                <div class="mb-0">
-                                    <small class="text-muted">Creada por:</small><br>
-                                    <span class="fw-bold">{{ order.created_by.username }}</span>
-                                </div>
-                            </div>
-                        </div>
+
+                <!-- 2. Ciudad/Municipio -->
+                <div class="card mb-1 shadow-sm border-1">
+                    <div class="card-body p-2">
+                        <table class="table table-bordered mb-0">
+                            <tbody>
+                                <tr>
+                                    <td class="bg-light fw-bold text-dark text-center">CIUDAD/MUNICIPIO</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-center py-2">
+                                        {% if order.ciudad_municipio %}
+                                            <span class="badge bg-primary fs-6">{{ order.ciudad_municipio }}</span>
+                                        {% else %}
+                                            <span class="text-muted">No especificado</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
-                <div class="row mb-4">
-                    
-                    <div class="col-md-6 mb-3">
-                        <div class="card h-100 border-0 shadow-sm">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center mb-3">
-                                    <div class="bg-warning bg-gradient rounded-circle p-2 me-3">
-                                        <i class="fas fa-building text-white"></i>
-                                    </div>
-                                    <h6 class="mb-0 fw-bold text-warning">Sede Solicitante</h6>
-                                </div>
-                                <div class="mb-2">
-                                    <strong class="fs-6">{{ order.sede.name }}</strong>
-                                </div>
-                                <div class="mb-2">
-                                    <small class="text-muted"><i class="fas fa-map-marker-alt me-1"></i>{{ order.sede.city }}</small>
-                                </div>
-                                {% if order.sede.phone %}
-                                <div class="mb-0">
-                                    <small class="text-muted"><i class="fas fa-phone me-1"></i></small>
-                                    <a href="tel:{{ order.sede.phone }}" class="text-decoration-none">{{ order.sede.phone }}</a>
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-6 mb-3">
-                        <div class="card h-100 border-0 shadow-sm">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center mb-3">
-                                    <div class="bg-info bg-gradient rounded-circle p-2 me-3">
-                                        <i class="fas fa-industry text-white"></i>
-                                    </div>
-                                    <h6 class="mb-0 fw-bold text-info">Proveedor</h6>
-                                </div>
-                                <div class="mb-2">
-                                    <strong class="fs-6">{{ order.provider.razon_social or order.provider.name }}</strong>
-                                </div>
-                                <div class="mb-2">
-                                    <small class="text-muted">NIT:</small> <span class="badge bg-light text-dark">{{ order.provider.nit }}</span>
-                                </div>
-                                {% if order.provider.contact_person %}
-                                <div class="mb-2">
-                                    <small class="text-muted"><i class="fas fa-user-tie me-1"></i>{{ order.provider.contact_person }}</small>
-                                </div>
-                                {% endif %}
-                                {% if order.provider.phone %}
-                                <div class="mb-0">
-                                    <small class="text-muted"><i class="fas fa-phone me-1"></i></small>
-                                    <a href="tel:{{ order.provider.phone }}" class="text-decoration-none">{{ order.provider.phone }}</a>
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
+                <!-- 3. Información Institucional -->
+                <div class="card mb-1 shadow-sm border-1">
+                    <div class="card-body p-2">
+                        <table class="table table-bordered mb-0">
+                            <tbody>
+                                <tr>
+                                    <td class="bg-light fw-bold text-dark text-center">SEDE</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-center py-2">
+                                        <div class="mb-2">
+                                            <strong class="fs-6">{{ order.sede.name }}</strong>
+                                        </div>
+                                        <small class="text-muted">
+                                            <i class="fas fa-map-marker-alt me-1"></i>{{ order.sede.city }}
+                                            {% if order.sede.phone %}
+                                                <br><i class="fas fa-phone me-1"></i>{{ order.sede.phone }}
+                                            {% endif %}
+                                        </small>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="bg-light fw-bold text-dark text-center">EMPRESA/CONVENIO/SEGURO</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-center py-2">
+                                        {% if order.empresa_convenio %}
+                                            <span class="badge bg-info fs-6">{{ order.empresa_convenio }}</span>
+                                        {% else %}
+                                            <span class="text-muted">No especificado</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="bg-light fw-bold text-dark text-center">PROVEEDOR</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-center py-2">
+                                        <div class="mb-2">
+                                            <strong class="fs-6">{{ order.provider.razon_social or order.provider.name }}</strong>
+                                        </div>
+                                        <small class="text-muted">
+                                            {% if order.provider.nit %}NIT: {{ order.provider.nit }}<br>{% endif %}
+                                            {% if order.provider.contact_person %}Contacto: {{ order.provider.contact_person }}<br>{% endif %}
+                                            {% if order.provider.phone %}<i class="fas fa-phone me-1"></i>{{ order.provider.phone }}{% endif %}
+                                        </small>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
-                <div class="row mb-4">
-                    
-                    <div class="col-md-6 mb-3">
-                        <div class="card h-100 border-0 shadow-sm">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center mb-3">
-                                    <div class="bg-secondary bg-gradient rounded-circle p-2 me-3">
-                                        <i class="fas fa-glasses text-white"></i>
-                                    </div>
-                                    <h6 class="mb-0 fw-bold text-secondary">Especificaciones</h6>
-                                </div>
-                                {% if order.lens_class %}
-                                <div class="mb-2">
-                                    <small class="text-muted">Clase de Lente:</small><br>
-                                    <span class="badge bg-primary">{{ order.lens_class.title() }}</span>
-                                </div>
-                                {% endif %}
-                                {% if order.lens_type %}
-                                <div class="mb-2">
-                                    <small class="text-muted">Tipo de Lente:</small><br>
-                                    <span>{{ order.lens_type }}</span>
-                                </div>
-                                {% endif %}
-                                {% if order.frame_type %}
-                                <div class="mb-0">
-                                    <small class="text-muted">Tipo de Montura:</small><br>
-                                    <span>{{ order.frame_type }}</span>
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
+                <!-- 4. Información del Paciente -->
+                <div class="card mb-1 shadow-sm border-1">
+                    <div class="card-body p-2">
+                        <table class="table table-bordered mb-0">
+                            <tbody>
+                                <tr>
+                                    <td class="bg-light fw-bold text-dark text-center table-header-50">NOMBRE DEL PACIENTE</td>
+                                    <td class="bg-light fw-bold text-dark text-center table-header-50">CC DEL PACIENTE</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-center py-2">
+                                        <strong class="fs-6">{{ order.client_name }}</strong>
+                                    </td>
+                                    <td class="text-center py-2">
+                                        {% if order.client_cc %}
+                                            <span class="badge bg-secondary fs-6">{{ order.client_cc }}</span>
+                                        {% else %}
+                                            <span class="text-muted">No especificado</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
+                </div>
 
-                    <div class="col-md-6 mb-3">
-                        <div class="card h-100 border-0 shadow-sm">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center mb-3">
-                                    <div class="bg-success bg-gradient rounded-circle p-2 me-3">
-                                        <i class="fas fa-dollar-sign text-white"></i>
-                                    </div>
-                                    <h6 class="mb-0 fw-bold text-success">Información Financiera</h6>
-                                </div>
-                                <div class="mb-2">
-                                    <small class="text-muted">Monto Total:</small><br>
-                                    {% if order.total_amount and order.total_amount > 0 %}
+                <!-- 5. Información de Lentes -->
+                <div class="card mb-1 shadow-sm border-1">
+                    <div class="card-body p-2">
+                        <table class="table table-bordered mb-0">
+                            <tbody>
+                                <tr>
+                                    <td class="bg-light fw-bold text-dark text-center table-header-50">CLASE DE LENTES</td>
+                                    <td class="bg-light fw-bold text-dark text-center table-header-50">TIPO DE LENTE Y FILTROS</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-center py-2">
+                                        {% if order.lens_class %}
+                                            <span class="badge bg-primary fs-6">{{ order.lens_class.title() }}</span>
+                                        {% else %}
+                                            <span class="text-muted">No especificado</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center py-2">
+                                        {% if order.lens_type %}
+                                            <span class="fw-bold">{{ order.lens_type }}</span>
+                                        {% else %}
+                                            <span class="text-muted">No especificado</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 6. Fórmula Óptica -->
+                <div class="card mb-1 shadow-sm border-1">
+                    <div class="card-body p-2">
+                        <table class="table table-bordered mb-0">
+                            <tbody>
+                                <tr>
+                                    <td class="bg-light fw-bold text-dark text-center table-header-50">OD (OJO DERECHO)</td>
+                                    <td class="bg-light fw-bold text-dark text-center table-header-50">OI (OJO IZQUIERDO)</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-2 text-center">
+                                        {% if order.formula_od %}
+                                            <div class="badge bg-success fs-6 p-3 formula-badge-od">{{ order.formula_od }}</div>
+                                        {% else %}
+                                            <span class="text-muted">No especificado</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="p-2 text-center">
+                                        {% if order.formula_oi %}
+                                            <div class="badge bg-info fs-6 p-3 formula-badge-oi">{{ order.formula_oi }}</div>
+                                        {% else %}
+                                            <span class="text-muted">No especificado</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="bg-light fw-bold text-dark text-center">ADD (ADICIÓN)</td>
+                                    <td class="bg-light fw-bold text-dark text-center">DP Y ALT</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-1 text-center">
+                                        {% if order.formula_add %}
+                                            <span class="badge bg-success fs-6">{{ order.formula_add }}</span>
+                                        {% else %}
+                                            <span class="text-muted">No especificado</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="p-1 text-center">
+                                        {% if order.formula_dp_alt %}
+                                            <span class="badge bg-info fs-6">{{ order.formula_dp_alt }}</span>
+                                        {% else %}
+                                            <span class="text-muted">No especificado</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 7. Información Final -->
+                <div class="card mb-1 shadow-sm border-1">
+                    <div class="card-body p-2">
+                        <table class="table table-bordered mb-0">
+                            <tbody>
+                                <tr>
+                                    <td class="bg-light fw-bold text-dark text-center table-header-50">TIPO DE MONTURA</td>
+                                    <td class="bg-light fw-bold text-dark text-center table-header-50">TELÉFONO PACIENTE</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-center py-2">
+                                        {% if order.frame_type %}
+                                            <span class="fw-bold">{{ order.frame_type }}</span>
+                                        {% else %}
+                                            <span class="text-muted">No especificado</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center py-2">
+                                        {% if order.client_phone %}
+                                            <span class="badge bg-primary fs-6">
+                                                <i class="fas fa-phone me-1"></i>{{ order.client_phone }}
+                                            </span>
+                                        {% else %}
+                                            <span class="text-muted">No especificado</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 8. Información Adicional -->
+                <div class="card mb-1 shadow-sm border-1">
+                    <div class="card-body p-2">
+                        <table class="table table-bordered mb-0">
+                            <tbody>
+                                <tr>
+                                    <td class="bg-light fw-bold text-dark text-center">INFORMACIÓN ADICIONAL</td>
+                                </tr>
+                                <tr>
+                                    <td class=\"p-2\">
+                                        {% if order.formula_details %}
+                                            <div class="observation-area">{{ order.formula_details }}</div>
+                                        {% else %}
+                                            <div class="text-center text-muted">Sin información adicional</div>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 9. Información del Sistema -->
+                <div class="card mb-1 shadow-sm border-1">
+                    <div class="card-body p-2">
+                        <table class="table table-bordered mb-0">
+                            <tbody>
+                                <tr>
+                                    <td class="bg-light fw-bold text-dark text-center table-header-33">CREADA POR</td>
+                                    <td class="bg-light fw-bold text-dark text-center table-header-33">FECHA CREACIÓN</td>
+                                    <td class="bg-light fw-bold text-dark text-center table-header-33">FECHA ENTREGA</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-center py-2">
+                                        <span class="fw-bold">{{ order.created_by.username }}</span>
+                                    </td>
+                                    <td class="text-center py-2">
+                                        <span class="badge bg-secondary fs-6">{{ order.created_at.strftime('%d/%m/%Y %H:%M') }}</span>
+                                    </td>
+                                    <td class="text-center py-2">
+                                        {% if order.due_date %}
+                                            <span class="badge bg-warning text-dark fs-6">{{ order.due_date.strftime('%d/%m/%Y') }}</span>
+                                        {% else %}
+                                            <span class="text-muted">Por definir</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 10. Información de Entrega (solo si está aceptada) -->
+                {% if order.accepted_at and order.delivery_deadline %}
+                <div class="card mb-1 shadow-sm border-1">
+                    <div class="card-body p-2">
+                        <table class="table table-bordered mb-0">
+                            <tbody>
+                                <tr>
+                                    <td class="bg-light fw-bold text-dark text-center table-header-33">ACEPTADA EL</td>
+                                    <td class="bg-light fw-bold text-dark text-center table-header-33">FECHA LÍMITE</td>
+                                    <td class="bg-light fw-bold text-dark text-center table-header-33">ESTADO DE ENTREGA</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-center py-2">
+                                        <span class="badge bg-success fs-6">{{ order.accepted_at.strftime('%d/%m/%Y %H:%M') }}</span>
+                                    </td>
+                                    <td class="text-center py-2">
+                                        <span class="badge bg-warning text-dark fs-6">{{ order.delivery_deadline.strftime('%d/%m/%Y') }}</span>
+                                    </td>
+                                    <td class="text-center py-2">
+                                        {% if order.is_overdue %}
+                                            <span class="badge bg-danger fs-6">
+                                                <i class="fas fa-exclamation-triangle me-1"></i>VENCIDA
+                                                {% if order.days_overdue > 0 %}({{ order.days_overdue }} días){% endif %}
+                                            </span>
+                                        {% elif order.status in ['devuelta_proveedor', 'recibida_optica', 'finalizada'] %}
+                                            <span class="badge bg-success fs-6">
+                                                <i class="fas fa-check me-1"></i>ENTREGADA A TIEMPO
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-info fs-6">
+                                                <i class="fas fa-clock me-1"></i>EN PLAZO (7 días máximo)
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- 11. Información Financiera -->
+                {% if order.total_amount and order.total_amount > 0 %}
+                <div class="card mb-1 shadow-sm border-1">
+                    <div class="card-body p-2">
+                        <table class="table table-bordered mb-0">
+                            <tbody>
+                                <tr>
+                                    <td class="bg-light fw-bold text-dark text-center table-header-50">MONTO TOTAL</td>
+                                    <td class="bg-light fw-bold text-dark text-center table-header-50">ESTADO DE PAGO</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-center py-2">
                                         <span class="h5 text-success mb-0">${{ "{:,.0f}".format(order.total_amount) }}</span>
-                                    {% else %}
-                                        <span class="text-muted">Sin monto asignado</span>
-                                    {% endif %}
-                                </div>
-                                <div class="mb-0">
-                                    <small class="text-muted">Estado de Pago:</small><br>
-                                    {% if order.payment_status == 'pagada' %}
-                                        <span class="badge bg-success"><i class="fas fa-check me-1"></i>Pagada</span>
-                                    {% elif order.payment_status == 'parcialmente_pagada' %}
-                                        <span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i>Parcial</span>
-                                    {% else %}
-                                        <span class="badge bg-danger"><i class="fas fa-times me-1"></i>Pendiente</span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
+                                    </td>
+                                    <td class="text-center py-2">
+                                        {% if order.payment_status == 'pagada' %}
+                                            <span class="badge bg-success fs-6"><i class="fas fa-check me-1"></i>Pagada</span>
+                                        {% elif order.payment_status == 'parcialmente_pagada' %}
+                                            <span class="badge bg-warning text-dark fs-6"><i class="fas fa-clock me-1"></i>Parcial</span>
+                                        {% else %}
+                                            <span class="badge bg-danger fs-6"><i class="fas fa-times me-1"></i>Pendiente</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-                
-                <div class="card mb-4 shadow-sm border-0">
-                    <div class="card-header text-white" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-eye me-2"></i>
-                            <h5 class="mb-0">Fórmula Óptica</h5>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="row g-4">
-                            
-                            {% if order.formula_od %}
-                            <div class="col-md-6">
-                                <div class="card border-0 bg-primary bg-opacity-10">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center mb-3">
-                                            <div class="bg-primary bg-gradient rounded-circle p-2 me-3">
-                                                <i class="fas fa-eye text-white"></i>
-                                            </div>
-                                            <h6 class="mb-0 fw-bold text-primary">OD (Ojo Derecho)</h6>
-                                        </div>
-                                        <div class="ps-4">
-                                            {{ order.formula_od | replace('\n', '<br>') | safe }}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            {% endif %}
+                {% endif %}
 
-                            {% if order.formula_oi %}
-                            <div class="col-md-6">
-                                <div class="card border-0 bg-success bg-opacity-10">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center mb-3">
-                                            <div class="bg-success bg-gradient rounded-circle p-2 me-3">
-                                                <i class="fas fa-eye text-white"></i>
-                                            </div>
-                                            <h6 class="mb-0 fw-bold text-success">OI (Ojo Izquierdo)</h6>
-                                        </div>
-                                        <div class="ps-4">
-                                            {{ order.formula_oi | replace('\n', '<br>') | safe }}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            {% endif %}
-
-                            {% if order.formula_add %}
-                            <div class="col-md-6">
-                                <div class="card border-0 bg-warning bg-opacity-10">
-                                    <div class="card-body">
+                <!-- 11. Observaciones -->
+                {% if order.observations %}
+                <div class="card mb-1 shadow-sm border-1">
+                    <div class="card-body p-2">
+                        <table class="table table-bordered mb-0">
+                            <tbody>
+                                <tr>
+                                    <td class="bg-light fw-bold text-dark text-center">OBSERVACIONES IMPORTANTES</td>
+                                </tr>
+                                <tr>
+                                    <td class=\"p-2\">
                                         <div class="d-flex align-items-center mb-3">
                                             <div class="bg-warning bg-gradient rounded-circle p-2 me-3">
-                                                <i class="fas fa-plus text-white"></i>
+                                                <i class="fas fa-exclamation-triangle text-white"></i>
                                             </div>
-                                            <h6 class="mb-0 fw-bold text-warning">ADD (Adición)</h6>
+                                            <h6 class="mb-0 fw-bold text-warning">Información Importante</h6>
                                         </div>
-                                        <div class="ps-4">
-                                            {{ order.formula_add | replace('\n', '<br>') | safe }}
+                                        <div class="ps-4 rejection-area">
+                                            {{ order.observations }}
                                         </div>
-                                    </div>
-                                </div>
-                            </div>
-                            {% endif %}
-
-                            {% if order.formula_dp_alt %}
-                            <div class="col-md-6">
-                                <div class="card border-0 bg-info bg-opacity-10">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center mb-3">
-                                            <div class="bg-info bg-gradient rounded-circle p-2 me-3">
-                                                <i class="fas fa-ruler text-white"></i>
-                                            </div>
-                                            <h6 class="mb-0 fw-bold text-info">DP Y ALT</h6>
-                                        </div>
-                                        <div class="ps-4">
-                                            {{ order.formula_dp_alt | replace('\n', '<br>') | safe }}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            {% endif %}
-                        </div>
-
-                        {% if not (order.formula_od or order.formula_oi or order.formula_add or order.formula_dp_alt) %}
-                        <div class="text-center py-4">
-                            <i class="fas fa-eye-slash fa-3x text-muted opacity-50 mb-3"></i>
-                            <p class="text-muted">No se ha especificado información de fórmula óptica</p>
-                        </div>
-                        {% endif %}
-
-                        {% if order.formula_details or order.observations %}
-                        <div class="border-top pt-4 mt-4">
-                            <div class="row g-3">
-                                {% if order.formula_details %}
-                                <div class="col-12">
-                                    <div class="card border-0 bg-info bg-opacity-10">
-                                        <div class="card-body">
-                                            <div class="d-flex align-items-center mb-3">
-                                                <div class="bg-info bg-gradient rounded-circle p-2 me-3">
-                                                    <i class="fas fa-info-circle text-white"></i>
-                                                </div>
-                                                <h6 class="mb-0 fw-bold text-info">Detalles Adicionales de la Fórmula</h6>
-                                            </div>
-                                            <div class="ps-4">
-                                                {{ order.formula_details | replace('\n', '<br>') | safe }}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                {% endif %}
-                                
-                                {% if order.observations %}
-                                <div class="col-12">
-                                    <div class="card border-0 bg-warning bg-opacity-10">
-                                        <div class="card-body">
-                                            <div class="d-flex align-items-center mb-3">
-                                                <div class="bg-warning bg-gradient rounded-circle p-2 me-3">
-                                                    <i class="fas fa-exclamation-triangle text-white"></i>
-                                                </div>
-                                                <h6 class="mb-0 fw-bold text-warning">Observaciones Importantes</h6>
-                                            </div>
-                                            <div class="ps-4">
-                                                {{ order.observations | replace('\n', '<br>') | safe }}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                        {% endif %}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-
+                {% endif %}
                 <div class="card mb-4 shadow-sm border-0">
-                    <div class="card-header text-white" style="background: linear-gradient(135deg, #ffc107 0%, #ff8f00 100%);">
+                    <div class="card-header text-white gradient-warning">
                         <div class="d-flex align-items-center">
                             <i class="fas fa-traffic-light me-2"></i>
                             <h5 class="mb-0">Estado Actual de la Orden</h5>
@@ -428,11 +490,11 @@
                         <div class="row mb-4">
                             <div class="col-12">
                                 <div class="d-flex align-items-center justify-content-center p-4 rounded" 
-                                     style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+                                     class="gradient-gray-light">
                                     <div class="text-center">
                                         <div class="mb-3">
                                             {% if order.status == 'enviada' %}
-                                                <div class="d-inline-flex align-items-center justify-content-center bg-info bg-gradient rounded-circle" style="width: 80px; height: 80px;">
+                                                <div class="d-inline-flex align-items-center justify-content-center bg-info bg-gradient rounded-circle icon-circle-lg">
                                                     <i class="fas fa-paper-plane text-white fs-3"></i>
                                                 </div>
                                             {% elif order.status == 'aceptada' %}
@@ -590,348 +652,55 @@
                         </div>
                         {% endif %}
 
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-4">
-                
-                <div class="card mb-4 shadow-sm border-0">
-                    <div class="card-header text-white" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-money-bill-wave me-2"></i>
-                            <h5 class="mb-0">Historial de Pagos</h5>
-                        </div>
-                    </div>
-                    <div class="card-body p-0">
-                        {% if payments %}
-                            
-                            <div class="p-3 border-bottom" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
-                                {% set total_pagado = payments | sum(attribute='amount') %}
-                                {% set saldo = order.total_amount - total_pagado if order.total_amount else 0 %}
-                                <div class="text-center">
-                                    <div class="row g-0">
-                                        <div class="col-6">
-                                            <div class="border-end pe-2">
-                                                <small class="text-muted d-block">Pagado</small>
-                                                <strong class="text-success h6 mb-0">${{ "{:,.0f}".format(total_pagado) }}</strong>
-                                            </div>
-                                        </div>
-                                        <div class="col-6">
-                                            <div class="ps-2">
-                                                <small class="text-muted d-block">Saldo</small>
-                                                {% if saldo > 0 %}
-                                                    <strong class="text-danger h6 mb-0">${{ "{:,.0f}".format(saldo) }}</strong>
-                                                {% else %}
-                                                    <strong class="text-success h6 mb-0">
-                                                        <i class="fas fa-check-circle"></i> Completo
-                                                    </strong>
-                                                {% endif %}
-                                            </div>
-                                        </div>
-                                    </div>
-                                    {% if order.total_amount and order.total_amount > 0 %}
-                                    <div class="progress mt-2" style="height: 8px;">
-                                        {% set porcentaje = (total_pagado / order.total_amount * 100) %}
-                                        <div class="progress-bar bg-success" role="progressbar" 
-                                             style="width: {{ porcentaje|round|int }}%"
-                                             aria-valuenow="{{ porcentaje|round|int }}" aria-valuemin="0" aria-valuemax="100">
-                                        </div>
-                                    </div>
-                                    <small class="text-muted">{{ porcentaje|round|int }}% pagado</small>
-                                    {% endif %}
-                                </div>
-                            </div>
-
-                            <div class="p-3">
-                                {% for payment in payments %}
-                                    <div class="card border-0 bg-light mb-3">
-                                        <div class="card-body p-3">
-                                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                                <div>
-                                                    <h6 class="mb-1 fw-bold text-success">
-                                                        <i class="fas fa-receipt me-1"></i>
-                                                        Pago #{{ loop.index }}
-                                                    </h6>
-                                                    <div class="badge bg-success fs-6">${{ "{:,.0f}".format(payment.amount) }}</div>
-                                                </div>
-                                                <small class="text-muted">
-                                                    {{ payment.payment_date.strftime('%d/%m/%Y') }}<br>
-                                                    {{ payment.payment_date.strftime('%H:%M') }}
-                                                </small>
-                                            </div>
-                                            
-                                            {% if payment.description %}
-                                            <p class="small mb-2 text-muted">{{ payment.description }}</p>
-                                            {% endif %}
-                                            
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <small class="text-muted">
-                                                    <i class="fas fa-user me-1"></i>{{ payment.registered_by.username }}
-                                                </small>
-                                                {% if payment.support_file %}
-                                                    <a href="{{ url_for('main.uploaded_file', filename=payment.support_file) }}" 
-                                                       target="_blank" class="btn btn-sm btn-outline-primary">
-                                                        <i class="fas fa-file-alt me-1"></i>Ver
-                                                    </a>
-                                                {% endif %}
-                                            </div>
-                                        </div>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            <div class="text-center py-5">
-                                <div class="mb-3">
-                                    <i class="fas fa-money-bill-alt fa-4x text-muted opacity-50"></i>
-                                </div>
-                                <h6 class="text-muted mb-2">Sin Pagos Registrados</h6>
-                                <p class="small text-muted mb-3">No se han registrado pagos para esta orden.</p>
-                                {% if current_user.role in ['admin', 'asistente'] %}
-                                    <a href="{{ url_for('main.add_payment', order_id=order.id) }}" 
-                                       class="btn btn-outline-success">
-                                        <i class="fas fa-plus me-2"></i>Registrar Pago
+                        <!-- Botones de acción para proveedores -->
+                        {% if current_user.role == 'proveedor' and current_user.provider and order.provider_id == current_user.provider.id %}
+                        <div class="mt-4 pt-3 border-top">
+                            <h6 class="mb-3">
+                                <i class="fas fa-tools me-2"></i>Acciones Disponibles
+                            </h6>
+                            <div class="d-flex gap-2 flex-wrap">
+                                {% if order.status == 'enviada' %}
+                                    <!-- Orden enviada: puede aceptar o rechazar -->
+                                    <a href="{{ url_for('main.accept_order_with_price', order_id=order.id) }}" class="btn btn-success">
+                                        <i class="fas fa-handshake me-2"></i>Aceptar Orden
                                     </a>
+                                    <a href="{{ url_for('main.update_order_status', order_id=order.id) }}" class="btn btn-danger">
+                                        <i class="fas fa-times me-2"></i>Rechazar Orden
+                                    </a>
+                                {% elif order.status == 'aceptada' %}
+                                    <!-- Orden aceptada: puede iniciar trabajo -->
+                                    <a href="{{ url_for('main.update_order_status', order_id=order.id) }}" class="btn btn-primary">
+                                        <i class="fas fa-play me-2"></i>Iniciar Trabajo
+                                    </a>
+                                {% elif order.status == 'en_proceso' %}
+                                    <!-- Orden en proceso: puede marcar como terminada -->
+                                    <a href="{{ url_for('main.update_order_status', order_id=order.id) }}" class="btn btn-warning">
+                                        <i class="fas fa-check me-2"></i>Marcar como Terminada
+                                    </a>
+                                {% elif order.status == 'devuelta_proveedor' %}
+                                    <!-- Orden terminada -->
+                                    <div class="alert alert-success mb-0">
+                                        <i class="fas fa-check-circle me-2"></i>
+                                        <strong>¡Trabajo completado!</strong> La orden está lista para ser recogida por la sede.
+                                    </div>
                                 {% endif %}
                             </div>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <div class="card mb-4 shadow-sm border-0">
-                    <div class="card-header text-white" style="background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-address-book me-2"></i>
-                            <h5 class="mb-0">Información de Contacto</h5>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        
-                        <div class="text-center mb-3 p-3 bg-light rounded">
-                            <small class="text-muted d-block">ID de la Orden</small>
-                            <strong class="fs-5">#{{ order.id }}</strong>
-                        </div>
-
-                        {% if order.provider.contact_person or order.provider.phone or order.provider.email %}
-                        <div class="mb-3">
-                            <h6 class="text-primary mb-2 fw-bold">
-                                <i class="fas fa-industry me-1"></i>Proveedor
-                            </h6>
-                            {% if order.provider.contact_person %}
-                            <div class="d-flex align-items-center mb-2">
-                                <i class="fas fa-user-tie text-muted me-2" style="width: 16px;"></i>
-                                <span class="small">{{ order.provider.contact_person }}</span>
-                            </div>
-                            {% endif %}
-                            {% if order.provider.phone %}
-                            <div class="d-flex align-items-center mb-2">
-                                <i class="fas fa-phone text-muted me-2" style="width: 16px;"></i>
-                                <a href="tel:{{ order.provider.phone }}" class="small text-decoration-none">
-                                    {{ order.provider.phone }}
-                                </a>
-                            </div>
-                            {% endif %}
-                            {% if order.provider.email %}
-                            <div class="d-flex align-items-center mb-0">
-                                <i class="fas fa-envelope text-muted me-2" style="width: 16px;"></i>
-                                <a href="mailto:{{ order.provider.email }}" class="small text-decoration-none">
-                                    {{ order.provider.email }}
-                                </a>
-                            </div>
-                            {% endif %}
                         </div>
                         {% endif %}
 
-                        {% if order.sede.phone %}
-                        <div class="mb-0">
-                            <h6 class="text-warning mb-2 fw-bold">
-                                <i class="fas fa-building me-1"></i>Sede
-                            </h6>
-                            <div class="d-flex align-items-center mb-0">
-                                <i class="fas fa-phone text-muted me-2" style="width: 16px;"></i>
-                                <a href="tel:{{ order.sede.phone }}" class="small text-decoration-none">
-                                    {{ order.sede.phone }}
-                                </a>
-                            </div>
-                        </div>
-                        {% endif %}
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- Botón de Regresar -->
         <div class="row">
-            <div class="col-12">
-                <div class="card shadow-sm border-0">
-                    <div class="card-header text-white" style="background: linear-gradient(135deg, #343a40 0%, #495057 100%);">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-tools me-2"></i>
-                            <h5 class="mb-0">Acciones Disponibles</h5>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="row g-3">
-                            {% if current_user.role == 'proveedor' %}
-                                {% if order.status == 'enviada' %}
-                                    <div class="col-12">
-                                        <div class="alert alert-info border-0" style="background: linear-gradient(135deg, #cfe2ff 0%, #e7f3ff 100%);">
-                                            <div class="d-flex align-items-center">
-                                                <i class="fas fa-inbox fa-2x text-primary me-3"></i>
-                                                <div>
-                                                    <h6 class="mb-1 fw-bold">¡Nueva orden recibida!</h6>
-                                                    <p class="mb-0 small">Revisa los detalles y decide si puedes realizar este trabajo para <strong>{{ order.client_name }}</strong></p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <a href="{{ url_for('main.accept_order_with_price', order_id=order.id) }}" 
-                                           class="btn btn-success w-100 py-3">
-                                            <i class="fas fa-handshake me-2"></i>
-                                            <span class="fw-bold">Aceptar y Establecer Precio</span>
-                                        </a>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <a href="{{ url_for('main.update_order_status', order_id=order.id) }}" 
-                                           class="btn btn-danger w-100 py-3">
-                                            <i class="fas fa-times me-2"></i>
-                                            <span class="fw-bold">Rechazar Orden</span>
-                                        </a>
-                                    </div>
-                                {% elif order.status == 'aceptada' %}
-                                    <div class="col-12">
-                                        <div class="alert alert-success border-0" style="background: linear-gradient(135deg, #d1e7dd 0%, #e8f5e8 100%);">
-                                            <div class="d-flex align-items-center">
-                                                <i class="fas fa-check-circle fa-2x text-success me-3"></i>
-                                                <div>
-                                                    <h6 class="mb-1 fw-bold">Orden aceptada exitosamente</h6>
-                                                    <p class="mb-0 small">Ya estableciste el precio. Ahora puedes iniciar el trabajo cuando estés listo.</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <a href="{{ url_for('main.update_order_status', order_id=order.id) }}" 
-                                           class="btn btn-primary w-100 py-3">
-                                            <i class="fas fa-play me-2"></i>
-                                            <span class="fw-bold">Iniciar Trabajo</span>
-                                        </a>
-                                    </div>
-                                {% elif order.status == 'en_proceso' %}
-                                    <div class="col-12">
-                                        <div class="alert alert-primary border-0" style="background: linear-gradient(135deg, #cfe2ff 0%, #e7f3ff 100%);">
-                                            <div class="d-flex align-items-center">
-                                                <i class="fas fa-cogs fa-2x text-primary me-3"></i>
-                                                <div>
-                                                    <h6 class="mb-1 fw-bold">Trabajo en progreso</h6>
-                                                    <p class="mb-0 small">Cuando termines el trabajo, márcalo como completado para notificar a la óptica.</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <a href="{{ url_for('main.update_order_status', order_id=order.id) }}" 
-                                           class="btn btn-success w-100 py-3">
-                                            <i class="fas fa-flag-checkered me-2"></i>
-                                            <span class="fw-bold">Marcar como Terminado</span>
-                                        </a>
-                                    </div>
-                                {% elif order.status == 'devuelta_proveedor' %}
-                                    <div class="col-12">
-                                        <div class="alert alert-success border-0" style="background: linear-gradient(135deg, #d1e7dd 0%, #e8f5e8 100%);">
-                                            <div class="d-flex align-items-center text-center w-100">
-                                                <i class="fas fa-check-double fa-3x text-success me-3"></i>
-                                                <div>
-                                                    <h5 class="mb-1 fw-bold">¡Trabajo completado exitosamente!</h5>
-                                                    <p class="mb-0">La óptica será notificada para recoger la orden terminada.</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                {% endif %}
-                            {% else %}
-                                {# Sección para admin_sede, admin y asistente cuando la orden está lista para recoger #}
-                                {% if order.status == 'devuelta_proveedor' and (current_user.role in ['admin', 'asistente'] or (current_user.role == 'admin_sede' and current_user.sede_id == order.sede_id)) %}
-                                    <div class="col-12">
-                                        <div class="alert alert-info border-0" style="background: linear-gradient(135deg, #cfe2ff 0%, #e7f3ff 100%);">
-                                            <div class="d-flex align-items-center">
-                                                <i class="fas fa-box fa-2x text-primary me-3"></i>
-                                                <div>
-                                                    <h6 class="mb-1 fw-bold">Orden lista para recoger</h6>
-                                                    <p class="mb-0 small">El proveedor <strong>{{ order.provider.name }}</strong> ha terminado el trabajo. Puedes marcar como recogida cuando la hayas recogido.</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <form action="{{ url_for('main.mark_order_collected', order_id=order.id) }}" method="POST" style="display: inline;">
-                                            <button type="submit" class="btn btn-success w-100 py-3" onclick="return confirm('¿Confirma que ha recogido esta orden del proveedor?');">
-                                                <i class="fas fa-hand-holding-box me-2"></i>
-                                                <span class="fw-bold">Marcar como Recogida</span>
-                                            </button>
-                                        </form>
-                                    </div>
-                                {% endif %}
-                                {% if order.status == 'rechazada' and (current_user.role in ['admin', 'asistente'] or (current_user.role == 'admin_sede' and current_user.sede_id == order.sede_id)) %}
-                                    <div class="col-12">
-                                        <div class="alert alert-warning border-0" style="background: linear-gradient(135deg, #fff3cd 0%, #fef9e7 100%);">
-                                            <div class="d-flex align-items-center">
-                                                <i class="fas fa-exclamation-triangle fa-2x text-warning me-3"></i>
-                                                <div>
-                                                    <h6 class="mb-1 fw-bold">Orden rechazada por el proveedor</h6>
-                                                    <p class="mb-0 small">Puedes realizar los ajustes necesarios y reenviar la orden.</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <a href="{{ url_for('main.resubmit_order', order_id=order.id) }}" 
-                                           class="btn btn-primary w-100 py-3">
-                                            <i class="fas fa-redo me-2"></i>
-                                            <span class="fw-bold">Hacer Ajustes y Reenviar</span>
-                                        </a>
-                                    </div>
-                                {% endif %}
-
-                                {% if current_user.role in ['admin', 'asistente'] or (current_user.role == 'proveedor' and current_user.provider and order.provider_id == current_user.provider.id) %}
-                                <div class="col-md-4">
-                                    <a href="{{ url_for('main.update_order_status', order_id=order.id) }}" 
-                                       class="btn btn-outline-warning w-100 py-2">
-                                        <i class="fas fa-sync-alt me-2"></i>Actualizar Estado
-                                    </a>
-                                </div>
-                                {% endif %}
-
-                                {% if (current_user.role in ['admin', 'asistente'] or (current_user.role == 'admin_sede' and current_user.sede_id == order.sede_id)) and order.status not in ['aceptada', 'en_proceso', 'devuelta_proveedor', 'recibida_optica', 'finalizada'] %}
-                                <div class="col-md-4">
-                                    <a href="{{ url_for('main.edit_order', order_id=order.id) }}" 
-                                       class="btn btn-outline-info w-100 py-2">
-                                        <i class="fas fa-edit me-2"></i>Editar Orden
-                                    </a>
-                                </div>
-                                {% endif %}
-
-                                {% if current_user.role in ['admin', 'asistente'] %}
-                                <div class="col-md-4">
-                                    <a href="{{ url_for('main.add_payment', order_id=order.id) }}" 
-                                       class="btn btn-outline-success w-100 py-2">
-                                        <i class="fas fa-dollar-sign me-2"></i>Registrar Pago
-                                    </a>
-                                </div>
-                                {% endif %}
-                            {% endif %}
-
-                            <div class="col-12">
-                                <div class="text-center pt-3 border-top">
-                                    <a href="{{ url_for('main.list_orders') }}" class="btn btn-secondary px-5">
-                                        <i class="fas fa-arrow-left me-2"></i>Volver a la Lista de Órdenes
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div class="col-12 text-center">
+                <a href="{{ url_for('main.list_orders') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Regresar a Lista de Órdenes
+                </a>
             </div>
         </div>
     </div>
+
 {% endblock %}

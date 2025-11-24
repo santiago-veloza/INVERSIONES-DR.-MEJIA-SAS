@@ -322,12 +322,12 @@ def index():
         }
         
         return render_template('index.html', title='Panel de Control',
-                               total_orders=total_orders,
-                               orders_in_progress=orders_in_progress,
-                               orders_ready=orders_ready,
-                               orders_finished=orders_finished,
-                               orders_rejected=orders_rejected,
-                               chart_data=chart_data)
+                                total_orders=total_orders,
+                                orders_in_progress=orders_in_progress,
+                                orders_ready=orders_ready,
+                                orders_finished=orders_finished,
+                                orders_rejected=orders_rejected,
+                                chart_data=chart_data)
 
     elif current_user.role == 'proveedor' and current_user.provider:
         provider_id = current_user.provider.id
@@ -553,15 +553,15 @@ def admin_dashboard():
     top_sedes_orders = sorted(sede_stats, key=lambda x: x['orders_this_month'], reverse=True)[:5]
     
     return render_template('admin/dashboard.html', 
-                         title='Dashboard Administrativo',
-                         sede_stats=sede_stats,
-                         system_stats=system_stats,
-                         top_sedes_month=top_sedes_month,
-                         top_sedes_orders=top_sedes_orders,
-                         lens_data=lens_data,
-                         lens_data_month=lens_data_month,
-                         current_month=current_month,
-                         current_year=current_year)
+                            title='Dashboard Administrativo',
+                            sede_stats=sede_stats,
+                            system_stats=system_stats,
+                            top_sedes_month=top_sedes_month,
+                            top_sedes_orders=top_sedes_orders,
+                            lens_data=lens_data,
+                            lens_data_month=lens_data_month,
+                            current_month=current_month,
+                            current_year=current_year)
 
 
 # --- API Endpoints que creé para el Dashboard ---
@@ -1111,17 +1111,26 @@ def create_order():
                 return render_template('ordenes/create_edit.html', title='Crear Nueva Orden de Trabajo', form=form)
         
         order_number = str(uuid.uuid4()).split('-')[0].upper() # Genera un número de orden simple
+        
+        # Detectar si es una orden de sede sin especificación de lentes
+        lens_class_provided = form.lens_class.data and form.lens_class.data.strip()
+        lens_type_provided = form.lens_type.data and form.lens_type.data.strip()
+        is_sede_order = current_user.role == 'admin_sede'
+        needs_admin_review = is_sede_order and (not lens_class_provided or not lens_type_provided)
+        
         order = WorkOrder(
             order_number=order_number,
             client_name=form.client_name.data,
             client_cc=form.client_cc.data,
             client_phone=form.client_phone.data,
             receipt_number=form.receipt_number.data,
-            lens_type=form.lens_type.data,
+            orden_laboratorio=form.orden_laboratorio.data,
+            empresa_convenio=form.empresa_convenio.data,
+            ciudad_municipio=form.ciudad_municipio.data,
+            lens_type=form.lens_type.data if lens_type_provided else None,
             sede_id=form.sede_id.data,
             provider_id=form.provider_id.data,
-
-            lens_class=form.lens_class.data,
+            lens_class=form.lens_class.data if lens_class_provided else None,
             frame_type=form.frame_type.data,
             # Fórmula con campos de texto libre
             formula_od=form.formula_od.data,
@@ -1133,37 +1142,63 @@ def create_order():
             observations=form.observations.data,
             comments=form.comments.data,
             created_by_user_id=current_user.id,
-            status='enviada'  # Enviar automáticamente al proveedor
+            # Nuevo flujo: Si es sede sin especificación de lentes, queda pendiente de revisión admin
+            pending_admin_review=needs_admin_review,
+            status='pendiente_envio' if needs_admin_review else 'enviada'
         )
         db.session.add(order)
         # Flush para asegurar que order.id esté disponible antes de crear notificaciones
         db.session.flush()
-        # Notificar al proveedor inmediatamente
-        provider_user = User.query.filter_by(provider_id=order.provider_id, role='proveedor').first()
-        if provider_user:
+        
+        if needs_admin_review:
+            # Notificar a administradores centrales para que completen la orden
+            admin_users = User.query.filter(User.role == 'admin', User.is_active == True).all()
+            for admin in admin_users:
+                notification = Notification(
+                    user_id=admin.id,
+                    message=f'⚠️ Nueva orden requiere completar especificaciones de lentes. Orden N° {order.order_number} para {order.client_name} de sede {order.sede.name}.',
+                    work_order_id=order.id
+                )
+                db.session.add(notification)
+            
+            # Notificar a la sede que su orden está pendiente de completar
             notification = Notification(
-                user_id=provider_user.id,
-                message=f'🆕 Nueva orden recibida! N°: {order.order_number} para {order.client_name}. Por favor acepta o rechaza esta orden.',
+                user_id=current_user.id,
+                message=f'⚠️ Orden N° {order.order_number} creada exitosamente. Está pendiente de que el administrador complete las especificaciones de lentes antes de enviarla al proveedor.',
                 work_order_id=order.id
             )
             db.session.add(notification)
             
-        # Notificar a la sede que creó la orden (si es admin_sede)
-        if current_user.role == 'admin_sede':
-            notification = Notification(
-                user_id=current_user.id,
-                message=f'✅ Orden creada exitosamente. La orden N° {order.order_number} para {order.client_name} ha sido enviada al proveedor {order.provider.name}.',
-                work_order_id=order.id
-            )
-            db.session.add(notification)
-        db.session.commit()
-        # Obtengo nombre del proveedor de forma segura (por si la relación no está cargada)
-        provider_name = None
-        if order.provider_id:
-            p = Provider.query.get(order.provider_id)
-            provider_name = p.name if p else None
-
-        flash(f'Orden de Trabajo N° {order.order_number} creada' + (f' y asignada a {provider_name}.' if provider_name else '.'), 'success')
+            db.session.commit()
+            flash(f'Orden N° {order.order_number} creada. Pendiente de completar especificaciones de lentes por el administrador.', 'info')
+        else:
+            # Flujo normal: Enviar directamente al proveedor
+            provider_user = User.query.filter_by(provider_id=order.provider_id, role='proveedor').first()
+            if provider_user:
+                notification = Notification(
+                    user_id=provider_user.id,
+                    message=f'🆕 Nueva orden recibida! N°: {order.order_number} para {order.client_name}. Por favor acepta o rechaza esta orden.',
+                    work_order_id=order.id
+                )
+                db.session.add(notification)
+                
+            # Notificar a la sede que creó la orden (si es admin_sede)
+            if current_user.role == 'admin_sede':
+                notification = Notification(
+                    user_id=current_user.id,
+                    message=f'✅ Orden creada exitosamente. La orden N° {order.order_number} para {order.client_name} ha sido enviada al proveedor {order.provider.name}.',
+                    work_order_id=order.id
+                )
+                db.session.add(notification)
+            
+            db.session.commit()
+            # Obtengo nombre del proveedor de forma segura
+            provider_name = None
+            if order.provider_id:
+                p = Provider.query.get(order.provider_id)
+                provider_name = p.name if p else None
+            flash(f'Orden de Trabajo N° {order.order_number} creada' + (f' y asignada a {provider_name}.' if provider_name else '.'), 'success')
+        
         return redirect(url_for('main.list_orders'))
     return render_template('ordenes/create_edit.html', title='Crear Nueva Orden de Trabajo', form=form)
 
@@ -1238,21 +1273,31 @@ def accept_order_with_price(order_id):
     form = ProviderAcceptOrderForm()
     
     if form.validate_on_submit():
-        # Aceptar la orden y establecer el precio
+        # Aceptar la orden y establecer el precio con plazo fijo de 7 días
+        from datetime import datetime, timedelta
+        
         order.status = 'aceptada'
         order.total_amount = form.total_amount.data
-        order.due_date = form.estimated_delivery.data
+        order.accepted_at = datetime.utcnow()  # Marcar cuando se aceptó
+        order.delivery_deadline = order.accepted_at + timedelta(days=7)  # Calcular fecha límite
+        order.due_date = order.delivery_deadline  # Mantener compatibilidad con el campo anterior
         
-
+        # Agregar comentarios del proveedor si los hay
+        if form.provider_comments.data:
+            if order.comments:
+                order.comments += f"\n--- Comentarios del Proveedor (Aceptación) ---\n{form.provider_comments.data}"
+            else:
+                order.comments = f"--- Comentarios del Proveedor (Aceptación) ---\n{form.provider_comments.data}"
         
         db.session.commit()
         
         # Notificar a la sede que la orden fue aceptada
+        deadline_str = order.delivery_deadline.strftime('%d/%m/%Y')
         sede_admins = User.query.filter_by(role='admin_sede', sede_id=order.sede_id, is_active=True).all()
         for admin_user in sede_admins:
             notification = Notification(
                 user_id=admin_user.id,
-                message=f'✅ ¡Orden aceptada! El proveedor {order.provider.name} ha aceptado la orden N° {order.order_number} por ${order.total_amount:,.0f} COP.',
+                message=f'✅ ¡Orden aceptada! El proveedor {order.provider.name} ha aceptado la orden N° {order.order_number} por ${order.total_amount:,.0f} COP. Plazo máximo de entrega: {deadline_str} (7 días).',
                 work_order_id=order.id
             )
             db.session.add(notification)
@@ -1262,7 +1307,7 @@ def accept_order_with_price(order_id):
         for u in optica_users:
             notification = Notification(
                 user_id=u.id,
-                message=f'✅ Orden aceptada: {order.provider.name} aceptó la orden N° {order.order_number} por ${order.total_amount:,.0f} COP.',
+                message=f'✅ Orden aceptada: {order.provider.name} aceptó la orden N° {order.order_number} por ${order.total_amount:,.0f} COP. Entrega máxima: {deadline_str}.',
                 work_order_id=order.id
             )
             db.session.add(notification)
@@ -2249,3 +2294,208 @@ def extend_session():
         'message': 'Sesión extendida exitosamente',
         'extended_at': session['last_activity']
     })
+
+# ===============================================
+# SISTEMA DE ALERTAS AUTOMÁTICAS PARA ENTREGAS
+# ===============================================
+
+def check_overdue_orders():
+    """
+    Función para verificar órdenes vencidas y enviar alertas automáticas.
+    Esta función debe ejecutarse periódicamente (ej: cada día).
+    """
+    from datetime import datetime
+    from app.models import WorkOrder, Notification, User, db
+    
+    # Buscar órdenes aceptadas o en proceso que puedan estar vencidas
+    orders_to_check = WorkOrder.query.filter(
+        WorkOrder.status.in_(['aceptada', 'en_proceso']),
+        WorkOrder.accepted_at.isnot(None),
+        WorkOrder.delivery_deadline.isnot(None)
+    ).all()
+    
+    current_time = datetime.utcnow()
+    alerts_sent = 0
+    
+    for order in orders_to_check:
+        # Verificar si está vencida
+        if current_time > order.delivery_deadline:
+            days_overdue = (current_time - order.delivery_deadline).days
+            order.is_overdue = True
+            order.days_overdue = days_overdue
+            
+            # Solo enviar alerta si no se ha enviado antes
+            if not order.overdue_alert_sent:
+                order.overdue_alert_sent = True
+                
+                # Crear notificaciones de alerta
+                alert_message = f'🚨 ALERTA: La orden N° {order.order_number} está VENCIDA por {days_overdue} día(s). Proveedor: {order.provider.razon_social}. Se esperaba entrega el {order.delivery_deadline.strftime("%d/%m/%Y")}.'
+                
+                # Notificar a administradores de la sede
+                sede_admins = User.query.filter_by(
+                    role='admin_sede', 
+                    sede_id=order.sede_id, 
+                    is_active=True
+                ).all()
+                
+                for admin in sede_admins:
+                    notification = Notification(
+                        user_id=admin.id,
+                        message=alert_message,
+                        work_order_id=order.id
+                    )
+                    db.session.add(notification)
+                
+                # Notificar a administradores centrales
+                central_admins = User.query.filter(
+                    User.role.in_(['admin', 'asistente']),
+                    User.is_active == True
+                ).all()
+                
+                for admin in central_admins:
+                    notification = Notification(
+                        user_id=admin.id,
+                        message=alert_message,
+                        work_order_id=order.id
+                    )
+                    db.session.add(notification)
+                
+                alerts_sent += 1
+        else:
+            # Si no está vencida, asegurar que los flags estén correctos
+            order.is_overdue = False
+            order.days_overdue = 0
+    
+    # Guardar todos los cambios
+    db.session.commit()
+    
+    return alerts_sent
+
+@bp.route('/admin/check-overdue-orders')
+@login_required
+def manual_check_overdue_orders():
+    """Ruta para verificar manualmente órdenes vencidas (solo admin)"""
+    if current_user.role not in ['admin']:
+        flash('No tienes permisos para esta acción.', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
+    alerts_sent = check_overdue_orders()
+    
+    if alerts_sent > 0:
+        flash(f'Se enviaron {alerts_sent} alertas por órdenes vencidas.', 'warning')
+    else:
+        flash('No hay órdenes vencidas en este momento.', 'info')
+    
+    return redirect(url_for('main.dashboard'))
+
+# ===============================================
+# SISTEMA DE APROBACIÓN ADMIN PARA LENTES
+# ===============================================
+
+@bp.route('/admin/pending-review-orders')
+@login_required
+@role_required('admin')
+def list_pending_review_orders():
+    """Lista de órdenes pendientes de completar especificaciones de lentes por admin"""
+    pending_orders = WorkOrder.query.filter_by(
+        pending_admin_review=True,
+        status='pendiente_envio'
+    ).order_by(WorkOrder.created_at.desc()).all()
+    
+    return render_template('ordenes/pending_admin_review.html', 
+                         title='Órdenes Pendientes de Completar',
+                         orders=pending_orders)
+
+@bp.route('/admin/complete-lens-specs/<int:order_id>', methods=['GET', 'POST'])
+@login_required
+@role_required('admin')
+@audit_action(EventTypes.UPDATE_ORDER, "Completar especificaciones de lentes", 
+              resource_type='WorkOrder', severity=Severity.INFO, requires_attention=True)
+def complete_lens_specs(order_id):
+    """Ruta para que admin complete las especificaciones de lentes de una orden"""
+    from app.forms import AdminCompleteLensForm
+    
+    order = WorkOrder.query.get_or_404(order_id)
+    
+    # Verificar que la orden esté pendiente de revisión admin
+    if not order.pending_admin_review or order.status != 'pendiente_envio':
+        flash('Esta orden no está pendiente de revisión administrativa.', 'warning')
+        return redirect(url_for('main.view_order', order_id=order_id))
+    
+    form = AdminCompleteLensForm(obj=order)
+    
+    if form.validate_on_submit():
+        # Actualizar especificaciones de lentes
+        order.lens_class = form.lens_class.data
+        order.lens_type = form.lens_type.data
+        
+        # Marcar como completado por admin
+        order.pending_admin_review = False
+        order.admin_completed_at = datetime.utcnow()
+        order.admin_completed_by_user_id = current_user.id
+        
+        # Cambiar estado a enviada para que vaya al proveedor
+        order.status = 'enviada'
+        
+        db.session.flush()
+        
+        # Notificar al proveedor
+        provider_user = User.query.filter_by(provider_id=order.provider_id, role='proveedor').first()
+        if provider_user:
+            notification = Notification(
+                user_id=provider_user.id,
+                message=f'🆕 Nueva orden recibida! N°: {order.order_number} para {order.client_name}. Por favor acepta o rechaza esta orden.',
+                work_order_id=order.id
+            )
+            db.session.add(notification)
+        
+        # Notificar a la sede que creó la orden
+        sede_admins = User.query.filter_by(
+            role='admin_sede', 
+            sede_id=order.sede_id, 
+            is_active=True
+        ).all()
+        for admin in sede_admins:
+            notification = Notification(
+                user_id=admin.id,
+                message=f'✅ Especificaciones de lentes completadas. La orden N° {order.order_number} para {order.client_name} ha sido enviada al proveedor {order.provider.name}.',
+                work_order_id=order.id
+            )
+            db.session.add(notification)
+        
+        db.session.commit()
+        
+        flash(f'Especificaciones de lentes completadas y orden N° {order.order_number} enviada al proveedor.', 'success')
+        return redirect(url_for('main.view_order', order_id=order_id))
+    
+    return render_template('ordenes/complete_lens_specs.html', 
+                         title=f'Completar Especificaciones - Orden {order.order_number}',
+                         form=form,
+                         order=order)
+
+def get_overdue_orders_summary():
+    """Retorna un resumen de órdenes vencidas para el dashboard"""
+    from datetime import datetime
+    from app.models import WorkOrder
+    
+    overdue_orders = WorkOrder.query.filter(
+        WorkOrder.status.in_(['aceptada', 'en_proceso']),
+        WorkOrder.is_overdue == True
+    ).all()
+    
+    summary = {
+        'total_overdue': len(overdue_orders),
+        'orders': []
+    }
+    
+    for order in overdue_orders:
+        summary['orders'].append({
+            'id': order.id,
+            'order_number': order.order_number,
+            'provider_name': order.provider.razon_social,
+            'days_overdue': order.days_overdue,
+            'deadline': order.delivery_deadline.strftime('%d/%m/%Y') if order.delivery_deadline else 'N/A',
+            'client_name': order.client_name
+        })
+    
+    return summary

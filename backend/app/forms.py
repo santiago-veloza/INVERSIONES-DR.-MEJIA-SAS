@@ -133,6 +133,9 @@ class WorkOrderForm(FlaskForm):
     client_cc = StringField('Cédula del Paciente', validators=[DataRequired(), Length(max=20)])
     client_phone = StringField('Teléfono del Paciente', validators=[Optional(), Length(max=20)])
     receipt_number = StringField('Número del Recibo de Venta', validators=[DataRequired(), Length(max=64)])
+    orden_laboratorio = StringField('Número de Orden de Laboratorio', validators=[Optional(), Length(max=64)])
+    empresa_convenio = StringField('Empresa/Convenio/Seguro', validators=[Optional(), Length(max=200)])
+    ciudad_municipio = StringField('Ciudad/Municipio', validators=[Optional(), Length(max=100)])
     
     # Implementé sede y proveedor
     sede_id = SelectField('Sede Solicitante', coerce=int, validators=[DataRequired()])
@@ -140,14 +143,14 @@ class WorkOrderForm(FlaskForm):
     
 
     
-    # Implementé clasificación y tipo de lentes
+    # Implementé clasificación y tipo de lentes (opcionales para sedes)
     lens_class = SelectField('Clase de Lentes', choices=[
         ('', 'Seleccionar...'),
         ('Progresivo', 'Progresivo'),
         ('Bifocal', 'Bifocal'), 
         ('Monofocal', 'Monofocal')
     ], validators=[Optional()])
-    lens_type = StringField('Tipo de Lente y Filtros', validators=[DataRequired(), Length(max=128)])
+    lens_type = StringField('Tipo de Lente y Filtros', validators=[Optional(), Length(max=128)])
     frame_type = StringField('Tipo de Montura', validators=[Optional(), Length(max=128)])
     
     # Implementé fórmula con campos de texto libre
@@ -160,7 +163,7 @@ class WorkOrderForm(FlaskForm):
     formula_details = TextAreaField('Detalles Adicionales de la Fórmula', validators=[Optional()])
     observations = TextAreaField('Observaciones', validators=[Optional()])
     comments = TextAreaField('Comentarios Adicionales', validators=[Optional()])
-    # Nota: due_date y total_amount son establecidos por el proveedor al aceptar la orden
+    # Nota: total_amount es establecido por el proveedor al aceptar la orden
     submit = SubmitField('Crear Orden de Trabajo')
 
     def __init__(self, current_user=None, *args, **kwargs):
@@ -192,6 +195,42 @@ class WorkOrderForm(FlaskForm):
         self.provider_id.choices = [(p.id, f"{p.razon_social} ({p.nit})") for p in Provider.query.order_by(Provider.razon_social).all()]
         # Agrego una opción vacía si es necesario
         self.provider_id.choices.insert(0, (0, 'Seleccionar Proveedor'))
+
+
+class WorkOrderStatusForm(FlaskForm):
+    status = SelectField('Estado de la Orden', choices=[
+        ('pendiente_envio', 'Pendiente de Envío'),
+        ('enviada', 'Enviada al Proveedor'),
+        ('aceptada', 'Aceptada por Proveedor'),
+        ('rechazada', 'Rechazada por Proveedor'),
+        ('en_proceso', 'En Proceso (Proveedor)'),
+        ('devuelta_proveedor', 'Terminada - Lista para Recoger'),
+        ('recibida_optica', 'Recibida en Óptica'),
+        ('finalizada', 'Finalizada'),
+        ('cancelada', 'Cancelada')
+    ], validators=[DataRequired()])
+    rejection_reason = TextAreaField('Razón del Rechazo', validators=[Optional()], 
+                                   description='Requerido si el estado es "Rechazada por Proveedor"')
+    comments = TextAreaField('Comentarios sobre el estado', validators=[Optional()])
+    submit = SubmitField('Actualizar Estado')
+
+    def validate_rejection_reason(self, rejection_reason):
+        if self.status.data == 'rechazada' and not rejection_reason.data.strip():
+            raise ValidationError('Debe proporcionar una razón del rechazo cuando rechaza una orden.')
+
+
+class AdminCompleteLensForm(FlaskForm):
+    """Formulario para que el admin complete los campos de lentes que la sede no puede llenar"""
+    lens_class = SelectField('Clase de Lentes', choices=[
+        ('', 'Seleccionar...'),
+        ('Progresivo', 'Progresivo'),
+        ('Bifocal', 'Bifocal'), 
+        ('Monofocal', 'Monofocal')
+    ], validators=[DataRequired(message='Debe seleccionar la clase de lentes')])
+    lens_type = StringField('Tipo de Lente y Filtros', 
+                           validators=[DataRequired(message='Debe especificar el tipo de lente y filtros'), 
+                                     Length(max=128)])
+    submit = SubmitField('Completar y Enviar al Proveedor')
 
 
 class WorkOrderStatusForm(FlaskForm):
@@ -359,23 +398,19 @@ class ChangePasswordForm(FlaskForm):
 
 
 class ProviderAcceptOrderForm(FlaskForm):
-    """Formulario para que el proveedor acepte una orden y establezca el precio"""
+    """Formulario para que el proveedor acepte una orden con plazo fijo de 7 días"""
     total_amount = FloatField('Monto a Cobrar a la Sede', 
                              validators=[DataRequired(), NumberRange(min=0.01, message='El monto debe ser mayor a cero')],
                              description='Indique el monto total que cobrará por esta orden de trabajo')
-    estimated_delivery = DateField('Fecha Estimada de Entrega', 
-                                 format='%Y-%m-%d', 
-                                 validators=[DataRequired()],
-                                 description='¿Cuándo estará lista la orden?')
     provider_comments = TextAreaField('Comentarios del Proveedor', 
                                     validators=[Optional()],
-                                    description='Información adicional sobre el trabajo a realizar')
-    submit = SubmitField('Aceptar Orden')
+                                    description='Información adicional sobre el trabajo a realizar (opcional)')
+    submit = SubmitField('Aceptar Orden - Plazo Máximo 7 Días')
 
-    def validate_estimated_delivery(self, estimated_delivery):
-        from datetime import datetime, date
-        if estimated_delivery.data and estimated_delivery.data <= date.today():
-            raise ValidationError('La fecha de entrega debe ser posterior a hoy.')
+    def __init__(self, *args, **kwargs):
+        super(ProviderAcceptOrderForm, self).__init__(*args, **kwargs)
+        # Información sobre el plazo fijo
+        self.delivery_info = "Al aceptar esta orden, se establecerá automáticamente un plazo máximo de 7 días calendario para la entrega."
 
 
 class SedeUserEditForm(FlaskForm):

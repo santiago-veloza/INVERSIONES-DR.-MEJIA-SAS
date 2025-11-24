@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0">
+                        <i class="fas fa-tasks me-2"></i>
+                        Órdenes Pendientes de Completar Especificaciones
+                    </h4>
+                    <small>Órdenes creadas por sedes que requieren especificaciones de lentes antes de enviar al proveedor</small>
+                </div>
+                <div class="card-body">
+                    {% if orders %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>{{ orders|length }}</strong> orden{% if orders|length != 1 %}es{% endif %} pendiente{% if orders|length != 1 %}s{% endif %} de completar
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th style="min-width: 120px;">N° Orden</th>
+                                    <th style="min-width: 150px;">Recibo de Venta</th>
+                                    <th style="min-width: 180px;">Cliente</th>
+                                    <th style="min-width: 150px;">Sede</th>
+                                    <th style="min-width: 120px;">Fecha Creación</th>
+                                    <th style="min-width: 180px;">Proveedor</th>
+                                    <th style="min-width: 150px;">Estado</th>
+                                    <th style="min-width: 180px;">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in orders %}
+                                <tr>
+                                    <td>
+                                        <strong class="text-primary">{{ order.order_number }}</strong>
+                                    </td>
+                                    <td>{{ order.receipt_number }}</td>
+                                    <td>
+                                        <strong>{{ order.client_name }}</strong><br>
+                                        <small class="text-muted">CC: {{ order.client_cc }}</small>
+                                    </td>
+                                    <td>
+                                        {{ order.sede.name }}<br>
+                                        <small class="text-muted">{{ order.sede.city }}</small>
+                                    </td>
+                                    <td>
+                                        {{ order.created_at.strftime('%d/%m/%Y') }}<br>
+                                        <small class="text-muted">{{ order.created_at.strftime('%H:%M') }}</small>
+                                    </td>
+                                    <td>{{ order.provider.razon_social }}</td>
+                                    <td>
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="fas fa-clock me-1"></i>
+                                            Pendiente Admin
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('main.complete_lens_specs', order_id=order.id) }}" 
+                                           class="btn btn-sm btn-primary me-1">
+                                            <i class="fas fa-edit me-1"></i>Completar
+                                        </a>
+                                        <a href="{{ url_for('main.view_order', order_id=order.id) }}" 
+                                           class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye me-1"></i>Ver
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <strong>No hay órdenes pendientes de completar.</strong>
+                        Todas las órdenes han sido procesadas correctamente.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="alert alert-info mt-4">
+                <h6><i class="fas fa-info-circle me-2"></i>¿Cómo funciona el sistema de aprobación?</h6>
+                <ol class="mb-0">
+                    <li><strong>Sede crea la orden:</strong> Las sedes pueden crear órdenes sin especificar clase de lente o tipo de lente</li>
+                    <li><strong>Notificación al admin:</strong> Usted recibe una notificación de que hay una orden pendiente de completar</li>
+                    <li><strong>Admin completa especificaciones:</strong> Usted accede aquí y completa los campos de clase de lente y tipo de lente</li>
+                    <li><strong>Envío automático al proveedor:</strong> Una vez completados los campos, la orden se envía automáticamente al proveedor</li>
+                    <li><strong>Notificación a la sede:</strong> La sede recibe notificación de que su orden fue completada y enviada</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

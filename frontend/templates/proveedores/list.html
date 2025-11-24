@@ -24,7 +24,7 @@
                     </thead>
                 <tbody>
                     {% for provider in providers %}
-                    <tr class="clickable-row" data-provider-id="{{ provider.id }}" style="cursor: pointer;">
+                    <tr class="clickable-row" data-provider-id="{{ provider.id }}">
                         <td>{{ provider.nit or '-' }}</td>
                         <td>
                             <strong>{{ provider.razon_social or provider.name or '-' }}</strong>

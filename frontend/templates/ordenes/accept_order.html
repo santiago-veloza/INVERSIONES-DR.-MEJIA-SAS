@@ -73,15 +73,28 @@
                             </div>
                             
                             <div class="col-md-6 mb-3">
-                                {{ form.estimated_delivery.label(class="form-label fw-bold text-info") }}
-                                {{ form.estimated_delivery(class="form-control") }}
-                                <div class="form-text">
-                                    <i class="fas fa-calendar-alt me-1"></i>
-                                    Establezca cuándo tendrá lista la orden según sus tiempos de producción
+                                <label class="form-label fw-bold text-warning">
+                                    <i class="fas fa-clock me-1"></i>
+                                    Plazo de Entrega
+                                </label>
+                                <div class="alert alert-warning mb-2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-warning bg-gradient rounded-circle p-2 me-3">
+                                            <i class="fas fa-calendar-check text-white"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-1 fw-bold">Plazo Máximo: 7 Días Calendario</h6>
+                                            <small class="text-muted">
+                                                Se establecerá automáticamente al aceptar la orden
+                                            </small>
+                                        </div>
+                                    </div>
                                 </div>
-                                {% for error in form.estimated_delivery.errors %}
-                                <div class="text-danger small">{{ error }}</div>
-                                {% endfor %}
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    <strong>Importante:</strong> Al aceptar esta orden, tendrá exactamente 7 días calendario para completar el trabajo. 
+                                    El sistema enviará alertas automáticas si se supera este plazo.
+                                </div>
                             </div>
                         </div>
                         
@@ -98,40 +111,56 @@
                         
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                             <a href="{{ url_for('main.view_order', order_id=order.id) }}" class="btn btn-secondary me-md-2">
-                                <i class="fas fa-arrow-left me-1"></i>
-                                Volver a la orden
+                                <i class="fas fa-arrow-left me-1"></i>Volver a la orden
                             </a>
                             <a href="{{ url_for('main.update_order_status', order_id=order.id) }}" class="btn btn-danger me-md-2">
-                                <i class="fas fa-times me-1"></i>
-                                Rechazar orden
+                                <i class="fas fa-times me-1"></i>Rechazar orden
                             </a>
                             {{ form.submit(class="btn btn-success btn-lg") }}
+                        </div>
+                        
+                        <div class="alert alert-success mt-3">
+                            <h6><i class="fas fa-check-circle me-2"></i>Después de aceptar la orden podrá:</h6>
+                            <ul class="mb-0">
+                                <li><strong>Iniciar el trabajo:</strong> Cambiar estado a "En Proceso"</li>
+                                <li><strong>Actualizar progreso:</strong> Mantener informada a la sede</li>
+                                <li><strong>Marcar como terminada:</strong> Cuando esté lista para entrega</li>
+                                <li><strong>Gestionar el tiempo:</strong> Recuerde el plazo máximo de 7 días</li>
+                            </ul>
                         </div>
                     </form>
                 </div>
             </div>
 
             <div class="alert alert-info mt-4">
-                <h6><i class="fas fa-info-circle me-2"></i>¿Cómo funciona este proceso?</h6>
+                <h6><i class="fas fa-info-circle me-2"></i>¿Cómo funciona el nuevo sistema de entregas?</h6>
                 <ul class="mb-0">
-                    <li><strong>Usted establece:</strong> El precio que cobrará y cuándo estará lista la orden</li>
-                    <li><strong>La sede recibe:</strong> Notificación automática con el precio y fecha acordados</li>
+                    <li><strong>Usted establece:</strong> Solo el precio que cobrará por el trabajo</li>
+                    <li><strong>Plazo automático:</strong> Se asignan automáticamente 7 días calendario para la entrega</li>
+                    <li><strong>La sede recibe:</strong> Notificación con el precio y fecha límite de entrega</li>
+                    <li><strong>Sistema de alertas:</strong> Si se supera el plazo, se envían alertas automáticas</li>
                     <li><strong>Después de aceptar:</strong> Podrá actualizar el progreso hasta marcarla como terminada</li>
                     <li><strong>Si no puede:</strong> Use el botón "Rechazar orden" para declinar el trabajo</li>
                 </ul>
+            </div>
+            
+            <div class="alert alert-warning mt-3">
+                <h6><i class="fas fa-exclamation-triangle me-2"></i>Compromiso de Entrega</h6>
+                <p class="mb-0">
+                    <strong>Al aceptar esta orden, se compromete a entregarla en un máximo de 7 días calendario.</strong>
+                    El incumplimiento de este plazo generará alertas automáticas que serán enviadas a la sede y administración central.
+                </p>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-
 document.addEventListener('DOMContentLoaded', function() {
     const montoField = document.getElementById('total_amount');
     if (montoField) {
         montoField.addEventListener('blur', function() {
             if (this.value) {
-
                 const valor = parseFloat(this.value);
                 if (!isNaN(valor)) {
                     this.value = valor;
@@ -144,18 +173,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    const fechaField = document.getElementById('estimated_delivery');
-    if (fechaField) {
-        fechaField.addEventListener('change', function() {
-            const fechaSeleccionada = new Date(this.value);
-            const hoy = new Date();
-            hoy.setHours(0, 0, 0, 0);
-            
-            if (fechaSeleccionada <= hoy) {
-                this.classList.add('is-invalid');
-            } else {
-                this.classList.remove('is-invalid');
-            }
+    // Mostrar información adicional sobre el plazo de 7 días
+    const alertBox = document.querySelector('.alert-warning');
+    if (alertBox) {
+        alertBox.addEventListener('click', function() {
+            // Destacar temporalmente la información importante
+            this.style.transform = 'scale(1.02)';
+            setTimeout(() => {
+                this.style.transform = 'scale(1)';
+            }, 200);
         });
     }
 });

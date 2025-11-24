@@ -5,9 +5,15 @@
         <div class="list-group">
             {% for notification in notifications %}
                 <a href="{{ url_for('main.view_order', order_id=notification.work_order_id) if notification.work_order_id else '#' }}"
-                   class="list-group-item list-group-item-action {% if not notification.is_read %}list-group-item-light fw-bold{% endif %}">
-                    <div class="d-flex w-100 justify-content-between">
-                        <h5 class="mb-1">{{ notification.message }}</h5>
+                   class="list-group-item list-group-item-action {% if not notification.is_read %}fw-bold{% endif %} {% if '⚠️' in notification.message %}list-group-item-danger{% endif %}"
+                   {% if '⚠️' in notification.message and not notification.is_read %}style="background-color: #f8d7da; border-color: #f5c2c7;"{% endif %}>
+                    <div class="d-flex w-100 justify-content-between align-items-start">
+                        <h5 class="mb-1">
+                            {% if '⚠️' in notification.message %}
+                                <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+                            {% endif %}
+                            {{ notification.message }}
+                        </h5>
                         <small class="text-muted">{{ notification.created_at.strftime('%d/%m/%Y %H:%M') }}</small>
                     </div>
                     <small class="text-muted">

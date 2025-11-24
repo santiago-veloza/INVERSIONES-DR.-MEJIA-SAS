@@ -2665,3 +2665,293 @@ body {
         animation: none;
     }
 }
+
+/* ==========================================
+   NOTIFICACIONES URGENTES (ROJAS)
+========================================== */
+
+/* Fix para modales - evitar backdrop duplicado */
+.modal-backdrop {
+    display: none !important;
+}
+
+.modal-backdrop.fade.show {
+    display: none !important;
+}
+
+body.modal-open {
+    overflow: auto !important;
+    padding-right: 0 !important;
+}
+
+/* Notificaciones urgentes en el dropdown */
+.notification-urgent {
+    background-color: #dc3545 !important;
+    color: white !important;
+    border-left: 4px solid #b02a37 !important;
+}
+
+.notification-urgent:hover {
+    background-color: #bb2d3b !important;
+    color: white !important;
+    transform: translateX(5px);
+}
+
+.notification-urgent i {
+    color: white !important;
+}
+
+.notification-urgent small {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Asegurar que los links de notificación mantengan el color */
+a.notification-urgent {
+    text-decoration: none !important;
+}
+
+a.notification-urgent:visited {
+    color: white !important;
+}
+
+/* ==========================================
+   ÓRDENES PENDIENTES DE REVISIÓN ADMIN (ROJAS)
+========================================== */
+
+/* Filas de órdenes pendientes de admin */
+.table-danger {
+    background-color: #f8d7da !important;
+}
+
+.table-danger:hover {
+    background-color: #f5c2c7 !important;
+}
+
+/* Badge de advertencia en órdenes */
+.badge.bg-danger {
+    animation: pulse-danger 2s ease-in-out infinite;
+}
+
+@keyframes pulse-danger {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.05);
+    }
+}
+
+/* ==========================================
+   FORMULARIOS DE ÓRDENES (CREATE/EDIT)
+========================================== */
+
+/* Container específico para formularios de orden */
+.form-order-container .container-lg {
+    max-width: 100% !important;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+}
+
+.form-order-container .form-table td {
+    vertical-align: middle !important;
+    padding: 1.5rem 2rem !important;
+    min-height: 70px;
+}
+
+.form-order-container .form-control-lg,
+.form-order-container .form-select-lg {
+    padding: 0.85rem 1.5rem;
+    font-size: 1.15rem;
+    line-height: 1.6;
+}
+
+.form-order-container .form-control,
+.form-order-container .form-select {
+    border-radius: 0.5rem;
+    border: 2px solid #dee2e6;
+    transition: all 0.15s ease-in-out;
+}
+
+.form-order-container .form-control:focus,
+.form-order-container .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.form-order-container .is-invalid {
+    border-color: #dc3545 !important;
+}
+
+.form-order-container .invalid-feedback {
+    display: block !important;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    color: #dc3545;
+}
+
+.form-order-container .card {
+    border: 1px solid rgba(0,0,0,.125);
+    transition: all 0.2s ease-in-out;
+}
+
+.form-order-container .card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15) !important;
+}
+
+.form-order-container .table-bordered td {
+    border: 2px solid #dee2e6 !important;
+}
+
+.form-order-container .bg-light {
+    background-color: #f8f9fa !important;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 1rem !important;
+}
+
+/* Responsive para formularios de orden */
+@media (max-width: 768px) {
+    .form-order-container .container-lg {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+    
+    .form-order-container .form-table td {
+        padding: 1rem 1.25rem !important;
+        min-height: 60px;
+    }
+    
+    .form-order-container .form-control-lg,
+    .form-order-container .form-select-lg {
+        padding: 0.65rem 1rem;
+        font-size: 1rem;
+    }
+}
+
+@media (min-width: 1400px) {
+    .form-order-container .container-lg {
+        max-width: 100% !important;
+        padding-left: 4rem !important;
+        padding-right: 4rem !important;
+    }
+    
+    .form-order-container .form-table td {
+        padding: 1.75rem 2.5rem !important;
+    }
+}
+
+/* ==========================================
+   UTILIDADES COMUNES
+========================================== */
+
+/* Gradientes reutilizables */
+.gradient-primary {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%) !important;
+}
+
+.gradient-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #ff8f00 100%) !important;
+}
+
+.gradient-info-light {
+    background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%) !important;
+}
+
+.gradient-gray-light {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+}
+
+/* Filas clickeables */
+.clickable-row {
+    cursor: pointer !important;
+}
+
+.clickable-row:hover {
+    background-color: #f8f9fa !important;
+}
+
+/* Headers de tabla con anchos fijos */
+.table-header-50 {
+    width: 50% !important;
+}
+
+.table-header-33 {
+    width: 33.33% !important;
+}
+
+/* Círculos de iconos */
+.icon-circle-lg {
+    width: 80px !important;
+    height: 80px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Botones de formulario grandes */
+.btn-form-submit {
+    font-size: 1.1rem !important;
+    font-weight: 600 !important;
+}
+
+.btn-form-cancel {
+    font-size: 1.1rem !important;
+}
+
+/* Progress bars */
+.progress-custom {
+    height: 20px !important;
+}
+
+/* Formularios inline */
+.form-inline-display {
+    display: inline !important;
+}
+
+/* Estilos para badges de fórmula */
+.formula-badge-od {
+    white-space: pre-wrap !important;
+    font-family: monospace !important;
+}
+
+.formula-badge-oi {
+    white-space: pre-wrap !important;
+    font-family: monospace !important;
+}
+
+/* Área de observaciones */
+.observation-area {
+    white-space: pre-wrap !important;
+    background: #f8f9fa !important;
+    padding: 15px !important;
+    border-radius: 5px !important;
+}
+
+.rejection-area {
+    white-space: pre-wrap !important;
+    background: #fff3cd !important;
+    padding: 15px !important;
+    border-radius: 5px !important;
+    border: 1px solid #ffeaa7 !important;
+}
+
+/* Utilidades de visibilidad */
+.hidden {
+    display: none !important;
+}
+
+.visible {
+    display: block !important;
+}
+
+/* Utilidades de posicionamiento */
+.position-relative {
+    position: relative !important;
+}
+
+.cursor-pointer {
+    cursor: pointer !important;
+}

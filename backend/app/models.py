@@ -93,17 +93,26 @@ class WorkOrder(db.Model):
     
     # Implementé información del recibo de venta
     receipt_number = db.Column(db.String(64), nullable=False) # Número del recibo de venta
+    orden_laboratorio = db.Column(db.String(64)) # Número de orden del laboratorio
+    ciudad_municipio = db.Column(db.String(100)) # Ciudad o municipio
     
     # Implementé información del paciente
     client_name = db.Column(db.String(128), nullable=False) # Nombre del paciente
     client_cc = db.Column(db.String(20), nullable=False) # Cédula del paciente
     client_phone = db.Column(db.String(20)) # Teléfono del paciente
+    empresa_convenio = db.Column(db.String(200)) # Empresa, convenio o seguro del paciente
 
     
     # Implementé clasificación de lentes (nuevo)
     lens_class = db.Column(db.String(20)) # Progresivo, Bifocal, Monofocal
-    lens_type = db.Column(db.String(128), nullable=False) # Tipo de lente y filtros específicos
+    lens_type = db.Column(db.String(128)) # Tipo de lente y filtros específicos (opcional hasta que admin complete)
     frame_type = db.Column(db.String(128)) # Tipo de montura
+    
+    # Control de flujo: Sede crea → Admin completa lentes → Admin envía a proveedor
+    pending_admin_review = db.Column(db.Boolean, default=False) # Si está pendiente de completar por admin
+    admin_completed_at = db.Column(db.DateTime) # Fecha cuando admin completó los campos de lentes
+    admin_completed_by_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True) # Admin que completó
+    admin_completed_by = db.relationship('User', backref='completed_orders', foreign_keys=[admin_completed_by_user_id])
     
     # Implementé fórmula óptica con campos de texto libre
     formula_od = db.Column(db.Text) # Ojo derecho (texto libre)
@@ -116,7 +125,6 @@ class WorkOrder(db.Model):
     observations = db.Column(db.Text) # Observaciones específicas
     
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    due_date = db.Column(db.DateTime)
     status = db.Column(db.String(64), default='pendiente_envio') # 'pendiente_envio', 'enviada', 'en_proceso', 'devuelta_proveedor', 'recibida_optica', 'finalizada', 'cancelada'
     comments = db.Column(db.Text)
 
@@ -133,12 +141,78 @@ class WorkOrder(db.Model):
     payment_status = db.Column(db.String(64), default='pendiente') # 'pendiente', 'parcialmente_pagada', 'pagada'
     total_amount = db.Column(db.Float, default=0.0) # Monto total que se debe pagar al proveedor por esta orden
 
+    # Sistema de entrega con plazo fijo de 7 días
+    accepted_at = db.Column(db.DateTime) # Fecha cuando el proveedor aceptó la orden
+    delivery_deadline = db.Column(db.DateTime) # Fecha límite calculada automáticamente (accepted_at + 7 días)
+    is_overdue = db.Column(db.Boolean, default=False) # Si la orden está vencida
+    overdue_alert_sent = db.Column(db.Boolean, default=False) # Si ya se envió alerta de vencimiento
+    days_overdue = db.Column(db.Integer, default=0) # Días de retraso
+
     # Sistema de rechazos y reenvíos
     rejection_reason = db.Column(db.Text)  # Razón del rechazo
     rejection_count = db.Column(db.Integer, default=0)  # Número de rechazos
     resubmitted_at = db.Column(db.DateTime)  # Fecha del último reenvío
     resubmitted_by_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # Usuario que reenvió
     resubmitted_by = db.relationship('User', backref='resubmitted_orders', foreign_keys=[resubmitted_by_user_id])
+
+    def calculate_delivery_deadline(self):
+        """Calcula la fecha límite de entrega (7 días después de aceptada)"""
+        if self.accepted_at:
+            from datetime import timedelta
+            return self.accepted_at + timedelta(days=7)
+        return None
+
+    def check_if_overdue(self):
+        """Verifica si la orden está vencida y actualiza los campos correspondientes"""
+        if self.accepted_at and self.status in ['aceptada', 'en_proceso']:
+            from datetime import datetime
+            deadline = self.calculate_delivery_deadline()
+            now = datetime.utcnow()
+            
+            if now > deadline:
+                self.is_overdue = True
+                self.days_overdue = (now - deadline).days
+                return True
+            else:
+                self.is_overdue = False
+                self.days_overdue = 0
+                return False
+        return False
+
+    def get_delivery_status_info(self):
+        """Retorna información del estado de entrega"""
+        if not self.accepted_at:
+            return {"status": "not_accepted", "message": "No aceptada aún"}
+        
+        deadline = self.calculate_delivery_deadline()
+        if not deadline:
+            return {"status": "no_deadline", "message": "Sin fecha límite"}
+            
+        from datetime import datetime
+        now = datetime.utcnow()
+        days_left = (deadline - now).days
+        
+        if days_left > 0:
+            return {
+                "status": "on_time", 
+                "days_left": days_left,
+                "deadline": deadline,
+                "message": f"Quedan {days_left} días"
+            }
+        elif days_left == 0:
+            return {
+                "status": "due_today", 
+                "deadline": deadline,
+                "message": "Vence hoy"
+            }
+        else:
+            self.check_if_overdue()  # Actualizar estado
+            return {
+                "status": "overdue", 
+                "days_overdue": abs(days_left),
+                "deadline": deadline,
+                "message": f"{abs(days_left)} días de retraso"
+            }
 
     def __repr__(self):
         return f'<WorkOrder {self.order_number} - {self.client_name}>'

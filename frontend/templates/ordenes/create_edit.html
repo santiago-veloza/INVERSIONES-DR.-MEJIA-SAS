@@ -1,19 +1,21 @@
 {% extends "base.html" %}
+
 {% block content %}
-    <div class="container-fluid">
+<div class="form-order-container">
+    <div class="container-lg px-3">
         
         <div class="row mb-4">
             <div class="col-12">
-                <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
-                    <div class="card-body text-white p-4">
-                        <h1 class="mb-0 fw-bold">
-                            <i class="fas fa-clipboard-list me-3"></i>
+                <div class="card border-0 shadow-sm gradient-primary">
+                    <div class="card-body text-white p-3">
+                        <h3 class="mb-0 fw-bold">
+                            <i class="fas fa-clipboard-list me-2"></i>
                             {% if order %}
                                 Editar Orden N° {{ order.order_number }}
                             {% else %}
                                 Crear Nueva Orden de Trabajo
                             {% endif %}
-                        </h1>
+                        </h3>
                         <p class="mb-0 opacity-75">
                             {% if order %}
                                 Modifica los detalles de la orden existente
@@ -29,194 +31,294 @@
         <form action="" method="post" novalidate>
             {{ form.hidden_tag() }}
             
-            <div class="row">
-                
-                <div class="col-lg-8">
+            <div class="row justify-content-center">
+                <div class="col-12">
                     
-                    <div class="card mb-4 shadow-sm border-0">
-                        <div class="card-header text-white" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
-                            <h5 class="mb-0">
-                                <i class="fas fa-user me-2"></i>Información del Paciente
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    {{ form.client_name.label(class="form-label fw-bold") }}
-                                    {{ form.client_name(class="form-control", placeholder="Nombre completo del paciente") }}
-                                    {% for error in form.client_name.errors %}
-                                        <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
-                                    {% endfor %}
-                                </div>
-                                <div class="col-md-6">
-                                    {{ form.client_cc.label(class="form-label fw-bold") }}
-                                    {{ form.client_cc(class="form-control", placeholder="Número de cédula") }}
-                                    {% for error in form.client_cc.errors %}
-                                        <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
-                                    {% endfor %}
-                                </div>
-                                <div class="col-md-6">
-                                    {{ form.client_phone.label(class="form-label fw-bold") }}
-                                    {{ form.client_phone(class="form-control", placeholder="Número de teléfono") }}
-                                    {% for error in form.client_phone.errors %}
-                                        <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
-                    <div class="card mb-4 shadow-sm border-0">
-                        <div class="card-header text-white" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
-                            <h5 class="mb-0">
-                                <i class="fas fa-file-alt me-2"></i>Información de la Orden
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    {{ form.receipt_number.label(class="form-label fw-bold") }}
-                                    {{ form.receipt_number(class="form-control", placeholder="Número del recibo de venta") }}
-                                    {% for error in form.receipt_number.errors %}
-                                        <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
-                                    {% endfor %}
-                                </div>
-                                <div class="col-md-6">
-                                    {{ form.sede_id.label(class="form-label fw-bold") }}
-                                    {{ form.sede_id(class="form-select") }}
-                                    {% for error in form.sede_id.errors %}
-                                        <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
-                                    {% endfor %}
-                                    <small class="text-muted">¿Qué sede está solicitando esta orden?</small>
-                                </div>
-                                <div class="col-md-6">
-                                    {{ form.provider_id.label(class="form-label fw-bold") }}
-                                    {{ form.provider_id(class="form-select") }}
-                                    {% for error in form.provider_id.errors %}
-                                        <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
-                                    {% endfor %}
-                                </div>
 
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card mb-4 shadow-sm border-0">
-                        <div class="card-header text-white" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
-                            <h5 class="mb-0">
-                                <i class="fas fa-glasses me-2"></i>Información de Lentes
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row g-3">
-                                <div class="col-md-4">
-                                    {{ form.lens_class.label(class="form-label fw-bold") }}
-                                    {{ form.lens_class(class="form-select") }}
-                                    {% for error in form.lens_class.errors %}
-                                        <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
-                                    {% endfor %}
-                                </div>
-                                <div class="col-md-4">
-                                    {{ form.lens_type.label(class="form-label fw-bold") }}
-                                    {{ form.lens_type(class="form-control", placeholder="Tipo específico y filtros") }}
-                                    {% for error in form.lens_type.errors %}
-                                        <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
-                                    {% endfor %}
-                                </div>
-                                <div class="col-md-4">
-                                    {{ form.frame_type.label(class="form-label fw-bold") }}
-                                    {{ form.frame_type(class="form-control", placeholder="Tipo de montura (opcional)") }}
-                                    {% for error in form.frame_type.errors %}
-                                        <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
-                                    {% endfor %}
-                                </div>
-                            </div>
+                    <!-- Información de Seguimiento -->
+                    <div class="card mb-4 shadow-sm border-1">
+                        <div class="card-body p-4">
+                            <table class="table table-bordered mb-0 form-table">
+                                <tbody>
+                                    <tr>
+                                        <td class="bg-light fw-bold text-dark text-center table-header-33">CONSECUTIVO SISTEMA #</td>
+                                        <td class="bg-light fw-bold text-dark text-center table-header-33">ORDEN VENTA</td>
+                                        <td class="bg-light fw-bold text-dark text-center table-header-33">ORDEN LABORATORIO</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-center py-1">
+                                            {% if order %}
+                                                <strong class="fs-5">{{ order.order_number }}</strong>
+                                            {% else %}
+                                                <span class="text-muted">Se asignará automáticamente</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="p-3">
+                                            {{ form.receipt_number(class="form-control text-center form-control-lg", placeholder="Número de orden de venta") }}
+                                            {% if form.receipt_number.errors %}
+                                                <div class="invalid-feedback d-block mt-2">
+                                                    <i class="fas fa-exclamation-triangle me-1"></i>{{ form.receipt_number.errors[0] }}
+                                                </div>
+                                            {% endif %}
+                                        </td>
+                                        <td class="p-3">
+                                            {{ form.orden_laboratorio(class="form-control text-center form-control-lg", placeholder="Número de laboratorio") }}
+                                            {% if form.orden_laboratorio.errors %}
+                                                <div class="invalid-feedback d-block mt-2">
+                                                    <i class="fas fa-exclamation-triangle me-1"></i>{{ form.orden_laboratorio.errors[0] }}
+                                                </div>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="bg-light fw-bold text-dark text-center" colspan="3">CIUDAD/MUNICIPIO</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3" class="p-3">
+                                            {{ form.ciudad_municipio(class="form-control text-center form-control-lg", placeholder="Ingrese ciudad o municipio") }}
+                                            {% if form.ciudad_municipio.errors %}
+                                                <div class="invalid-feedback d-block mt-2">
+                                                    <i class="fas fa-exclamation-triangle me-1"></i>{{ form.ciudad_municipio.errors[0] }}
+                                                </div>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="bg-light fw-bold text-dark text-center" colspan="3">SEDE</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3" class="p-3">
+                                            {{ form.sede_id(class="form-select form-select-lg" + (" is-invalid" if form.sede_id.errors else "")) }}
+                                            {% if form.sede_id.errors %}
+                                                <div class="invalid-feedback mt-2">
+                                                    <i class="fas fa-exclamation-triangle me-1"></i>{{ form.sede_id.errors[0] }}
+                                                </div>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="bg-light fw-bold text-dark text-center" colspan="3">EMPRESA/CONVENIO/SEGURO</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3" class="p-3">
+                                            {{ form.empresa_convenio(class="form-control text-center form-control-lg", placeholder="Ingrese empresa, convenio o seguro del paciente") }}
+                                            {% if form.empresa_convenio.errors %}
+                                                <div class="invalid-feedback d-block mt-2">
+                                                    <i class="fas fa-exclamation-triangle me-1"></i>{{ form.empresa_convenio.errors[0] }}
+                                                </div>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="bg-light fw-bold text-dark text-center" colspan="3">PROVEEDOR</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3" class="p-3">
+                                            {{ form.provider_id(class="form-select form-select-lg" + (" is-invalid" if form.provider_id.errors else "")) }}
+                                            {% if form.provider_id.errors %}
+                                                <div class="invalid-feedback mt-2">
+                                                    <i class="fas fa-exclamation-triangle me-1"></i>{{ form.provider_id.errors[0] }}
+                                                </div>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
 
-                    <div class="card mb-4 shadow-sm border-0">
-                        <div class="card-header text-white" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
-                            <h5 class="mb-0">
-                                <i class="fas fa-eye me-2"></i>Fórmula Óptica
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row g-4">
-                                
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        {{ form.formula_od.label(class="form-label fw-bold") }}
-                                        {{ form.formula_od(class="form-control", rows="3", placeholder="Esfera, cilindro, eje, adición del ojo derecho\nEjemplo: Esfera: +1.25, Cilindro: -0.50, Eje: 90°, Adición: +2.00") }}
-                                        {% for error in form.formula_od.errors %}
-                                            <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        {{ form.formula_oi.label(class="form-label fw-bold") }}
-                                        {{ form.formula_oi(class="form-control", rows="3", placeholder="Esfera, cilindro, eje, adición del ojo izquierdo\nEjemplo: Esfera: +1.00, Cilindro: -0.75, Eje: 85°, Adición: +2.00") }}
-                                        {% for error in form.formula_oi.errors %}
-                                            <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        {{ form.formula_add.label(class="form-label fw-bold") }}
-                                        {{ form.formula_add(class="form-control", rows="2", placeholder="Información de adición\nEjemplo: ADD +2.00 para ambos ojos") }}
-                                        {% for error in form.formula_add.errors %}
-                                            <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        {{ form.formula_dp_alt.label(class="form-label fw-bold") }}
-                                        {{ form.formula_dp_alt(class="form-control", rows="2", placeholder="Distancia pupilar y altura\nEjemplo: DP: 32/32, ALT: 14/14") }}
-                                        {% for error in form.formula_dp_alt.errors %}
-                                            <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                            </div>
+                    <!-- Información del Paciente -->
+                    <div class="card mb-4 shadow-sm border-1">
+                        <div class="card-body p-4">
+                            <table class="table table-bordered mb-0 form-table">
+                                <tbody>
+                                    <tr>
+                                        <td class="bg-light fw-bold text-dark text-center table-header-50">NOMBRE DEL PACIENTE</td>
+                                        <td class="bg-light fw-bold text-dark text-center table-header-50">CC DEL PACIENTE</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-1">
+                                            {{ form.client_name(class="form-control text-center form-control-lg" + (" is-invalid" if form.client_name.errors else ""), placeholder="Nombre completo del paciente") }}
+                                            {% if form.client_name.errors %}
+                                                <div class="invalid-feedback mt-2">
+                                                    <i class="fas fa-exclamation-triangle me-1"></i>{{ form.client_name.errors[0] }}
+                                                </div>
+                                            {% endif %}
+                                        </td>
+                                        <td class="p-3">
+                                            {{ form.client_cc(class="form-control text-center form-control-lg" + (" is-invalid" if form.client_cc.errors else ""), placeholder="Número de cédula") }}
+                                            {% if form.client_cc.errors %}
+                                                <div class="invalid-feedback mt-2">
+                                                    <i class="fas fa-exclamation-triangle me-1"></i>{{ form.client_cc.errors[0] }}
+                                                </div>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
 
-                </div>
-
-                <div class="col-lg-4">
-                    
-                    <div class="card shadow-sm border-0 sticky-top" style="top: 20px;">
-                        <div class="card-header text-white" style="background: linear-gradient(135deg, #6c757d 0%, #495057 100%);">
-                            <h5 class="mb-0">
-                                <i class="fas fa-info-circle me-2"></i>Información Adicional
-                            </h5>
+                    <!-- Información de Lentes -->
+                    {% if current_user.role in ['admin', 'asistente'] %}
+                    <div class="card mb-4 shadow-sm border-1">
+                        <div class="card-body p-4">
+                            <table class="table table-bordered mb-0 form-table">
+                                <tbody>
+                                    <tr>
+                                        <td class="bg-light fw-bold text-dark text-center" style="width: 50%;">CLASE DE LENTES</td>
+                                        <td class="bg-light fw-bold text-dark text-center" style="width: 50%;">TIPO DE LENTE Y FILTROS</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-3">
+                                            {{ form.lens_class(class="form-select form-select-lg") }}
+                                            {% if form.lens_class.errors %}
+                                                <div class="invalid-feedback d-block mt-2">
+                                                    <i class="fas fa-exclamation-triangle me-1"></i>{{ form.lens_class.errors[0] }}
+                                                </div>
+                                            {% endif %}
+                                        </td>
+                                        <td class="p-3">
+                                            {{ form.lens_type(class="form-control text-center form-control-lg" + (" is-invalid" if form.lens_type.errors else ""), placeholder="Especifique tipo y filtros") }}
+                                            {% if form.lens_type.errors %}
+                                                <div class="invalid-feedback mt-2">
+                                                    <i class="fas fa-exclamation-triangle me-1"></i>{{ form.lens_type.errors[0] }}
+                                                </div>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
-                        <div class="card-body">
-                            <div class="mb-4">
-                                {{ form.formula_details.label(class="form-label fw-bold") }}
-                                {{ form.formula_details(class="form-control", rows=6, placeholder="Detalles adicionales de la fórmula o especificaciones especiales...") }}
-                                {% for error in form.formula_details.errors %}
-                                    <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
-                                {% endfor %}
-                            </div>
-
-                            <div class="d-grid gap-2">
-                                {{ form.submit(class="btn btn-primary btn-lg py-3") }}
-                                <a href="{{ url_for('main.list_orders') }}" class="btn btn-outline-secondary">
-                                    <i class="fas fa-times me-2"></i>Cancelar
-                                </a>
-                            </div>
-
-                            <div class="alert alert-info mt-3 border-0" style="background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);">
-                                <small>
-                                    <i class="fas fa-info-circle me-1"></i>
-                                    <strong>Nota:</strong> El proveedor establecerá el precio y fecha de entrega al aceptar la orden.
+                    </div>
+                    {% else %}
+                    <!-- Mensaje informativo para admin_sede -->
+                    <div class="alert alert-info mb-4 border-1 shadow-sm">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-info-circle me-3 mt-1 fs-4"></i>
+                            <div>
+                                <h6 class="fw-bold mb-2">
+                                    <i class="fas fa-glasses me-1"></i>
+                                    Especificaciones de Lentes
+                                </h6>
+                                <p class="mb-2">
+                                    Las especificaciones de <strong>Clase de Lente</strong> y <strong>Tipo de Lente</strong> serán completadas por el administrador central antes de enviar la orden al proveedor.
+                                </p>
+                                <small class="text-muted">
+                                    <i class="fas fa-check-circle me-1"></i>
+                                    Una vez que cree la orden, el administrador recibirá una notificación para completar estos campos.
                                 </small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Fórmula Óptica -->
+                    <div class="card mb-4 shadow-sm border-1">
+                        <div class="card-body p-4">
+                            <table class="table table-bordered mb-0 form-table">
+                                <tbody>
+                                    <tr>
+                                        <td class="bg-light fw-bold text-dark text-center table-header-50">OD (OJO DERECHO)</td>
+                                        <td class="bg-light fw-bold text-dark text-center table-header-50">OI (OJO IZQUIERDO)</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-1">
+                                            {{ form.formula_od(class="form-control", rows="3", placeholder="Fórmula ojo derecho") }}
+                                            {% for error in form.formula_od.errors %}
+                                                <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
+                                            {% endfor %}
+                                        </td>
+                                        <td class="p-2">
+                                            {{ form.formula_oi(class="form-control", rows="3", placeholder="Fórmula ojo izquierdo") }}
+                                            {% for error in form.formula_oi.errors %}
+                                                <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
+                                            {% endfor %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="bg-light fw-bold text-dark text-center table-header-50">ADD (ADICIÓN)</td>
+                                        <td class="bg-light fw-bold text-dark text-center table-header-50">DP Y ALT</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-1">
+                                            {{ form.formula_add(class="form-control text-center", placeholder="Adición") }}
+                                            {% for error in form.formula_add.errors %}
+                                                <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
+                                            {% endfor %}
+                                        </td>
+                                        <td class="p-2">
+                                            {{ form.formula_dp_alt(class="form-control text-center", placeholder="Distancia pupilar y altura") }}
+                                            {% for error in form.formula_dp_alt.errors %}
+                                                <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
+                                            {% endfor %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="bg-light fw-bold text-dark text-center" colspan="2">INFORMACIÓN ADICIONAL</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2" class="p-2">
+                                            {{ form.formula_details(class="form-control", rows="4", placeholder="Detalles adicionales, observaciones especiales...") }}
+                                            {% for error in form.formula_details.errors %}
+                                                <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
+                                            {% endfor %}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Campos adicionales -->
+                    <div class="card mb-4 shadow-sm border-1">
+                        <div class="card-body p-4">
+                            <table class="table table-bordered mb-0 form-table">
+                                <tbody>
+                                    <tr>
+                                        <td class="bg-light fw-bold text-dark text-center table-header-50">TIPO DE MONTURA</td>
+                                        <td class="bg-light fw-bold text-dark text-center table-header-50">TELÉFONO PACIENTE</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-1">
+                                            {{ form.frame_type(class="form-control text-center", placeholder="Especifique el tipo de montura") }}
+                                            {% for error in form.frame_type.errors %}
+                                                <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
+                                            {% endfor %}
+                                        </td>
+                                        <td class="p-2">
+                                            {{ form.client_phone(class="form-control text-center", placeholder="Teléfono de contacto del paciente") }}
+                                            {% for error in form.client_phone.errors %}
+                                                <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
+                                            {% endfor %}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Botones de acción -->
+                    <div class="card mb-4 shadow-sm border-0">
+                        <div class="card-body text-center p-4">
+                            <div class="row justify-content-center">
+                                <div class="col-md-8 col-lg-6">
+                                    {{ form.submit(class="btn btn-primary btn-lg w-100 mb-3 py-3 btn-form-submit") }}
+                                    <a href="{{ url_for('main.list_orders') }}" class="btn btn-outline-secondary btn-lg w-100 py-3 btn-form-cancel">
+                                        <i class="fas fa-times me-2"></i>Cancelar
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-info mt-3 border-0 shadow-sm gradient-info-light">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-info-circle me-2 fs-5"></i>
+                                    <div>
+                                        <strong>Nota importante:</strong> El proveedor establecerá el precio al aceptar la orden.<br>
+                                        <small class="text-muted">El sistema calculará automáticamente un plazo máximo de 7 días para la entrega.</small>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -224,4 +326,5 @@
             </div>
         </form>
     </div>
+</div>
 {% endblock %}
