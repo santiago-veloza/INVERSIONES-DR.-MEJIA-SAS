@@ -46,7 +46,7 @@
                     </thead>
                 <tbody>
                     {% for order in orders %}
-                    <tr class="clickable-row {% if order.pending_admin_review %}table-danger{% endif %}" 
+                    <tr class="clickable-row {% if order.pending_admin_review %}table-danger{% elif current_user.role == 'proveedor' and order.status == 'enviada' %}table-danger{% elif (current_user.role == 'admin_sede' or current_user.role == 'proveedor') and order.status == 'en_proceso' %}table-warning{% elif current_user.role == 'proveedor' and order.status == 'devuelta_proveedor' %}table-success{% elif current_user.role == 'admin_sede' and order.status == 'devuelta_proveedor' %}table-orange{% endif %}" 
                         data-order-id="{{ order.id }}" 
                         {% if order.pending_admin_review %}
                         data-pending-review="true"
@@ -248,13 +248,17 @@ document.addEventListener('DOMContentLoaded', function() {
             const orderId = this.getAttribute('data-order-id');
             const isPendingReview = this.getAttribute('data-pending-review');
             
-            // Si está pendiente de revisión admin, ir a completar
+            // Si está pendiente de revisión admin Y el usuario es admin, ir a completar
+            {% if current_user.role == 'admin' %}
             if (isPendingReview === 'true') {
                 window.location.href = '/admin/complete-lens-specs/' + orderId;
             } else {
-                // Si no, ir al detalle normal
                 window.location.href = '/order/' + orderId;
             }
+            {% else %}
+            // Para otros usuarios (admin_sede, asistente, proveedor), siempre ir al detalle
+            window.location.href = '/order/' + orderId;
+            {% endif %}
         });
 
         row.addEventListener('mouseenter', function() {

@@ -25,8 +25,7 @@
             <a class="navbar-brand d-flex align-items-center" href="{{ url_for('main.index') }}">
                 <img src="https://res.cloudinary.com/dwdnfpr8i/image/upload/v1762146543/logo-DR_MEJIA_za9ocq.png" 
                      alt="Logo Dr. Mejía" 
-                     class="navbar-logo me-2">
-                Ópticas Dr. Mejía
+                     class="navbar-logo me-2">Dr. Mejía
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -118,12 +117,31 @@
                                 {% if latest_notifications %}
                                     {% for notification in latest_notifications %}
                                         <li>
-                                            <a class="dropdown-item {% if not notification.is_read %}fw-bold{% endif %} {% if '⚠️' in notification.message %}notification-urgent{% endif %}" 
+                                            {% set notif_class = '' %}
+                                            {% if '⚠️' in notification.message or 'rechazada' in notification.message.lower() or 'pendiente' in notification.message.lower() %}
+                                                {% set notif_class = 'notification-urgent' %}
+                                            {% elif '✅' in notification.message or 'aceptada' in notification.message.lower() or 'completado' in notification.message.lower() or 'terminado' in notification.message.lower() or 'recogida' in notification.message.lower() %}
+                                                {% set notif_class = 'notification-success' %}
+                                            {% elif '🔧' in notification.message or 'iniciado' in notification.message.lower() or 'proceso' in notification.message.lower() %}
+                                                {% set notif_class = 'notification-warning' %}
+                                            {% elif '📧' in notification.message or 'enviada' in notification.message.lower() or '📦' in notification.message %}
+                                                {% set notif_class = 'notification-info' %}
+                                            {% endif %}
+                                            
+                                            <a class="dropdown-item {% if not notification.is_read %}fw-bold{% endif %} {{ notif_class }}" 
                                                href="{{ url_for('main.view_order', order_id=notification.work_order_id) if notification.work_order_id else url_for('main.view_notifications') }}">
                                                 {% if '⚠️' in notification.message %}
                                                     <i class="fas fa-exclamation-triangle me-2"></i>
+                                                {% elif '✅' in notification.message %}
+                                                    <i class="fas fa-check-circle me-2"></i>
+                                                {% elif '🔧' in notification.message %}
+                                                    <i class="fas fa-cog me-2"></i>
+                                                {% elif '📧' in notification.message %}
+                                                    <i class="fas fa-envelope me-2"></i>
+                                                {% elif '📦' in notification.message %}
+                                                    <i class="fas fa-box me-2"></i>
                                                 {% else %}
-                                                    <i class="fas fa-info-circle text-primary me-2"></i>
+                                                    <i class="fas fa-info-circle me-2"></i>
                                                 {% endif %}
                                                 {{ notification.message }}
                                                 <small class="d-block mt-1">

@@ -163,6 +163,10 @@ class WorkOrderForm(FlaskForm):
     formula_details = TextAreaField('Detalles Adicionales de la Fórmula', validators=[Optional()])
     observations = TextAreaField('Observaciones', validators=[Optional()])
     comments = TextAreaField('Comentarios Adicionales', validators=[Optional()])
+    
+    # Precio de venta al cliente
+    sale_price = FloatField('Precio de Venta al Cliente', validators=[Optional(), NumberRange(min=0, message='El precio debe ser mayor o igual a 0')])
+    
     # Nota: total_amount es establecido por el proveedor al aceptar la orden
     submit = SubmitField('Crear Orden de Trabajo')
 

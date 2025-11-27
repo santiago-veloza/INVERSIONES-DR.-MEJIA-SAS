@@ -140,6 +140,7 @@ class WorkOrder(db.Model):
     # Estado de pago de la orden (puede ser calculado en tiempo real o actualizado)
     payment_status = db.Column(db.String(64), default='pendiente') # 'pendiente', 'parcialmente_pagada', 'pagada'
     total_amount = db.Column(db.Float, default=0.0) # Monto total que se debe pagar al proveedor por esta orden
+    sale_price = db.Column(db.Float, nullable=True) # Precio de venta al cliente final (para cálculo de ganancias)
 
     # Sistema de entrega con plazo fijo de 7 días
     accepted_at = db.Column(db.DateTime) # Fecha cuando el proveedor aceptó la orden

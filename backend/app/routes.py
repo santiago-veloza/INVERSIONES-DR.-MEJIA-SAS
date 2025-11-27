@@ -546,6 +546,60 @@ def admin_dashboard():
         'sales_this_month_system': sum([s['sales_this_month'] for s in sede_stats])
     }
     
+    # Cálculo de ganancias (sale_price - total_amount)
+    # Ganancias totales del sistema
+    total_revenue = db.session.query(func.sum(WorkOrder.sale_price)).filter(
+        and_(
+            WorkOrder.sale_price.isnot(None),
+            WorkOrder.payment_status == 'pagada'
+        )
+    ).scalar() or 0
+    
+    total_costs = db.session.query(func.sum(WorkOrder.total_amount)).filter(
+        and_(
+            WorkOrder.sale_price.isnot(None),
+            WorkOrder.payment_status == 'pagada'
+        )
+    ).scalar() or 0
+    
+    total_profit = total_revenue - total_costs
+    
+    # Ganancias del mes actual
+    revenue_this_month = db.session.query(func.sum(WorkOrder.sale_price)).filter(
+        and_(
+            WorkOrder.sale_price.isnot(None),
+            WorkOrder.payment_status == 'pagada',
+            extract('month', WorkOrder.created_at) == current_month,
+            extract('year', WorkOrder.created_at) == current_year
+        )
+    ).scalar() or 0
+    
+    costs_this_month = db.session.query(func.sum(WorkOrder.total_amount)).filter(
+        and_(
+            WorkOrder.sale_price.isnot(None),
+            WorkOrder.payment_status == 'pagada',
+            extract('month', WorkOrder.created_at) == current_month,
+            extract('year', WorkOrder.created_at) == current_year
+        )
+    ).scalar() or 0
+    
+    profit_this_month = revenue_this_month - costs_this_month
+    
+    # Margen de ganancia (porcentaje)
+    profit_margin = round((total_profit / total_revenue * 100) if total_revenue > 0 else 0, 1)
+    profit_margin_month = round((profit_this_month / revenue_this_month * 100) if revenue_this_month > 0 else 0, 1)
+    
+    profit_stats = {
+        'total_revenue': total_revenue,
+        'total_costs': total_costs,
+        'total_profit': total_profit,
+        'revenue_this_month': revenue_this_month,
+        'costs_this_month': costs_this_month,
+        'profit_this_month': profit_this_month,
+        'profit_margin': profit_margin,
+        'profit_margin_month': profit_margin_month
+    }
+    
     # Top 5 sedes por ventas del mes
     top_sedes_month = sorted(sede_stats, key=lambda x: x['sales_this_month'], reverse=True)[:5]
     
@@ -556,6 +610,7 @@ def admin_dashboard():
                             title='Dashboard Administrativo',
                             sede_stats=sede_stats,
                             system_stats=system_stats,
+                            profit_stats=profit_stats,
                             top_sedes_month=top_sedes_month,
                             top_sedes_orders=top_sedes_orders,
                             lens_data=lens_data,
@@ -1142,6 +1197,8 @@ def create_order():
             observations=form.observations.data,
             comments=form.comments.data,
             created_by_user_id=current_user.id,
+            # Precio de venta al cliente
+            sale_price=form.sale_price.data,
             # Nuevo flujo: Si es sede sin especificación de lentes, queda pendiente de revisión admin
             pending_admin_review=needs_admin_review,
             status='pendiente_envio' if needs_admin_review else 'enviada'
@@ -1216,6 +1273,23 @@ def view_order(order_id):
 
     return render_template('ordenes/detail.html', title=f'Detalle de Orden {order.order_number}', order=order, payments=payments)
 
+@bp.route('/order/<int:order_id>/print')
+@login_required
+def print_order(order_id):
+    """Vista para imprimir la orden de trabajo"""
+    order = WorkOrder.query.get_or_404(order_id)
+    
+    # Verificar permisos
+    if current_user.role == 'proveedor' and current_user.provider and order.provider_id != current_user.provider.id:
+        flash('No tienes permiso para ver esta orden.', 'danger')
+        return redirect(url_for('main.list_orders'))
+    
+    if current_user.role == 'admin_sede' and order.sede_id != current_user.sede_id:
+        flash('No tienes permiso para ver órdenes de otras sedes.', 'danger')
+        return redirect(url_for('main.list_orders'))
+    
+    return render_template('ordenes/print.html', order=order)
+
 @bp.route('/order/edit/<int:order_id>', methods=['GET', 'POST'])
 @login_required
 @role_required('admin', 'asistente', 'admin_sede')
@@ -1243,6 +1317,7 @@ def edit_order(order_id):
                 return render_template('ordenes/create_edit.html', title=f'Editar Orden {order.order_number}', form=form, order=order)
         
         form.populate_obj(order)
+        order.sale_price = form.sale_price.data  # Asegurar que sale_price se actualice
         order.created_by_user_id = current_user.id # Quien edita también se registra
         db.session.commit()
         flash(f'Orden de Trabajo N° {order.order_number} actualizada exitosamente.', 'success')
@@ -1475,6 +1550,101 @@ def update_order_status(order_id):
         return redirect(url_for('main.view_order', order_id=order.id))
 
     return render_template('ordenes/update_status.html', title=f'Actualizar Estado de Orden {order.order_number}', form=form, order=order)
+
+
+# Ruta simplificada para iniciar trabajo (proveedor)
+@bp.route('/order/<int:order_id>/start_work', methods=['POST'])
+@login_required
+@role_required('proveedor')
+@audit_action(EventTypes.UPDATE_ORDER, "Iniciar trabajo en orden", 
+              resource_type='WorkOrder', severity=Severity.INFO, requires_attention=True)
+def start_work_order(order_id):
+    order = WorkOrder.query.get_or_404(order_id)
+    
+    # Verificar que el proveedor es dueño de la orden
+    if current_user.provider and order.provider_id != current_user.provider.id:
+        flash('No tienes permiso para actualizar esta orden.', 'danger')
+        return redirect(url_for('main.view_order', order_id=order_id))
+    
+    # Verificar que el estado es 'aceptada'
+    if order.status != 'aceptada':
+        flash('Solo puedes iniciar trabajo en órdenes aceptadas.', 'warning')
+        return redirect(url_for('main.view_order', order_id=order_id))
+    
+    # Cambiar estado a 'en_proceso'
+    order.status = 'en_proceso'
+    
+    # Notificar a la sede que la envió
+    sede_admins = User.query.filter_by(role='admin_sede', sede_id=order.sede_id, is_active=True).all()
+    for admin_user in sede_admins:
+        notification = Notification(
+            user_id=admin_user.id, 
+            message=f'🔧 Trabajo iniciado. El proveedor {order.provider.name} ha iniciado el trabajo en la orden N° {order.order_number} para {order.client_name}.', 
+            work_order_id=order.id
+        )
+        db.session.add(notification)
+    
+    # Notificar a administradores centrales
+    optica_users = User.query.filter(User.role.in_(['admin', 'asistente'])).all()
+    for u in optica_users:
+        notification = Notification(
+            user_id=u.id, 
+            message=f'🔧 Trabajo iniciado. El proveedor {order.provider.name} ha iniciado el trabajo en la orden N° {order.order_number} para {order.client_name}.', 
+            work_order_id=order.id
+        )
+        db.session.add(notification)
+    
+    db.session.commit()
+    flash(f'Trabajo iniciado en la orden N° {order.order_number}.', 'success')
+    return redirect(url_for('main.view_order', order_id=order_id))
+
+
+# Ruta simplificada para completar trabajo (proveedor)
+@bp.route('/order/<int:order_id>/complete_work', methods=['POST'])
+@login_required
+@role_required('proveedor')
+@audit_action(EventTypes.UPDATE_ORDER, "Marcar orden como terminada", 
+              resource_type='WorkOrder', severity=Severity.INFO, requires_attention=True)
+def complete_work_order(order_id):
+    order = WorkOrder.query.get_or_404(order_id)
+    
+    # Verificar que el proveedor es dueño de la orden
+    if current_user.provider and order.provider_id != current_user.provider.id:
+        flash('No tienes permiso para actualizar esta orden.', 'danger')
+        return redirect(url_for('main.view_order', order_id=order_id))
+    
+    # Verificar que el estado es 'en_proceso'
+    if order.status != 'en_proceso':
+        flash('Solo puedes marcar como terminadas las órdenes en proceso.', 'warning')
+        return redirect(url_for('main.view_order', order_id=order_id))
+    
+    # Cambiar estado a 'devuelta_proveedor'
+    order.status = 'devuelta_proveedor'
+    
+    # Notificar a la sede que la envió
+    sede_admins = User.query.filter_by(role='admin_sede', sede_id=order.sede_id, is_active=True).all()
+    for admin_user in sede_admins:
+        notification = Notification(
+            user_id=admin_user.id, 
+            message=f'✅ Trabajo terminado. El proveedor {order.provider.name} ha completado la orden N° {order.order_number} para {order.client_name}. Ya puede recoger los lentes.', 
+            work_order_id=order.id
+        )
+        db.session.add(notification)
+    
+    # Notificar a administradores centrales
+    optica_users = User.query.filter(User.role.in_(['admin', 'asistente'])).all()
+    for u in optica_users:
+        notification = Notification(
+            user_id=u.id, 
+            message=f'✅ Trabajo terminado. El proveedor {order.provider.name} ha completado la orden N° {order.order_number} para {order.client_name}.', 
+            work_order_id=order.id
+        )
+        db.session.add(notification)
+    
+    db.session.commit()
+    flash(f'Orden N° {order.order_number} marcada como terminada. La sede ya puede recoger los lentes.', 'success')
+    return redirect(url_for('main.view_order', order_id=order_id))
+
 
 # --- Sistema de Gestión de Pagos que implementé ---
 @bp.route('/order/<int:order_id>/payment/new', methods=['GET', 'POST'])
