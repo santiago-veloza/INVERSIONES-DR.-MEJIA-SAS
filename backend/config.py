@@ -9,10 +9,9 @@ class Config:
     # Genero una clave secreta segura
     SECRET_KEY = os.environ.get('SECRET_KEY') or secrets.token_hex(32)
     
-    # PostgreSQL en Supabase
-    # Usar directamente la URL de Supabase sin variable de entorno
-    # Agregando sslmode=require para conexión segura
-    SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:sP9a$AVsfJ48GYt@db.pqefwwfkjssjkddvgvha.supabase.co:5432/postgres?sslmode=require'
+    # PostgreSQL en Supabase - Connection Pooler para producción
+    # Usar el pooler en lugar de la conexión directa para mejor compatibilidad
+    SQLALCHEMY_DATABASE_URI = 'postgresql://postgres.pqefwwfkjssjkddvgvha:sP9a$AVsfJ48GYt]@aws-0-us-west-2.pooler.supabase.com:6543/postgres'
     
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     UPLOAD_FOLDER = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', 'frontend', 'static', 'uploads')
