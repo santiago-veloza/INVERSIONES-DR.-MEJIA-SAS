@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
 from wtforms import StringField, PasswordField, SubmitField, TextAreaField, SelectField, DateField, FloatField, BooleanField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError, Optional, NumberRange
-from app.models import User, Provider, WorkOrder
+from backend.app.models import User, Provider, WorkOrder
 
 class LoginForm(FlaskForm):
     user_type = SelectField('Tipo de Usuario', choices=[

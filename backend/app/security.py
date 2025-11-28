@@ -6,7 +6,7 @@ import json
 import re
 import hashlib
 from collections import defaultdict
-from app.models import AuditLog, db
+from backend.app.models import AuditLog, db
 
 # Cache para detectar patrones anómalos
 suspicious_activities = defaultdict(list)

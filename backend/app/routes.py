@@ -1,9 +1,9 @@
 from flask import render_template, flash, redirect, url_for, request, current_app, send_from_directory, jsonify
 from flask_login import current_user, login_user, logout_user, login_required
-from app import db, login_manager, csrf
-from app import bp
-from app.models import User, Provider, WorkOrder, Payment, Notification, Sede, SedeMessage, AuditLog
-from app.forms import (
+from backend.app import db, login_manager, csrf
+from backend.app import bp
+from backend.app.models import User, Provider, WorkOrder, Payment, Notification, Sede, SedeMessage, AuditLog
+from backend.app.forms import (
     LoginForm, RegistrationForm, ProviderForm, ProviderEditForm, WorkOrderForm,
     WorkOrderStatusForm, PaymentForm, PendingPaymentsFilterForm, UserForm, SedeAdminForm, SedeMessageForm,
     ChangePasswordForm, SedeUserEditForm
@@ -20,7 +20,7 @@ import mimetypes  # Uso mimetypes en lugar de python-magic para simplicidad
 from datetime import datetime
 
 # Sistema de Seguridad y Auditoría
-from app.security import (
+from backend.app.security import (
     audit_action, detect_suspicious_activity, log_security_event, log_failed_login, 
     log_unauthorized_access, log_data_change, check_permissions, EventTypes, Severity, Category
 )

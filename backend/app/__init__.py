@@ -46,7 +46,7 @@ def create_app(config_class=Config):
     @app.before_request
     def security_middleware():
         # Primero ejecutar detección de actividades sospechosas
-        from app.security import (
+        from backend.app.security import (
             suspicious_activities, failed_attempts, rate_limits,
             log_security_event, EventTypes, Severity
         )
