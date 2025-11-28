@@ -6,16 +6,8 @@ from dotenv import load_dotenv
 load_dotenv() # Carga las variables del archivo .env
 
 class Config:
-    # Genero una clave secreta segura si no existe en el entorno
-    _secret_key = os.environ.get('SECRET_KEY')
-    if not _secret_key:
-        # Solo en desarrollo - genero clave temporal
-        # En producción esto que implementé debe ser una variable de entorno
-        print("WARNING: SECRET_KEY no encontrada en variables de entorno. Generando clave temporal.")
-        print("Para producción, configure SECRET_KEY como variable de entorno.")
-        _secret_key = secrets.token_hex(32)
-    
-    SECRET_KEY = _secret_key
+    # Genero una clave secreta segura
+    SECRET_KEY = os.environ.get('SECRET_KEY') or secrets.token_hex(32)
     
     # PostgreSQL en Supabase
     # Usar directamente la URL de Supabase sin variable de entorno

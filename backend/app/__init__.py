@@ -37,8 +37,8 @@ def create_app(config_class=Config):
         os.makedirs(app.config['UPLOAD_FOLDER'])
 
     # Importo módulos que dependen de db/login_manager
-    from app import models
-    from app import routes, forms
+    from backend.app import models
+    from backend.app import routes, forms
 
     app.register_blueprint(bp)
 
@@ -197,4 +197,4 @@ def create_app(config_class=Config):
 
 
 # Importar rutas, modelos y formularios para que sean accesibles desde el blueprint
-from app import routes, models, forms
+from backend.app import routes, models, forms
