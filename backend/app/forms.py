@@ -18,7 +18,7 @@ class LoginForm(FlaskForm):
 
     def __init__(self, *args, **kwargs):
         super(LoginForm, self).__init__(*args, **kwargs)
-        from app.models import Sede
+        from backend.app.models import Sede
         sedes_list = []
         for s in Sede.query.filter_by(is_active=True).order_by(Sede.name).all():
             if s.city and s.city not in ['Selecciona tu ciudad', 'selecciona tu ciudad', '']:
@@ -172,7 +172,7 @@ class WorkOrderForm(FlaskForm):
 
     def __init__(self, current_user=None, *args, **kwargs):
         super(WorkOrderForm, self).__init__(*args, **kwargs)
-        from app.models import Sede
+        from backend.app.models import Sede
         
         # Si es admin_sede, solo muestro su sede asignada
         if current_user and current_user.role == 'admin_sede' and current_user.sede_id:
@@ -318,7 +318,7 @@ class SedeAdminForm(FlaskForm):
 
     def __init__(self, *args, **kwargs):
         super(SedeAdminForm, self).__init__(*args, **kwargs)
-        from app.models import Sede
+        from backend.app.models import Sede
         sedes_list = []
         for s in Sede.query.filter_by(is_active=True).order_by(Sede.name).all():
             if s.city and s.city not in ['Selecciona tu ciudad', 'selecciona tu ciudad', '']:
@@ -352,7 +352,7 @@ class SedeMessageForm(FlaskForm):
 
     def __init__(self, *args, **kwargs):
         super(SedeMessageForm, self).__init__(*args, **kwargs)
-        from app.models import Sede
+        from backend.app.models import Sede
         sedes_list = []
         for s in Sede.query.filter_by(is_active=True).order_by(Sede.name).all():
             if s.city and s.city not in ['Selecciona tu ciudad', 'selecciona tu ciudad', '']:
@@ -371,7 +371,7 @@ class SedeMessageForm(FlaskForm):
             raise ValidationError('Debe seleccionar un destino.')
         
         if sede_id.data != 0:  # Si no es "todas las sedes", verificar que la sede existe
-            from app.models import Sede
+            from backend.app.models import Sede
             sede = Sede.query.filter_by(id=sede_id.data, is_active=True).first()
             if not sede:
                 raise ValidationError('La sede seleccionada no es válida.')
