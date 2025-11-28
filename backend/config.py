@@ -16,7 +16,11 @@ class Config:
         _secret_key = secrets.token_hex(32)
     
     SECRET_KEY = _secret_key
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///site.db'
+    
+    # PostgreSQL en Supabase
+    # Usar directamente la URL de Supabase sin variable de entorno
+    SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:sP9a$AVsfJ48GYt@db.pqefwwfkjssjkddvgvha.supabase.co:5432/postgres'
+    
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     UPLOAD_FOLDER = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', 'frontend', 'static', 'uploads')
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024 # 16 MB max upload size
