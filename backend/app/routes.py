@@ -1347,7 +1347,7 @@ def accept_order_with_price(order_id):
         flash('Esta orden ya no puede ser aceptada.', 'warning')
         return redirect(url_for('main.view_order', order_id=order_id))
     
-    from app.forms import ProviderAcceptOrderForm
+    from backend.app.forms import ProviderAcceptOrderForm
     form = ProviderAcceptOrderForm()
     
     if form.validate_on_submit():
@@ -2083,8 +2083,8 @@ def mark_notification_read(notification_id):
 @login_required
 @role_required('admin', 'asistente')
 def send_sede_message():
-    from app.forms import SedeMessageForm
-    from app.models import SedeMessage
+    from backend.app.forms import SedeMessageForm
+    from backend.app.models import SedeMessage
     
     form = SedeMessageForm()
     if form.validate_on_submit():
@@ -2132,7 +2132,7 @@ def send_sede_message():
 @login_required
 @role_required('admin', 'asistente')
 def list_sede_messages():
-    from app.models import SedeMessage
+    from backend.app.models import SedeMessage
     from datetime import datetime
     
     messages = SedeMessage.query.filter_by(is_active=True).order_by(SedeMessage.created_at.desc()).all()
@@ -2170,7 +2170,7 @@ def list_sede_messages():
 @bp.route('/messages/my')
 @login_required
 def my_sede_messages():
-    from app.models import SedeMessage
+    from backend.app.models import SedeMessage
     from datetime import datetime
     
     # Mensajes para mi sede específica o mensajes globales
@@ -2221,7 +2221,7 @@ def my_sede_messages():
 @login_required
 @role_required('admin', 'asistente')
 def archive_sede_message(message_id):
-    from app.models import SedeMessage
+    from backend.app.models import SedeMessage
     
     message = SedeMessage.query.get_or_404(message_id)
     
@@ -2261,7 +2261,7 @@ def inject_notifications():
         # Agregar mensajes de sede no leídos
         sede_messages_count = 0
         if current_user.role == 'admin_sede' and current_user.sede_id:
-            from app.models import SedeMessage
+            from backend.app.models import SedeMessage
             sede_messages_count = SedeMessage.query.filter(
                 db.or_(
                     SedeMessage.sede_id == current_user.sede_id,
@@ -2478,7 +2478,7 @@ def check_overdue_orders():
     Esta función debe ejecutarse periódicamente (ej: cada día).
     """
     from datetime import datetime
-    from app.models import WorkOrder, Notification, User, db
+    from backend.app.models import WorkOrder, Notification, User, db
     
     # Buscar órdenes aceptadas o en proceso que puedan estar vencidas
     orders_to_check = WorkOrder.query.filter(
@@ -2586,7 +2586,7 @@ def list_pending_review_orders():
               resource_type='WorkOrder', severity=Severity.INFO, requires_attention=True)
 def complete_lens_specs(order_id):
     """Ruta para que admin complete las especificaciones de lentes de una orden"""
-    from app.forms import AdminCompleteLensForm
+    from backend.app.forms import AdminCompleteLensForm
     
     order = WorkOrder.query.get_or_404(order_id)
     
@@ -2649,7 +2649,7 @@ def complete_lens_specs(order_id):
 def get_overdue_orders_summary():
     """Retorna un resumen de órdenes vencidas para el dashboard"""
     from datetime import datetime
-    from app.models import WorkOrder
+    from backend.app.models import WorkOrder
     
     overdue_orders = WorkOrder.query.filter(
         WorkOrder.status.in_(['aceptada', 'en_proceso']),
