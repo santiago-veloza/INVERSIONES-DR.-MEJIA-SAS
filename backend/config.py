@@ -11,7 +11,8 @@ class Config:
     
     # PostgreSQL en Supabase
     # Usar directamente la URL de Supabase sin variable de entorno
-    SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:sP9a$AVsfJ48GYt@db.pqefwwfkjssjkddvgvha.supabase.co:5432/postgres'
+    # Agregando sslmode=require para conexión segura
+    SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:sP9a$AVsfJ48GYt@db.pqefwwfkjssjkddvgvha.supabase.co:5432/postgres?sslmode=require'
     
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     UPLOAD_FOLDER = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', 'frontend', 'static', 'uploads')

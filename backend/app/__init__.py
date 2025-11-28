@@ -190,8 +190,9 @@ def create_app(config_class=Config):
     #         return redirect(url_for('main.login'))
     #     return e
 
-    with app.app_context():
-        db.create_all()
+    # Las tablas ya están creadas en Supabase
+    # with app.app_context():
+    #     db.create_all()
 
     return app
 
