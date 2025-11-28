@@ -15,12 +15,33 @@
         </a>
         {% endif %}
     </div>
-    {% if current_user.role == 'admin' or current_user.role == 'asistente' %}
-    <div class="alert alert-primary">
-        <h6 class="d-flex align-items-center"><i class="fas fa-building me-1"></i> Panel de la Óptica</h6>
-        <p class="mb-0">Gestión completa de todas las órdenes enviadas a proveedores.</p>
+    
+    <!-- Filtros de búsqueda -->
+    <div class="card mb-3 shadow-sm">
+        <div class="card-body">
+            <h6 class="mb-3"><i class="fas fa-filter me-2"></i>Filtros de Búsqueda</h6>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Buscar por N° Recibo</label>
+                    <input type="text" id="filterReceiptNumber" class="form-control" placeholder="Ej: RV-001">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Buscar por N° Orden Laboratorio</label>
+                    <input type="text" id="filterLabOrder" class="form-control" placeholder="Ej: OT-0424">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Buscar por Cliente</label>
+                    <input type="text" id="filterClientName" class="form-control" placeholder="Nombre del cliente">
+                </div>
+            </div>
+            <div class="mt-3">
+                <button onclick="clearFilters()" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-times me-1"></i>Limpiar Filtros
+                </button>
+            </div>
+        </div>
     </div>
-    {% endif %}
+    
     {% if orders %}
         <div class="table-scroll-wrapper" style="overflow-x: auto;">
             <div class="table-responsive">
@@ -275,7 +296,55 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+    
+    // Función de filtrado
+    function filterTable() {
+        const receiptNumberFilter = document.getElementById('filterReceiptNumber').value.toLowerCase().trim();
+        const labOrderFilter = document.getElementById('filterLabOrder').value.toLowerCase().trim();
+        const clientNameFilter = document.getElementById('filterClientName').value.toLowerCase().trim();
+        
+        const rows = document.querySelectorAll('.table-ordenes tbody tr');
+        let visibleCount = 0;
+        
+        rows.forEach(row => {
+            // Obtener el texto completo de cada celda
+            const receiptNumber = row.cells[1].textContent.toLowerCase().trim();
+            const labOrder = row.cells[2].textContent.toLowerCase().trim();
+            const clientName = row.cells[3].textContent.toLowerCase().trim();
+            
+            // Verificar coincidencias (si el filtro está vacío, siempre coincide)
+            const matchesReceiptNumber = !receiptNumberFilter || receiptNumber.includes(receiptNumberFilter);
+            const matchesLabOrder = !labOrderFilter || labOrder.includes(labOrderFilter);
+            const matchesClientName = !clientNameFilter || clientName.includes(clientNameFilter);
+            
+            // Mostrar u ocultar la fila
+            if (matchesReceiptNumber && matchesLabOrder && matchesClientName) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        
+        console.log(`Filas visibles: ${visibleCount} de ${rows.length}`);
+    }
+    
+    // Agregar event listeners a los filtros
+    document.getElementById('filterReceiptNumber').addEventListener('input', filterTable);
+    document.getElementById('filterLabOrder').addEventListener('input', filterTable);
+    document.getElementById('filterClientName').addEventListener('input', filterTable);
 });
+
+function clearFilters() {
+    document.getElementById('filterReceiptNumber').value = '';
+    document.getElementById('filterLabOrder').value = '';
+    document.getElementById('filterClientName').value = '';
+    
+    const rows = document.querySelectorAll('.table-ordenes tbody tr');
+    rows.forEach(row => {
+        row.style.display = '';
+    });
+}
 </script>
 </div>
 {% endblock %}

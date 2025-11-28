@@ -91,9 +91,11 @@
                                     <a href="{{ url_for('main.list_orders') }}" class="btn btn-outline-light btn-sm">
                                         <i class="fas fa-arrow-left me-1"></i>Volver
                                     </a>
+                                    {% if current_user.role != 'proveedor' %}
                                     <button onclick="printOrder()" class="btn btn-success btn-sm">
                                         <i class="fas fa-print me-1"></i>Imprimir
                                     </button>
+                                    {% endif %}
                                     {% if order.pending_admin_review and order.status == 'pendiente_envio' and current_user.role == 'admin' %}
                                         <a href="{{ url_for('main.complete_lens_specs', order_id=order.id) }}" class="btn btn-warning btn-sm">
                                             <i class="fas fa-edit me-1"></i>Completar Especificaciones
@@ -425,12 +427,16 @@
                         <table class="table table-bordered mb-0">
                             <tbody>
                                 <tr>
-                                    <td class="bg-light fw-bold text-dark text-center table-header-50">MONTO TOTAL</td>
+                                    <td class="bg-light fw-bold text-dark text-center table-header-50">PRECIO DE VENTA</td>
                                     <td class="bg-light fw-bold text-dark text-center table-header-50">ESTADO DE PAGO</td>
                                 </tr>
                                 <tr>
                                     <td class="text-center py-2">
-                                        <span class="h5 text-success mb-0">${{ "{:,.0f}".format(order.total_amount) }}</span>
+                                        {% if order.sale_price and order.sale_price > 0 %}
+                                            <span class="h5 text-primary mb-0">${{ "{:,.0f}".format(order.sale_price) }}</span>
+                                        {% else %}
+                                            <span class="text-muted">No registrado</span>
+                                        {% endif %}
                                     </td>
                                     <td class="text-center py-2">
                                         {% if order.payment_status == 'pagada' %}

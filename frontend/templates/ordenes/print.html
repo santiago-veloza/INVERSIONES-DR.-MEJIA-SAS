@@ -258,6 +258,16 @@
             </div>
         </div>
         
+        <!-- Precio de Venta -->
+        {% if order.sale_price and order.sale_price > 0 %}
+        <div class="info-row">
+            <div class="info-field">
+                <div class="field-label">Precio de Venta</div>
+                <div class="field-value" style="font-weight: bold; color: #2874d4;">${{ "{:,.0f}".format(order.sale_price) }}</div>
+            </div>
+        </div>
+        {% endif %}
+        
         {% if order.formula_details %}
         <div class="info-row">
             <div class="info-field full-width">

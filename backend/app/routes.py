@@ -432,10 +432,11 @@ def admin_dashboard():
             )
         ).count()
         
-        # Ventas del mes (suma de costos de órdenes pagadas)
-        sales_this_month = db.session.query(func.sum(WorkOrder.total_amount)).filter(
+        # Ventas del mes (suma de precios de venta al cliente de órdenes pagadas)
+        sales_this_month = db.session.query(func.sum(WorkOrder.sale_price)).filter(
             and_(
                 WorkOrder.sede_id == sede.id,
+                WorkOrder.sale_price.isnot(None),
                 WorkOrder.payment_status == 'pagada',
                 extract('month', WorkOrder.created_at) == current_month,
                 extract('year', WorkOrder.created_at) == current_year
@@ -443,17 +444,19 @@ def admin_dashboard():
         ).scalar() or 0
         
         # Ventas totales
-        total_sales = db.session.query(func.sum(WorkOrder.total_amount)).filter(
+        total_sales = db.session.query(func.sum(WorkOrder.sale_price)).filter(
             and_(
                 WorkOrder.sede_id == sede.id,
+                WorkOrder.sale_price.isnot(None),
                 WorkOrder.payment_status == 'pagada'
             )
         ).scalar() or 0
         
-        # Pagos pendientes
-        pending_payments = db.session.query(func.sum(WorkOrder.total_amount)).filter(
+        # Pagos pendientes (precios de venta pendientes de pago)
+        pending_payments = db.session.query(func.sum(WorkOrder.sale_price)).filter(
             and_(
                 WorkOrder.sede_id == sede.id,
+                WorkOrder.sale_price.isnot(None),
                 WorkOrder.payment_status == 'pendiente',
                 WorkOrder.status.in_(['recibida_optica', 'finalizada'])
             )
