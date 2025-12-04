@@ -14,6 +14,16 @@ class Config:
     SQLALCHEMY_DATABASE_URI = 'postgresql://postgres.pqefwwfkjssjkddvgvha:sP9a$AVsfJ48GYt@aws-0-us-west-2.pooler.supabase.com:6543/postgres'
     
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    
+    # Configuración del pool de conexiones para prevenir errores de conexión cerrada
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'pool_pre_ping': True,          # Verifica conexiones antes de usarlas
+        'pool_recycle': 300,            # Recicla conexiones cada 5 minutos
+        'pool_size': 10,                # Máximo de conexiones en el pool
+        'max_overflow': 20,             # Conexiones adicionales permitidas
+        'pool_timeout': 30,             # Timeout para obtener conexión del pool
+    }
+    
     UPLOAD_FOLDER = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', 'frontend', 'static', 'uploads')
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024 # 16 MB max upload size
     

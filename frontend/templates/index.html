@@ -2,15 +2,6 @@
 
 {% block content %}
     {% if current_user.role in ['admin', 'asistente'] %}        
-        <div class="alert alert-primary mb-4">
-            <div class="d-flex align-items-center">
-                <i class="fas fa-building fs-1 me-3"></i>
-                <div>
-                    <h4 class="mb-1">Panel Óptica - {{ current_user.username }}</h4>
-                    <p class="mb-0">Gestión completa de órdenes y proveedores</p>
-                </div>
-            </div>
-        </div>
         <div class="row mb-4">
             <div class="col-lg-3 col-md-6 mb-4">
                 <div class="dashboard-card stats-card">
@@ -304,70 +295,24 @@
                 </div>
             </div>
         </div>
+        {% if orders_pending_response > 0 %}
         <div class="row mt-4">
             <div class="col-12">
-                <div class="card">
-                    <div class="card-header bg-info text-white">
-                        <h5><i class="fas fa-tools me-2"></i> Acciones Rápidas</h5>
-                    </div>
-                    <div class="card-body">
-                        
-                        <div class="row g-3">
-                            <div class="col-xl-4 col-lg-4 col-md-6 mb-3">
-                                <a href="{{ url_for('main.list_orders') }}" class="btn btn-primary w-100 quick-action-btn">
-                                    <div class="quick-action-content">
-                                        <i class="fas fa-tasks quick-action-icon"></i>
-                                        <div class="quick-action-text">
-                                            <span class="fw-bold">Ver Mis Órdenes</span>
-                                            <small class="d-block text-light opacity-75">Gestionar todas mis órdenes asignadas</small>
-                                        </div>
-                                    </div>
-                                </a>
-                            </div>
-                            <div class="col-xl-4 col-lg-4 col-md-6 mb-3">
-                                <a href="{{ url_for('main.view_notifications') }}" class="btn btn-warning w-100 quick-action-btn">
-                                    <div class="quick-action-content">
-                                        <i class="fas fa-bell quick-action-icon"></i>
-                                        <div class="quick-action-text">
-                                            <span class="fw-bold">Notificaciones</span>
-                                            <small class="d-block text-dark opacity-75">Ver nuevas órdenes y actualizaciones</small>
-                                        </div>
-                                    </div>
-                                </a>
-                            </div>
-                            <div class="col-xl-4 col-lg-4 col-md-6 mb-3">
-                                <div class="quick-action-btn btn btn-success position-relative overflow-hidden">
-                                    <div class="quick-action-content">
-                                        <i class="fas fa-money-bill-wave quick-action-icon"></i>
-                                        <div class="quick-action-text">
-                                            <span class="fw-bold">Estado de Pagos</span>
-                                            <small class="d-block text-light opacity-75">
-                                                Pagadas: <span class="badge bg-light text-success">{{ orders_paid }}</span> | 
-                                                Pendientes: <span class="badge bg-light text-warning">{{ orders_pending_payment }}</span>
-                                            </small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                <div class="alert alert-warning">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-exclamation-triangle fs-2 me-3"></i>
+                        <div>
+                            <h6 class="mb-1">¡Atención Requerida!</h6>
+                            <p class="mb-1">Tienes <strong>{{ orders_pending_response }}</strong> órdenes esperando tu respuesta.</p>
+                            <a href="{{ url_for('main.list_orders') }}" class="btn btn-outline-warning">
+                                <i class="fas fa-eye me-1"></i>Ver y Responder
+                            </a>
                         </div>
-                        {% if orders_pending_response > 0 %}
-                        <div class="alert alert-warning mt-3">
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-exclamation-triangle fs-2 me-3"></i>
-                                <div>
-                                    <h6 class="mb-1">¡Atención Requerida!</h6>
-                                    <p class="mb-1">Tienes <strong>{{ orders_pending_response }}</strong> órdenes esperando tu respuesta.</p>
-                                    <a href="{{ url_for('main.list_orders') }}" class="btn btn-outline-warning">
-                                        <i class="fas fa-eye me-1"></i>Ver y Responder
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        {% endif %}
                     </div>
                 </div>
             </div>
         </div>
+        {% endif %}
         <div class="row mt-4">
             <div class="col-md-6 mb-4">
                 <div class="card">

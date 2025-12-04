@@ -53,13 +53,17 @@
                             <th style="min-width: 130px;">Orden Lab</th>
                             <th style="min-width: 180px;">Cliente</th>
                             <th style="min-width: 150px;">Sede</th>
+                            <th style="min-width: 180px;">Proveedor</th>
                             <th style="min-width: 150px;">Clase de Lente</th>
                             <th style="min-width: 150px;">Tipo de Lente</th>
-                            <th style="min-width: 180px;">Proveedor</th>
                             <th style="min-width: 140px;">Estado</th>
                             <th style="min-width: 160px;">Tiempo Entrega</th>
                             <th style="min-width: 140px;">Estado Pago</th>
-                            <th style="min-width: 130px;">Monto Total</th>
+                            {% if current_user.role == 'admin' %}
+                            <th style="min-width: 130px;">Vr Venta</th>
+                            <th style="min-width: 130px;">Vr Costo</th>
+                            <th style="min-width: 130px;">Vr Utilidad</th>
+                            {% endif %}
                             <th style="min-width: 130px;">Creado Por</th>
                             <th style="min-width: 150px;">Fecha Creación</th>
                             <th style="min-width: 180px;">Acciones</th>
@@ -67,7 +71,7 @@
                     </thead>
                 <tbody>
                     {% for order in orders %}
-                    <tr class="clickable-row {% if order.pending_admin_review %}table-danger{% elif current_user.role == 'proveedor' and order.status == 'enviada' %}table-danger{% elif (current_user.role == 'admin_sede' or current_user.role == 'proveedor') and order.status == 'en_proceso' %}table-warning{% elif current_user.role == 'proveedor' and order.status == 'devuelta_proveedor' %}table-success{% elif current_user.role == 'admin_sede' and order.status == 'devuelta_proveedor' %}table-orange{% endif %}" 
+                    <tr class="clickable-row {% if order.pending_admin_review %}table-danger{% elif order.status == 'recibida_optica' %}table-success{% elif current_user.role == 'proveedor' and order.status == 'enviada' %}table-danger{% elif (current_user.role == 'admin_sede' or current_user.role == 'proveedor') and order.status == 'en_proceso' %}table-warning{% elif current_user.role == 'proveedor' and order.status == 'devuelta_proveedor' %}table-success{% elif current_user.role == 'admin_sede' and order.status == 'devuelta_proveedor' %}table-orange{% endif %}" 
                         data-order-id="{{ order.id }}" 
                         {% if order.pending_admin_review %}
                         data-pending-review="true"
@@ -81,44 +85,44 @@
                             {% endif %}
                         </td>
                         <td>
-                            <span class="badge bg-secondary">{{ order.receipt_number or 'N/A' }}</span>
+                            {{ order.receipt_number or 'N/A' }}
                         </td>
                         <td>
                             {% if order.orden_laboratorio %}
-                                <span class="badge bg-info">{{ order.orden_laboratorio }}</span>
+                                {{ order.orden_laboratorio }}
                             {% else %}
                                 <span class="text-muted small">-</span>
                             {% endif %}
                         </td>
                         <td>
-                            <strong>{{ order.client_name }}</strong>
+                            {{ order.client_name }}
                             {% if order.client_cc %}
                                 <br><small class="text-muted">CC: {{ order.client_cc }}</small>
                             {% endif %}
                         </td>
                         <td>
                             {% if order.sede %}
-                                <strong>{{ order.sede.name }}</strong>
+                                {{ order.sede.name }}
                                 <br><small class="text-muted">{{ order.sede.city }}</small>
                             {% else %}
                                 <span class="text-muted">Sin sede</span>
                             {% endif %}
                         </td>
-                        <td>
-                            {% if order.pending_admin_review %}
-                                <span class="badge bg-danger">⚠️ Pendiente Admin</span>
-                            {% else %}
-                                <span class="badge bg-primary">{{ order.lens_class or 'N/A' }}</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if order.pending_admin_review %}
-                                <span class="badge bg-danger">⚠️ Pendiente Admin</span>
-                            {% else %}
-                                <span class="badge bg-info">{{ order.lens_type or 'N/A' }}</span>
-                            {% endif %}
-                        </td>
                         <td>{{ order.provider.razon_social or order.provider.name }}</td>
+                        <td>
+                            {% if order.pending_admin_review %}
+                                <span class="badge bg-danger">⚠️ Pendiente Admin</span>
+                            {% else %}
+                                {{ order.lens_class or 'N/A' }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if order.pending_admin_review %}
+                                <span class="badge bg-danger">⚠️ Pendiente Admin</span>
+                            {% else %}
+                                {{ order.lens_type or 'N/A' }}
+                            {% endif %}
+                        </td>
                         <td>
                             {% if current_user.role == 'proveedor' %}
                                 {% if order.status == 'enviada' %}
@@ -216,7 +220,30 @@
                                 <span class="badge bg-danger">{{ order.payment_status.replace('_', ' ').title() }}</span>
                             {% endif %}
                         </td>
-                        <td>${{ "%.2f"|format(order.total_amount) }}</td>
+                        {% if current_user.role == 'admin' %}
+                        <td>
+                            {% if order.sale_price %}
+                                ${{ order.sale_price|format_currency }}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>${{ order.total_amount|format_currency }}</td>
+                        <td>
+                            {% if order.sale_price and order.total_amount %}
+                                {% set utilidad = order.sale_price - order.total_amount %}
+                                {% if utilidad > 0 %}
+                                    <span class="text-dark fw-bold">${{ utilidad|format_currency }}</span>
+                                {% elif utilidad < 0 %}
+                                    <span class="text-danger">${{ utilidad|format_currency }}</span>
+                                {% else %}
+                                    <span class="text-muted">$0,00</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        {% endif %}
                         <td>
                             {% if order.created_by %}
                                 {{ order.created_by.username }}

@@ -42,6 +42,29 @@ def create_app(config_class=Config):
 
     app.register_blueprint(bp)
 
+    # Filtro personalizado para formatear números con separador de miles
+    @app.template_filter('format_currency')
+    def format_currency(value):
+        """Formatea un número como moneda con separador de miles (puntos) y decimales con coma"""
+        try:
+            # Convertir a float si es string
+            if isinstance(value, str):
+                value = float(value)
+            
+            # Verificar si el número tiene decimales significativos
+            if value % 1 == 0:
+                # Si no tiene decimales, formatear sin decimales
+                formatted = "{:,.0f}".format(value)
+            else:
+                # Si tiene decimales, formatear con 2 decimales
+                formatted = "{:,.2f}".format(value)
+            
+            # Reemplazar coma por punto para miles y punto por coma para decimales (formato colombiano)
+            formatted = formatted.replace(',', 'TEMP').replace('.', ',').replace('TEMP', '.')
+            return formatted
+        except (ValueError, TypeError):
+            return value
+
     # Middleware de seguridad y timeout de sesión que implementé
     @app.before_request
     def security_middleware():

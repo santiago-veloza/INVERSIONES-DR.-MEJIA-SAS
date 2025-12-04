@@ -75,14 +75,14 @@
                         </td>
                         <td>{{ order.client_name }}</td>
                         <td>{{ order.provider.razon_social or order.provider.name }}</td>
-                        <td>${{ "%.2f"|format(order.total_amount) }}</td>
+                        <td>${{ order.total_amount|format_currency }}</td>
                         <td>
                             {% set total_paid = order.payments|map(attribute='amount')|sum %}
-                            ${{ "%.2f"|format(total_paid) }}
+                            ${{ total_paid|format_currency }}
                         </td>
                         <td>
                             {% set total_paid = order.payments|map(attribute='amount')|sum %}
-                            <strong class="text-danger">${{ "%.2f"|format(order.total_amount - total_paid) }}</strong>
+                            <strong class="text-danger">${{ (order.total_amount - total_paid)|format_currency }}</strong>
                         </td>
                         <td>
                             {% if order.payment_status == 'pagada' %}
@@ -136,7 +136,7 @@
                             </div>
                             <h6 class="text-muted">Monto Total</h6>
                             {% set total_amount = orders|map(attribute='total_amount')|sum %}
-                            <h4>${{ "%.2f"|format(total_amount) }}</h4>
+                            <h4>${{ total_amount|format_currency }}</h4>
                         </div>
                     </div>
                 </div>
@@ -154,7 +154,7 @@
                                 {% set paid = order.payments|map(attribute='amount')|sum %}
                                 {% set total_paid = total_paid + paid %}
                             {% endfor %}
-                            <h4>${{ "%.2f"|format(total_paid) }}</h4>
+                            <h4>${{ total_paid|format_currency }}</h4>
                         </div>
                     </div>
                 </div>
@@ -176,7 +176,7 @@
                                 {% endif %}
                                 {% set total_pending = total_pending + (order.total_amount - paid) %}
                             {% endfor %}
-                            <h4>${{ "%.2f"|format(total_pending) }}</h4>
+                            <h4>${{ total_pending|format_currency }}</h4>
                         </div>
                     </div>
                 </div>

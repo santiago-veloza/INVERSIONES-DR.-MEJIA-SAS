@@ -285,7 +285,7 @@ class UserForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
     role = SelectField('Rol', choices=[('asistente', 'Asistente (Óptica)'), ('proveedor', 'Proveedor'), ('admin', 'Administrador')], validators=[DataRequired()])
     is_active = BooleanField('Usuario Activo')
-    provider_id = SelectField('Asignar a Proveedor (si es rol Proveedor)', coerce=int, validators=[Optional()])
+    provider_id = SelectField('Asignar a Proveedor (si es rol Proveedor)', coerce=lambda x: int(x) if x and x != '' else None, validators=[Optional()])
     submit = SubmitField('Guardar Usuario')
 
     def __init__(self, original_user=None, *args, **kwargs):

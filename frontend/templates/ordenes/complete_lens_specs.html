@@ -16,77 +16,22 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">
-                            <p><strong>Cliente:</strong> {{ order.client_name }}</p>
-                            <p><strong>CC:</strong> {{ order.client_cc }}</p>
-                            <p><strong>Recibo N°:</strong> {{ order.receipt_number }}</p>
+                            <p><strong>Cliente:</strong> <span class="text-dark bg-primary bg-opacity-10 p-2 rounded d-inline-block fw-bold">{{ order.client_name }}</span></p>
+                            <p><strong>CC:</strong> <span class="text-dark bg-primary bg-opacity-10 p-2 rounded d-inline-block fw-bold">{{ order.client_cc }}</span></p>
+                            <p><strong>Recibo N°:</strong> <span class="text-dark bg-primary bg-opacity-10 p-2 rounded d-inline-block fw-bold">{{ order.receipt_number }}</span></p>
                             {% if order.orden_laboratorio %}
-                            <p><strong>Orden Lab:</strong> {{ order.orden_laboratorio }}</p>
+                            <p><strong>Orden Lab:</strong> <span class="text-dark bg-primary bg-opacity-10 p-2 rounded d-inline-block fw-bold">{{ order.orden_laboratorio }}</span></p>
                             {% endif %}
                         </div>
                         <div class="col-md-6">
-                            <p><strong>Sede:</strong> {{ order.sede.name }} ({{ order.sede.city }})</p>
-                            <p><strong>Proveedor:</strong> {{ order.provider.razon_social }}</p>
-                            <p><strong>Fecha creación:</strong> {{ order.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
-                            <p><strong>Creada por:</strong> {{ order.created_by.username }}</p>
+                            <p><strong>Sede:</strong> <span class="text-dark bg-primary bg-opacity-10 p-2 rounded d-inline-block fw-bold">{{ order.sede.name }} ({{ order.sede.city }})</span></p>
+                            <p><strong>Proveedor:</strong> <span class="text-dark bg-primary bg-opacity-10 p-2 rounded d-inline-block fw-bold">{{ order.provider.razon_social }}</span></p>
+                            <p><strong>Fecha creación:</strong> <span class="text-dark bg-primary bg-opacity-10 p-2 rounded d-inline-block fw-bold">{{ order.created_at.strftime('%d/%m/%Y %H:%M') }}</span></p>
+                            <p><strong>Creada por:</strong> <span class="text-dark bg-primary bg-opacity-10 p-2 rounded d-inline-block fw-bold">{{ order.created_by.username }}</span></p>
                         </div>
                     </div>
                     
-                    {% if order.formula_od or order.formula_oi %}
                     <hr>
-                    <h6 class="fw-bold text-primary">Fórmula Óptica:</h6>
-                    <div class="row">
-                        {% if order.formula_od %}
-                        <div class="col-md-6">
-                            <strong>OD (Ojo Derecho):</strong>
-                            <p class="font-monospace">{{ order.formula_od|replace('\n', '<br>')|safe }}</p>
-                        </div>
-                        {% endif %}
-                        {% if order.formula_oi %}
-                        <div class="col-md-6">
-                            <strong>OI (Ojo Izquierdo):</strong>
-                            <p class="font-monospace">{{ order.formula_oi|replace('\n', '<br>')|safe }}</p>
-                        </div>
-                        {% endif %}
-                    </div>
-                    {% if order.formula_add or order.formula_dp_alt %}
-                    <div class="row mt-2">
-                        {% if order.formula_add %}
-                        <div class="col-md-6">
-                            <strong>ADD (Adición):</strong>
-                            <p class="font-monospace">{{ order.formula_add|replace('\n', '<br>')|safe }}</p>
-                        </div>
-                        {% endif %}
-                        {% if order.formula_dp_alt %}
-                        <div class="col-md-6">
-                            <strong>DP Y ALT:</strong>
-                            <p class="font-monospace">{{ order.formula_dp_alt|replace('\n', '<br>')|safe }}</p>
-                        </div>
-                        {% endif %}
-                    </div>
-                    {% endif %}
-                    {% endif %}
-                    
-                    {% if order.frame_type %}
-                    <hr>
-                    <p><strong>Tipo de Montura:</strong> {{ order.frame_type }}</p>
-                    {% endif %}
-                    
-                    {% if order.observations %}
-                    <hr>
-                    <p><strong>Observaciones:</strong></p>
-                    <p class="text-muted">{{ order.observations|replace('\n', '<br>')|safe }}</p>
-                    {% endif %}
-                </div>
-            </div>
-
-            <div class="card border-primary">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-edit me-2"></i>
-                        Completar Especificaciones de Lentes
-                    </h5>
-                </div>
-                <div class="card-body">
                     <div class="alert alert-warning">
                         <i class="fas fa-exclamation-triangle me-2"></i>
                         <strong>Importante:</strong> Complete los siguientes campos para que la orden pueda ser enviada al proveedor.
@@ -118,26 +63,73 @@
                                 {% endfor %}
                             </div>
                         </div>
-                        
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a href="{{ url_for('main.list_pending_review_orders') }}" class="btn btn-secondary me-md-2">
-                                <i class="fas fa-arrow-left me-1"></i>Volver a la lista
-                            </a>
-                            <a href="{{ url_for('main.view_order', order_id=order.id) }}" class="btn btn-info me-md-2">
-                                <i class="fas fa-eye me-1"></i>Ver orden completa
-                            </a>
-                            {{ form.submit(class="btn btn-success btn-lg") }}
+                    
+                    {% if order.formula_od or order.formula_oi %}
+                    <hr>
+                    <h6 class="fw-bold text-primary">Fórmula Óptica:</h6>
+                    <div class="row">
+                        {% if order.formula_od %}
+                        <div class="col-md-6">
+                            <strong>OD (Ojo Derecho):</strong>
+                            <p class="text-dark bg-primary bg-opacity-10 p-2 rounded font-monospace fw-bold">{{ order.formula_od|replace('\n', '<br>')|safe }}</p>
                         </div>
-                        
-                        <div class="alert alert-success mt-3">
-                            <h6><i class="fas fa-check-circle me-2"></i>Después de completar las especificaciones:</h6>
-                            <ul class="mb-0">
-                                <li>La orden será <strong>enviada automáticamente</strong> al proveedor {{ order.provider.razon_social }}</li>
-                                <li>El proveedor recibirá una <strong>notificación</strong> para aceptar o rechazar la orden</li>
-                                <li>La sede {{ order.sede.name }} será <strong>notificada</strong> de que su orden fue completada y enviada</li>
-                                <li>La orden cambiará a estado <span class="badge bg-primary">Enviada</span></li>
-                            </ul>
+                        {% endif %}
+                        {% if order.formula_oi %}
+                        <div class="col-md-6">
+                            <strong>OI (Ojo Izquierdo):</strong>
+                            <p class="text-dark bg-primary bg-opacity-10 p-2 rounded font-monospace fw-bold">{{ order.formula_oi|replace('\n', '<br>')|safe }}</p>
                         </div>
+                        {% endif %}
+                    </div>
+                    {% if order.formula_add or order.formula_dp_alt %}
+                    <div class="row mt-2">
+                        {% if order.formula_add %}
+                        <div class="col-md-6">
+                            <strong>ADD (Adición):</strong>
+                            <p class="text-dark bg-primary bg-opacity-10 p-2 rounded font-monospace fw-bold">{{ order.formula_add|replace('\n', '<br>')|safe }}</p>
+                        </div>
+                        {% endif %}
+                        {% if order.formula_dp_alt %}
+                        <div class="col-md-6">
+                            <strong>DP Y ALT:</strong>
+                            <p class="text-dark bg-primary bg-opacity-10 p-2 rounded font-monospace fw-bold">{{ order.formula_dp_alt|replace('\n', '<br>')|safe }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    {% endif %}
+                    
+                    {% if order.frame_type %}
+                    <hr>
+                    <p><strong>Tipo de Montura:</strong> <span class="text-dark bg-primary bg-opacity-10 p-2 rounded d-inline-block fw-bold">{{ order.frame_type }}</span></p>
+                    {% endif %}
+                    
+                    {% if order.observations %}
+                    <hr>
+                    <p><strong>Observaciones:</strong></p>
+                    <p class="text-dark bg-primary bg-opacity-10 p-2 rounded fw-bold">{{ order.observations|replace('\n', '<br>')|safe }}</p>
+                    {% endif %}
+                    
+                    <hr>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('main.list_pending_review_orders') }}" class="btn btn-secondary me-md-2">
+                            <i class="fas fa-arrow-left me-1"></i>Volver a la lista
+                        </a>
+                        <a href="{{ url_for('main.view_order', order_id=order.id) }}" class="btn btn-info me-md-2">
+                            <i class="fas fa-eye me-1"></i>Ver orden completa
+                        </a>
+                        {{ form.submit(class="btn btn-success btn-lg") }}
+                    </div>
+                    
+                    <div class="alert alert-success mt-3">
+                        <h6><i class="fas fa-check-circle me-2"></i>Después de completar las especificaciones:</h6>
+                        <ul class="mb-0">
+                            <li>La orden será <strong>enviada automáticamente</strong> al proveedor {{ order.provider.razon_social }}</li>
+                            <li>El proveedor recibirá una <strong>notificación</strong> para aceptar o rechazar la orden</li>
+                            <li>La sede {{ order.sede.name }} será <strong>notificada</strong> de que su orden fue completada y enviada</li>
+                            <li>La orden cambiará a estado <span class="badge bg-primary">Enviada</span></li>
+                        </ul>
+                    </div>
                     </form>
                 </div>
             </div>

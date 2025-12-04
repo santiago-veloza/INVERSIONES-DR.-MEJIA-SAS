@@ -7,62 +7,190 @@
             align-items: center;
             justify-content: center;
             padding: 2rem 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .floating-logo {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background-image: url('https://res.cloudinary.com/dwdnfpr8i/image/upload/v1762146543/logo-DR_MEJIA_za9ocq.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            opacity: 0.15;
+            z-index: 0;
+        }
+        
+        .floating-logo:nth-child(1) { top: 10%; left: 5%; animation: float1 12s ease-in-out infinite; }
+        .floating-logo:nth-child(2) { top: 15%; right: 8%; animation: float2 15s ease-in-out infinite; }
+        .floating-logo:nth-child(3) { top: 45%; left: 3%; animation: float3 14s ease-in-out infinite; }
+        .floating-logo:nth-child(4) { top: 60%; right: 5%; animation: float4 16s ease-in-out infinite; }
+        .floating-logo:nth-child(5) { bottom: 15%; left: 10%; animation: float5 13s ease-in-out infinite; }
+        .floating-logo:nth-child(6) { bottom: 20%; right: 12%; animation: float6 14s ease-in-out infinite; }
+        .floating-logo:nth-child(7) { top: 25%; left: 15%; animation: float7 13s ease-in-out infinite; }
+        .floating-logo:nth-child(8) { top: 70%; left: 20%; animation: float8 15s ease-in-out infinite; }
+        .floating-logo:nth-child(9) { top: 35%; right: 15%; animation: float9 16s ease-in-out infinite; }
+        .floating-logo:nth-child(10) { bottom: 35%; right: 20%; animation: float10 14s ease-in-out infinite; }
+        .floating-logo:nth-child(11) { top: 5%; left: 25%; animation: float11 14s ease-in-out infinite; }
+        .floating-logo:nth-child(12) { top: 50%; left: 8%; animation: float12 13s ease-in-out infinite; }
+        .floating-logo:nth-child(13) { top: 80%; right: 25%; animation: float13 15s ease-in-out infinite; }
+        .floating-logo:nth-child(14) { bottom: 10%; left: 30%; animation: float14 14s ease-in-out infinite; }
+        .floating-logo:nth-child(15) { top: 30%; right: 3%; animation: float15 15s ease-in-out infinite; }
+        .floating-logo:nth-child(16) { bottom: 40%; left: 12%; animation: float16 13s ease-in-out infinite; }
+        .floating-logo:nth-child(17) { top: 55%; right: 30%; animation: float17 16s ease-in-out infinite; }
+        .floating-logo:nth-child(18) { bottom: 25%; right: 8%; animation: float18 14s ease-in-out infinite; }
+        
+        @keyframes float1 {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(50px, 60px) rotate(20deg); }
+        }
+        
+        @keyframes float2 {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(-60px, 50px) rotate(-25deg); }
+        }
+        
+        @keyframes float3 {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(55px, -45px) rotate(18deg); }
+        }
+        
+        @keyframes float4 {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(-50px, -55px) rotate(-20deg); }
+        }
+        
+        @keyframes float5 {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(45px, -50px) rotate(30deg); }
+        }
+        
+        @keyframes float6 {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(-55px, 45px) rotate(-18deg); }
+        }
+        
+        @keyframes float7 {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(60px, 55px) rotate(25deg); }
+        }
+        
+        @keyframes float8 {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(-45px, -60px) rotate(-30deg); }
+        }
+        
+        @keyframes float9 {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(50px, -50px) rotate(22deg); }
+        }
+        
+        @keyframes float10 {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(-60px, 55px) rotate(-25deg); }
+        }
+        
+        @keyframes float11 {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(55px, 50px) rotate(18deg); }
+        }
+        
+        @keyframes float12 {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(50px, -55px) rotate(-22deg); }
+        }
+        
+        @keyframes float13 {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(-55px, -50px) rotate(25deg); }
+        }
+        
+        @keyframes float14 {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(60px, -45px) rotate(-18deg); }
+        }
+        
+        @keyframes float15 {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(-50px, 60px) rotate(30deg); }
+        }
+        
+        @keyframes float16 {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(55px, 55px) rotate(-25deg); }
+        }
+        
+        @keyframes float17 {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(-60px, -55px) rotate(22deg); }
+        }
+        
+        @keyframes float18 {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(50px, 50px) rotate(-30deg); }
+        }
+        
+        .login-container > .container {
+            position: relative;
+            z-index: 1;
         }
         
         .login-card {
             background: white;
-            border-radius: 1.5rem;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            border-radius: 1rem;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
             overflow: hidden;
-            max-width: 950px;
+            max-width: 750px;
             width: 100%;
         }
         
         .login-left {
             background: white;
-            padding: 4rem 3rem;
+            padding: 2.5rem 2rem;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             color: #2d3748;
-            min-height: 650px;
+            min-height: 520px;
         }
         
         .login-logo {
             width: 100%;
-            max-width: 260px;
+            max-width: 180px;
             height: auto;
-            margin-bottom: 3rem;
-            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.1));
+            margin-bottom: 2rem;
+            filter: drop-shadow(0 3px 10px rgba(0, 0, 0, 0.08));
         }
         
         .login-right {
             background: linear-gradient(135deg, #2874d4 0%, #1e5bb8 100%);
-            padding: 4rem 3.5rem;
+            padding: 2.5rem 2.5rem;
             display: flex;
             flex-direction: column;
             justify-content: center;
         }
         
         .login-title {
-            font-size: 2rem;
+            font-size: 1.5rem;
             font-weight: 700;
             color: white;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.4rem;
         }
         
         .login-subtitle {
             color: rgba(255, 255, 255, 0.9);
-            margin-bottom: 2.5rem;
-            font-size: 0.95rem;
+            margin-bottom: 1.8rem;
+            font-size: 0.85rem;
         }
         
         .form-label {
             font-weight: 600;
             color: white;
-            margin-bottom: 0.5rem;
-            font-size: 0.9rem;
+            margin-bottom: 0.4rem;
+            font-size: 0.8rem;
         }
         
         .form-label i {
@@ -71,10 +199,10 @@
         
         .form-control,
         .form-select {
-            padding: 0.75rem 1rem;
+            padding: 0.55rem 0.85rem;
             border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 0.5rem;
-            font-size: 0.95rem;
+            border-radius: 0.4rem;
+            font-size: 0.85rem;
             transition: all 0.3s ease;
             background: rgba(255, 255, 255, 0.95);
         }
@@ -82,7 +210,7 @@
         .form-control:focus,
         .form-select:focus {
             border-color: white;
-            box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.4);
+            box-shadow: 0 0 0 0.15rem rgba(255, 255, 255, 0.4);
             background: white;
         }
         
@@ -90,40 +218,40 @@
             background: white;
             color: #2874d4;
             border: none;
-            padding: 0.875rem;
+            padding: 0.65rem;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.4px;
             transition: all 0.3s ease;
-            font-size: 0.95rem;
+            font-size: 0.85rem;
         }
         
         .btn-login:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(255, 255, 255, 0.4);
+            box-shadow: 0 5px 18px rgba(255, 255, 255, 0.4);
             background: #f8f9fa;
             color: #1e5bb8;
         }
         
         .login-welcome {
-            font-size: 1.3rem;
+            font-size: 1.05rem;
             font-weight: 600;
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
             text-align: center;
             color: #2874d4;
-            line-height: 1.5;
+            line-height: 1.4;
         }
         
         .login-description {
             text-align: center;
-            font-size: 1rem;
-            line-height: 1.7;
+            font-size: 0.85rem;
+            line-height: 1.6;
             font-weight: 400;
             color: #4a5568;
         }
         
         .form-check-label {
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             color: white;
         }
         
@@ -138,10 +266,31 @@
         
         small.text-muted {
             color: rgba(255, 255, 255, 0.8) !important;
+            font-size: 0.75rem;
         }
         
         small.text-muted i {
-            color: rgba(255, 255, 255, 0.8) !important;
+    <div class="login-container">
+        <div class="floating-logo"></div>
+        <div class="floating-logo"></div>
+        <div class="floating-logo"></div>
+        <div class="floating-logo"></div>
+        <div class="floating-logo"></div>
+        <div class="floating-logo"></div>
+        <div class="floating-logo"></div>
+        <div class="floating-logo"></div>
+        <div class="floating-logo"></div>
+        <div class="floating-logo"></div>
+        <div class="floating-logo"></div>
+        <div class="floating-logo"></div>
+        <div class="floating-logo"></div>
+        <div class="floating-logo"></div>
+        <div class="floating-logo"></div>
+        <div class="floating-logo"></div>
+        <div class="floating-logo"></div>
+        <div class="floating-logo"></div>
+        <div class="container">
+            margin-top: 1.2rem !important;
         }
         
         @media (max-width: 768px) {
@@ -170,6 +319,16 @@
     </style>
 
     <div class="login-container">
+        <div class="floating-logo"></div>
+        <div class="floating-logo"></div>
+        <div class="floating-logo"></div>
+        <div class="floating-logo"></div>
+        <div class="floating-logo"></div>
+        <div class="floating-logo"></div>
+        <div class="floating-logo"></div>
+        <div class="floating-logo"></div>
+        <div class="floating-logo"></div>
+        <div class="floating-logo"></div>
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-lg-11 col-xl-10">
@@ -190,6 +349,8 @@
                                 <h2 class="login-title">Iniciar Sesión</h2>
                                 
                                 <form action="" method="post">
+                                    {{ form.csrf_token if form else '' }}
+                                    
                                     <div class="mb-3">
                                         <label for="user_type" class="form-label">
                                             <i class="fas fa-user-tag me-2"></i>Tipo de Usuario
@@ -209,13 +370,13 @@
                                         <select name="sede_id" id="sede_id" class="form-select">
                                             <option value="0">Seleccionar Sede</option>
                                             {% for sede in sedes %}
-                                            <option value="{{ sede.id }}">{{ sede.name }} - {{ sede.city }}</option>
+                                            <option value="{{ sede.id }}" data-dept="{{ sede.department or '' }}">{{ sede.name }} - {{ sede.city }}</option>
                                             {% endfor %}
                                         </select>
                                         <small class="text-muted">Selecciona la sede desde la cual vas a trabajar</small>
                                     </div>
                                     
-                                    <div class="mb-3">
+                                    <div class="mb-3" id="username_field">
                                         <label for="username" class="form-label">
                                             <i class="fas fa-user me-2"></i>Usuario
                                         </label>
@@ -223,8 +384,7 @@
                                                name="username" 
                                                id="username" 
                                                class="form-control" 
-                                               placeholder="Ingresa tu usuario"
-                                               required>
+                                               placeholder="Ingresa tu usuario">
                                     </div>
                                     
                                     <div class="mb-3">
@@ -272,20 +432,35 @@
         document.addEventListener('DOMContentLoaded', function() {
             const userTypeSelect = document.getElementById('user_type');
             const sedeSelection = document.getElementById('sede_selection');
+            const usernameField = document.getElementById('username_field');
+            const usernameInput = document.getElementById('username');
             
-            function toggleSedeSelection() {
+            function toggleFields() {
                 if (userTypeSelect.value === 'sede') {
+                    // Mostrar selector de sede, ocultar campo de usuario
                     sedeSelection.style.display = 'block';
                     sedeSelection.querySelector('select').required = true;
-                } else {
+                    usernameField.style.display = 'none';
+                    usernameInput.required = false;
+                    usernameInput.value = '';
+                } else if (userTypeSelect.value === 'central' || userTypeSelect.value === 'proveedor') {
+                    // Mostrar campo de usuario, ocultar selector de sede
                     sedeSelection.style.display = 'none';
                     sedeSelection.querySelector('select').required = false;
-                    sedeSelection.querySelector('select').value = '';
+                    sedeSelection.querySelector('select').value = '0';
+                    usernameField.style.display = 'block';
+                    usernameInput.required = true;
+                } else {
+                    // Ocultar ambos si no hay selección
+                    sedeSelection.style.display = 'none';
+                    sedeSelection.querySelector('select').required = false;
+                    usernameField.style.display = 'none';
+                    usernameInput.required = false;
                 }
             }
             
-            userTypeSelect.addEventListener('change', toggleSedeSelection);
-            toggleSedeSelection(); 
+            userTypeSelect.addEventListener('change', toggleFields);
+            toggleFields(); 
         });
     </script>
 {% endblock %}

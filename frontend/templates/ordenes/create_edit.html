@@ -4,18 +4,18 @@
     <div class="form-order-container">
     <div class="container-lg px-3">
         
-        <div class="row mb-2">
+        <div class="row mb-1">
             <div class="col-12">
                 <div class="card border-0 shadow-sm gradient-primary">
-                    <div class="card-body text-white p-2">
-                        <h4 class="mb-0 fw-bold">
+                    <div class="card-body text-white p-1">
+                        <h5 class="mb-0 fw-bold" style="font-size: 1.1rem;">
                             <i class="fas fa-clipboard-list me-2"></i>
                             {% if order %}
                                 Editar Orden N° {{ order.order_number }}
                             {% else %}
                                 Crear Nueva Orden de Trabajo
                             {% endif %}
-                        </h4>
+                        </h5>
                     </div>
                 </div>
             </div>
@@ -25,17 +25,17 @@
             {{ form.hidden_tag() }}
             
             <div class="row justify-content-center">
-                <div class="col-12">
+                <div class="col-12" style="display: flex; flex-direction: column; gap: 0.5rem;">
                     
                     <!-- Fila 1: ORDEN VENTA y ORDEN LABORATORIO -->
                     <div class="row">
                         <div class="col-md-6">
-                            <div class="card mb-3 shadow-sm border-1">
-                                <div class="card-body p-3">
-                                    <label class="form-label fw-bold text-center d-block mb-2" style="background: white; color: #333; padding: 0.6rem; border-radius: 0.25rem;">ORDEN VENTA</label>
+                            <div class="card mb-0 shadow-sm border-1">
+                                <div class="card-body p-1">
+                                    <label class="form-label fw-bold text-center d-block mb-1" style="background: white; color: #333; padding: 0.3rem; border-radius: 0.25rem; font-size: 0.8rem;">ORDEN VENTA</label>
                                     {{ form.receipt_number(class="form-control text-center", placeholder="Número de orden de venta") }}
                                     {% if form.receipt_number.errors %}
-                                        <div class="invalid-feedback d-block mt-2">
+                                        <div class="invalid-feedback d-block mt-1">
                                             <i class="fas fa-exclamation-triangle me-1"></i>{{ form.receipt_number.errors[0] }}
                                         </div>
                                     {% endif %}
@@ -44,12 +44,12 @@
                         </div>
                         
                         <div class="col-md-6">
-                            <div class="card mb-3 shadow-sm border-1">
-                                <div class="card-body p-3">
-                                    <label class="form-label fw-bold text-center d-block mb-2" style="background: white; color: #333; padding: 0.6rem; border-radius: 0.25rem;">ORDEN LABORATORIO</label>
+                            <div class="card mb-0 shadow-sm border-1">
+                                <div class="card-body p-1">
+                                    <label class="form-label fw-bold text-center d-block mb-1" style="background: white; color: #333; padding: 0.3rem; border-radius: 0.25rem; font-size: 0.8rem;">ORDEN LABORATORIO</label>
                                     {{ form.orden_laboratorio(class="form-control text-center", placeholder="Número de laboratorio") }}
                                     {% if form.orden_laboratorio.errors %}
-                                        <div class="invalid-feedback d-block mt-2">
+                                        <div class="invalid-feedback d-block mt-1">
                                             <i class="fas fa-exclamation-triangle me-1"></i>{{ form.orden_laboratorio.errors[0] }}
                                         </div>
                                     {% endif %}
@@ -58,29 +58,36 @@
                         </div>
                     </div>
 
-                    <!-- Fila 2: CIUDAD/MUNICIPIO y SEDE -->
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="card mb-3 shadow-sm border-1">
-                                <div class="card-body p-3">
-                                    <label class="form-label fw-bold text-center d-block mb-2" style="background: white; color: #333; padding: 0.6rem; border-radius: 0.25rem;">CIUDAD/MUNICIPIO</label>
-                                    {{ form.ciudad_municipio(class="form-control text-center", placeholder="Ingrese ciudad o municipio") }}
+                    <!-- Fila 2: CIUDAD/MUNICIPIO -->
+                    <div class="card mb-0 shadow-sm border-1">
+                        <div class="card-body p-1">
+                            <div class="row align-items-center">
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold mb-0">CIUDAD/MUNICIPIO</label>
+                                </div>
+                                <div class="col-md-9">
+                                    {{ form.ciudad_municipio(class="form-control", placeholder="Ingrese ciudad o municipio") }}
                                     {% if form.ciudad_municipio.errors %}
-                                        <div class="invalid-feedback d-block mt-2">
+                                        <div class="invalid-feedback d-block mt-1">
                                             <i class="fas fa-exclamation-triangle me-1"></i>{{ form.ciudad_municipio.errors[0] }}
                                         </div>
                                     {% endif %}
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="col-md-6">
-                            <div class="card mb-3 shadow-sm border-1">
-                                <div class="card-body p-3">
-                                    <label class="form-label fw-bold text-center d-block mb-2" style="background: white; color: #333; padding: 0.6rem; border-radius: 0.25rem;">SEDE</label>
+                    <!-- Fila 3: SEDE -->
+                    <div class="card mb-0 shadow-sm border-1">
+                        <div class="card-body p-1">
+                            <div class="row align-items-center">
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold mb-0">SEDE</label>
+                                </div>
+                                <div class="col-md-9">
                                     {{ form.sede_id(class="form-select" + (" is-invalid" if form.sede_id.errors else "")) }}
                                     {% if form.sede_id.errors %}
-                                        <div class="invalid-feedback mt-2">
+                                        <div class="invalid-feedback mt-1">
                                             <i class="fas fa-exclamation-triangle me-1"></i>{{ form.sede_id.errors[0] }}
                                         </div>
                                     {% endif %}
@@ -89,29 +96,36 @@
                         </div>
                     </div>
 
-                    <!-- Fila 3: EMPRESA/CONVENIO/SEGURO y PROVEEDOR -->
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="card mb-3 shadow-sm border-1">
-                                <div class="card-body p-3">
-                                    <label class="form-label fw-bold text-center d-block mb-2" style="background: white; color: #333; padding: 0.6rem; border-radius: 0.25rem;">EMPRESA/CONVENIO/SEGURO</label>
-                                    {{ form.empresa_convenio(class="form-control text-center", placeholder="Ingrese empresa, convenio o seguro del paciente") }}
+                    <!-- Fila 4: EMPRESA/CONVENIO/SEGURO -->
+                    <div class="card mb-0 shadow-sm border-1">
+                        <div class="card-body p-1">
+                            <div class="row align-items-center">
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold mb-0">EMPRESA/CONVENIO/SEGURO</label>
+                                </div>
+                                <div class="col-md-9">
+                                    {{ form.empresa_convenio(class="form-control", placeholder="Ingrese empresa, convenio o seguro del paciente") }}
                                     {% if form.empresa_convenio.errors %}
-                                        <div class="invalid-feedback d-block mt-2">
+                                        <div class="invalid-feedback d-block mt-1">
                                             <i class="fas fa-exclamation-triangle me-1"></i>{{ form.empresa_convenio.errors[0] }}
                                         </div>
                                     {% endif %}
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="col-md-6">
-                            <div class="card mb-3 shadow-sm border-1">
-                                <div class="card-body p-3">
-                                    <label class="form-label fw-bold text-center d-block mb-2" style="background: white; color: #333; padding: 0.6rem; border-radius: 0.25rem;">PROVEEDOR</label>
+                    <!-- Fila 5: PROVEEDOR -->
+                    <div class="card mb-0 shadow-sm border-1">
+                        <div class="card-body p-1">
+                            <div class="row align-items-center">
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold mb-0">PROVEEDOR</label>
+                                </div>
+                                <div class="col-md-9">
                                     {{ form.provider_id(class="form-select" + (" is-invalid" if form.provider_id.errors else "")) }}
                                     {% if form.provider_id.errors %}
-                                        <div class="invalid-feedback mt-2">
+                                        <div class="invalid-feedback mt-1">
                                             <i class="fas fa-exclamation-triangle me-1"></i>{{ form.provider_id.errors[0] }}
                                         </div>
                                     {% endif %}
@@ -120,29 +134,36 @@
                         </div>
                     </div>
 
-                    <!-- Fila 4: NOMBRE DEL PACIENTE y CC DEL PACIENTE -->
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="card mb-3 shadow-sm border-1">
-                                <div class="card-body p-3">
-                                    <label class="form-label fw-bold text-center d-block mb-2" style="background: white; color: #333; padding: 0.6rem; border-radius: 0.25rem;">NOMBRE DEL PACIENTE</label>
-                                    {{ form.client_name(class="form-control text-center" + (" is-invalid" if form.client_name.errors else ""), placeholder="Nombre completo del paciente") }}
+                    <!-- Fila 6: NOMBRE DEL PACIENTE -->
+                    <div class="card mb-0 shadow-sm border-1">
+                        <div class="card-body p-1">
+                            <div class="row align-items-center">
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold mb-0">NOMBRE DEL PACIENTE</label>
+                                </div>
+                                <div class="col-md-9">
+                                    {{ form.client_name(class="form-control" + (" is-invalid" if form.client_name.errors else ""), placeholder="Nombre completo del paciente") }}
                                     {% if form.client_name.errors %}
-                                        <div class="invalid-feedback mt-2">
+                                        <div class="invalid-feedback mt-1">
                                             <i class="fas fa-exclamation-triangle me-1"></i>{{ form.client_name.errors[0] }}
                                         </div>
                                     {% endif %}
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="col-md-6">
-                            <div class="card mb-3 shadow-sm border-1">
-                                <div class="card-body p-3">
-                                    <label class="form-label fw-bold text-center d-block mb-2" style="background: white; color: #333; padding: 0.6rem; border-radius: 0.25rem;">CC DEL PACIENTE</label>
-                                    {{ form.client_cc(class="form-control text-center" + (" is-invalid" if form.client_cc.errors else ""), placeholder="Número de cédula") }}
+                    <!-- Fila 7: CC DEL PACIENTE -->
+                    <div class="card mb-0 shadow-sm border-1">
+                        <div class="card-body p-1">
+                            <div class="row align-items-center">
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold mb-0">CC DEL PACIENTE</label>
+                                </div>
+                                <div class="col-md-9">
+                                    {{ form.client_cc(class="form-control" + (" is-invalid" if form.client_cc.errors else ""), placeholder="Número de cédula") }}
                                     {% if form.client_cc.errors %}
-                                        <div class="invalid-feedback mt-2">
+                                        <div class="invalid-feedback mt-1">
                                             <i class="fas fa-exclamation-triangle me-1"></i>{{ form.client_cc.errors[0] }}
                                         </div>
                                     {% endif %}
@@ -151,30 +172,55 @@
                         </div>
                     </div>
 
+                    <!-- Fila 8: TELÉFONO PACIENTE -->
+                    <div class="card mb-0 shadow-sm border-1">
+                        <div class="card-body p-1">
+                            <div class="row align-items-center">
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold mb-0">TELÉFONO PACIENTE</label>
+                                </div>
+                                <div class="col-md-9">
+                                    {{ form.client_phone(class="form-control", placeholder="Teléfono de contacto del paciente") }}
+                                    {% for error in form.client_phone.errors %}
+                                        <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Información de Lentes -->
                     {% if current_user.role in ['admin', 'asistente'] %}
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="card mb-3 shadow-sm border-1">
-                                <div class="card-body p-3">
-                                    <label class="form-label fw-bold text-center d-block mb-2" style="background: white; color: #333; padding: 0.6rem; border-radius: 0.25rem;">CLASE DE LENTES</label>
+                    <!-- CLASE DE LENTES -->
+                    <div class="card mb-0 shadow-sm border-1">
+                        <div class="card-body p-1">
+                            <div class="row align-items-center">
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold mb-0">CLASE DE LENTES</label>
+                                </div>
+                                <div class="col-md-9">
                                     {{ form.lens_class(class="form-select") }}
                                     {% if form.lens_class.errors %}
-                                        <div class="invalid-feedback d-block mt-2">
+                                        <div class="invalid-feedback d-block mt-1">
                                             <i class="fas fa-exclamation-triangle me-1"></i>{{ form.lens_class.errors[0] }}
                                         </div>
                                     {% endif %}
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="col-md-6">
-                            <div class="card mb-3 shadow-sm border-1">
-                                <div class="card-body p-3">
-                                    <label class="form-label fw-bold text-center d-block mb-2" style="background: white; color: #333; padding: 0.6rem; border-radius: 0.25rem;">TIPO DE LENTE Y FILTROS</label>
-                                    {{ form.lens_type(class="form-control text-center" + (" is-invalid" if form.lens_type.errors else ""), placeholder="Especifique tipo y filtros") }}
+                    <!-- TIPO DE LENTE Y FILTROS -->
+                    <div class="card mb-0 shadow-sm border-1">
+                        <div class="card-body p-1">
+                            <div class="row align-items-center">
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold mb-0">TIPO DE LENTE Y FILTROS</label>
+                                </div>
+                                <div class="col-md-9">
+                                    {{ form.lens_type(class="form-control" + (" is-invalid" if form.lens_type.errors else ""), placeholder="Especifique tipo y filtros") }}
                                     {% if form.lens_type.errors %}
-                                        <div class="invalid-feedback mt-2">
+                                        <div class="invalid-feedback mt-1">
                                             <i class="fas fa-exclamation-triangle me-1"></i>{{ form.lens_type.errors[0] }}
                                         </div>
                                     {% endif %}
@@ -184,7 +230,7 @@
                     </div>
                     {% else %}
                     <!-- Mensaje informativo para admin_sede -->
-                    <div class="alert alert-info mb-3 border-1 shadow-sm py-2">
+                    <div class="alert alert-info mb-1 border-1 shadow-sm py-1">
                         <div class="d-flex align-items-start">
                             <i class="fas fa-info-circle me-2 mt-1"></i>
                             <div>
@@ -196,24 +242,32 @@
                     {% endif %}
 
                     <!-- Fórmula Óptica -->
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="card mb-3 shadow-sm border-1">
-                                <div class="card-body p-3">
-                                    <label class="form-label fw-bold text-center d-block mb-2" style="background: white; color: #333; padding: 0.6rem; border-radius: 0.25rem;">OD (OJO DERECHO)</label>
-                                    {{ form.formula_od(class="form-control", rows="3", placeholder="Fórmula ojo derecho") }}
+                    <!-- OD (OJO DERECHO) -->
+                    <div class="card mb-0 shadow-sm border-1">
+                        <div class="card-body p-1">
+                            <div class="row align-items-center">
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold mb-0">OD (OJO DERECHO)</label>
+                                </div>
+                                <div class="col-md-9">
+                                    {{ form.formula_od(class="form-control", rows="2", placeholder="Fórmula ojo derecho") }}
                                     {% for error in form.formula_od.errors %}
                                         <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
                                     {% endfor %}
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="col-md-6">
-                            <div class="card mb-3 shadow-sm border-1">
-                                <div class="card-body p-3">
-                                    <label class="form-label fw-bold text-center d-block mb-2" style="background: white; color: #333; padding: 0.6rem; border-radius: 0.25rem;">OI (OJO IZQUIERDO)</label>
-                                    {{ form.formula_oi(class="form-control", rows="3", placeholder="Fórmula ojo izquierdo") }}
+                    <!-- OI (OJO IZQUIERDO) -->
+                    <div class="card mb-0 shadow-sm border-1">
+                        <div class="card-body p-1">
+                            <div class="row align-items-center">
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold mb-0">OI (OJO IZQUIERDO)</label>
+                                </div>
+                                <div class="col-md-9">
+                                    {{ form.formula_oi(class="form-control", rows="2", placeholder="Fórmula ojo izquierdo") }}
                                     {% for error in form.formula_oi.errors %}
                                         <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
                                     {% endfor %}
@@ -222,24 +276,32 @@
                         </div>
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="card mb-3 shadow-sm border-1">
-                                <div class="card-body p-3">
-                                    <label class="form-label fw-bold text-center d-block mb-2" style="background: white; color: #333; padding: 0.6rem; border-radius: 0.25rem;">ADD (ADICIÓN)</label>
-                                    {{ form.formula_add(class="form-control text-center", placeholder="Adición") }}
+                    <!-- ADD (ADICIÓN) -->
+                    <div class="card mb-0 shadow-sm border-1">
+                        <div class="card-body p-1">
+                            <div class="row align-items-center">
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold mb-0">ADD (ADICIÓN)</label>
+                                </div>
+                                <div class="col-md-9">
+                                    {{ form.formula_add(class="form-control", placeholder="Adición") }}
                                     {% for error in form.formula_add.errors %}
                                         <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
                                     {% endfor %}
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="col-md-6">
-                            <div class="card mb-3 shadow-sm border-1">
-                                <div class="card-body p-3">
-                                    <label class="form-label fw-bold text-center d-block mb-2" style="background: white; color: #333; padding: 0.6rem; border-radius: 0.25rem;">DP Y ALT</label>
-                                    {{ form.formula_dp_alt(class="form-control text-center", placeholder="Distancia pupilar y altura") }}
+                    <!-- DP Y ALT -->
+                    <div class="card mb-0 shadow-sm border-1">
+                        <div class="card-body p-1">
+                            <div class="row align-items-center">
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold mb-0">DP Y ALT</label>
+                                </div>
+                                <div class="col-md-9">
+                                    {{ form.formula_dp_alt(class="form-control", placeholder="Distancia pupilar y altura") }}
                                     {% for error in form.formula_dp_alt.errors %}
                                         <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
                                     {% endfor %}
@@ -248,37 +310,50 @@
                         </div>
                     </div>
 
-                    <!-- INFORMACIÓN ADICIONAL (full width) -->
-                    <div class="card mb-3 shadow-sm border-1">
-                        <div class="card-body p-3">
-                            <label class="form-label fw-bold text-center d-block mb-2" style="background: white; color: #333; padding: 0.6rem; border-radius: 0.25rem;">INFORMACIÓN ADICIONAL</label>
-                            {{ form.formula_details(class="form-control", rows="4", placeholder="Detalles adicionales, observaciones especiales...") }}
-                            {% for error in form.formula_details.errors %}
-                                <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
-                            {% endfor %}
+                    <!-- INFORMACIÓN ADICIONAL -->
+                    <div class="card mb-0 shadow-sm border-1">
+                        <div class="card-body p-1">
+                            <div class="row align-items-center">
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold mb-0">INFORMACIÓN ADICIONAL</label>
+                                </div>
+                                <div class="col-md-9">
+                                    {{ form.formula_details(class="form-control", rows="2", placeholder="Detalles adicionales, observaciones especiales...") }}
+                                    {% for error in form.formula_details.errors %}
+                                        <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Campos adicionales -->
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="card mb-3 shadow-sm border-1">
-                                <div class="card-body p-3">
-                                    <label class="form-label fw-bold text-center d-block mb-2" style="background: white; color: #333; padding: 0.6rem; border-radius: 0.25rem;">TIPO DE MONTURA</label>
-                                    {{ form.frame_type(class="form-control text-center", placeholder="Especifique el tipo de montura") }}
+                    <!-- TIPO DE MONTURA -->
+                    <div class="card mb-0 shadow-sm border-1">
+                        <div class="card-body p-1">
+                            <div class="row align-items-center">
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold mb-0">TIPO DE MONTURA</label>
+                                </div>
+                                <div class="col-md-9">
+                                    {{ form.frame_type(class="form-control", placeholder="Especifique el tipo de montura") }}
                                     {% for error in form.frame_type.errors %}
                                         <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
                                     {% endfor %}
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="col-md-6">
-                            <div class="card mb-3 shadow-sm border-1">
-                                <div class="card-body p-3">
-                                    <label class="form-label fw-bold text-center d-block mb-2" style="background: white; color: #333; padding: 0.6rem; border-radius: 0.25rem;">TELÉFONO PACIENTE</label>
-                                    {{ form.client_phone(class="form-control text-center", placeholder="Teléfono de contacto del paciente") }}
-                                    {% for error in form.client_phone.errors %}
+                    <!-- PRECIO DE VENTA AL CLIENTE -->
+                    <div class="card mb-0 shadow-sm border-1">
+                        <div class="card-body p-1">
+                            <div class="row align-items-center">
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold mb-0">PRECIO DE VENTA AL CLIENTE</label>
+                                </div>
+                                <div class="col-md-9">
+                                    {{ form.sale_price(class="form-control", placeholder="Ingrese el precio de venta al cliente", type="number", step="0.01") }}
+                                    {% for error in form.sale_price.errors %}
                                         <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
                                     {% endfor %}
                                 </div>
@@ -286,30 +361,19 @@
                         </div>
                     </div>
 
-                    <!-- Precio de venta al cliente -->
-                    <div class="card mb-3 shadow-sm border-1">
-                        <div class="card-body p-3">
-                            <label class="form-label fw-bold text-center d-block mb-2" style="background: white; color: #333; padding: 0.6rem; border-radius: 0.25rem;">PRECIO DE VENTA AL CLIENTE</label>
-                            {{ form.sale_price(class="form-control text-center", placeholder="Ingrese el precio de venta al cliente", type="number", step="0.01") }}
-                            {% for error in form.sale_price.errors %}
-                                <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
-                            {% endfor %}
-                        </div>
-                    </div>
-
                     <!-- Botones de acción -->
-                    <div class="card mb-3 shadow-sm border-0">
+                    <div class="card mb-0 shadow-sm border-0">
                         <div class="card-body text-center p-3">
                             <div class="row justify-content-center">
                                 <div class="col-md-8 col-lg-6">
-                                    {{ form.submit(class="btn btn-primary btn-lg w-100 mb-2 py-2 btn-form-submit") }}
-                                    <a href="{{ url_for('main.list_orders') }}" class="btn btn-outline-secondary btn-lg w-100 py-2 btn-form-cancel">
+                                    {{ form.submit(class="btn btn-primary btn-lg w-100 mb-2 py-1 btn-form-submit") }}
+                                    <a href="{{ url_for('main.list_orders') }}" class="btn btn-outline-secondary btn-lg w-100 py-1 btn-form-cancel">
                                         <i class="fas fa-times me-2"></i>Cancelar
                                     </a>
                                 </div>
                             </div>
                             
-                            <div class="alert alert-info mt-2 mb-0 border-0 shadow-sm gradient-info-light py-2">
+                            <div class="alert alert-info mt-1 mb-0 border-0 shadow-sm gradient-info-light py-1">
                                 <div class="d-flex align-items-center">
                                     <i class="fas fa-info-circle me-2"></i>
                                     <div>
@@ -324,4 +388,61 @@
         </form>
     </div>
 </div>
+
+<script>
+// Formatear campos de precio con separadores de miles mientras se escribe
+document.addEventListener('DOMContentLoaded', function() {
+    const salePriceInput = document.getElementById('sale_price');
+    
+    if (salePriceInput) {
+        // Cambiar tipo de input a text para permitir formateo
+        salePriceInput.type = 'text';
+        
+        salePriceInput.addEventListener('input', function(e) {
+            // Obtener la posición del cursor
+            let cursorPosition = e.target.selectionStart;
+            let value = e.target.value;
+            
+            // Contar puntos antes del cursor
+            let dotsBefore = (value.substring(0, cursorPosition).match(/\./g) || []).length;
+            
+            // Remover todos los puntos y caracteres no numéricos
+            let cleanValue = value.replace(/[^\d]/g, '');
+            
+            if (cleanValue) {
+                // Formatear con puntos de miles
+                let formatted = '';
+                let counter = 0;
+                for (let i = cleanValue.length - 1; i >= 0; i--) {
+                    if (counter === 3) {
+                        formatted = '.' + formatted;
+                        counter = 0;
+                    }
+                    formatted = cleanValue[i] + formatted;
+                    counter++;
+                }
+                
+                e.target.value = formatted;
+                
+                // Contar puntos después del formato
+                let dotsAfter = (formatted.substring(0, cursorPosition).match(/\./g) || []).length;
+                
+                // Ajustar posición del cursor
+                let newPosition = cursorPosition + (dotsAfter - dotsBefore);
+                e.target.setSelectionRange(newPosition, newPosition);
+            } else {
+                e.target.value = '';
+            }
+        });
+        
+        // Al enviar el formulario, quitar el formato para enviar solo números
+        salePriceInput.closest('form').addEventListener('submit', function() {
+            if (salePriceInput.value) {
+                let cleanValue = salePriceInput.value.replace(/\./g, '');
+                salePriceInput.value = cleanValue;
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

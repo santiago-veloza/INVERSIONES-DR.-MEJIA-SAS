@@ -171,6 +171,58 @@ document.addEventListener('DOMContentLoaded', function() {
         montoField.addEventListener('focus', function() {
             this.select(); // Seleccionar todo el texto al enfocar
         });
+        
+        // Cambiar tipo de input a text para permitir formateo
+        montoField.type = 'text';
+        
+        // Formatear con separadores de miles mientras se escribe
+        montoField.addEventListener('input', function(e) {
+            // Obtener la posición del cursor
+            let cursorPosition = e.target.selectionStart;
+            let value = e.target.value;
+            
+            // Contar puntos antes del cursor
+            let dotsBefore = (value.substring(0, cursorPosition).match(/\./g) || []).length;
+            
+            // Remover todos los puntos y caracteres no numéricos
+            let cleanValue = value.replace(/[^\d]/g, '');
+            
+            if (cleanValue) {
+                // Formatear con puntos de miles
+                let formatted = '';
+                let counter = 0;
+                for (let i = cleanValue.length - 1; i >= 0; i--) {
+                    if (counter === 3) {
+                        formatted = '.' + formatted;
+                        counter = 0;
+                    }
+                    formatted = cleanValue[i] + formatted;
+                    counter++;
+                }
+                
+                e.target.value = formatted;
+                
+                // Contar puntos después del formato
+                let dotsAfter = (formatted.substring(0, cursorPosition).match(/\./g) || []).length;
+                
+                // Ajustar posición del cursor
+                let newPosition = cursorPosition + (dotsAfter - dotsBefore);
+                e.target.setSelectionRange(newPosition, newPosition);
+            } else {
+                e.target.value = '';
+            }
+        });
+        
+        // Al enviar el formulario, quitar el formato para enviar solo números
+        const form = montoField.closest('form');
+        if (form) {
+            form.addEventListener('submit', function() {
+                if (montoField.value) {
+                    let cleanValue = montoField.value.replace(/\./g, '');
+                    montoField.value = cleanValue;
+                }
+            });
+        }
     }
 
     // Mostrar información adicional sobre el plazo de 7 días

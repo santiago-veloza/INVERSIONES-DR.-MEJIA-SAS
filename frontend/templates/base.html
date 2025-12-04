@@ -17,256 +17,355 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <meta name="description" content="Sistema de gestión para Ópticas Dr. Mejía - Inversiones Dr. Mejía SAS">
     <meta name="author" content="Ópticas Dr. Mejía">
+    <meta name="csrf-token" content="{{ csrf_token() if csrf_token else '' }}">
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
 </head>
-    <body class="fade-in-up navbar-present">
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container-fluid">
-            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('main.index') }}">
-                <img src="https://res.cloudinary.com/dwdnfpr8i/image/upload/v1762146543/logo-DR_MEJIA_za9ocq.png" 
-                     alt="Logo Dr. Mejía" 
-                     class="navbar-logo me-2">Dr. Mejía
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    {% if current_user.is_authenticated %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.index') }}">
-                                <i class="fas fa-tachometer-alt"></i> Panel
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.list_orders') }}">
-                                <i class="fas fa-shopping-cart"></i> Órdenes
-                            </a>
-                        </li>
-                        {% if current_user.role == 'admin' or current_user.role == 'asistente' %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('main.list_providers') }}">
-                                    <i class="fas fa-truck"></i> Proveedores
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('main.list_sedes') }}">
-                                    <i class="fas fa-building"></i> Sedes
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('main.list_pending_payments') }}">
-                                    <i class="fas fa-clock"></i> Pagos Pendientes
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('main.reports') }}">
-                                    <i class="fas fa-chart-bar"></i> Reportes
-                                </a>
-                            </li>
-                        {% elif current_user.role == 'admin_sede' %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('main.my_sede_messages') }}">
-                                    <i class="fas fa-envelope"></i> Mensajes
-                                    {% if sede_messages_count > 0 %}
-                                        <span class="badge bg-danger ms-1">{{ sede_messages_count }}</span>
-                                    {% endif %}
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('main.sede_payments') }}">
-                                    <i class="fas fa-credit-card"></i> Mis Pagos
-                                </a>
-                            </li>
-                        {% endif %}
-                        {% if current_user.role == 'admin' %}
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fas fa-cog"></i> Admin Central
-                                </a>
-                                <ul class="dropdown-menu" aria-labelledby="adminDropdown">
-                                    <li><a class="dropdown-item" href="{{ url_for('main.list_pending_review_orders') }}">
-                                        <i class="fas fa-tasks"></i> Órdenes Pendientes de Completar
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="{{ url_for('main.admin_users') }}">
-                                        <i class="fas fa-users"></i> Gestionar Usuarios
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{{ url_for('main.register') }}">
-                                        <i class="fas fa-user-plus"></i> Registrar Nuevo Usuario
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="{{ url_for('main.create_sede_admin') }}">
-                                        <i class="fas fa-user-shield"></i> Crear Admin de Sede
-                                    </a></li>
-                                </ul>
-                            </li>
-                        {% endif %}
-                    {% endif %}
-                </ul>
-                <ul class="navbar-nav">
-                    {% if current_user.is_authenticated %}
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle position-relative" href="#" id="notificationsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-bell"></i>
-                                {% if unread_notifications_count > 0 %}
-                                    <span class="badge bg-danger position-absolute translate-middle-x rounded-pill">{{ unread_notifications_count }}</span>
-                                {% endif %}
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationsDropdown">
-                                {% if latest_notifications %}
-                                    {% for notification in latest_notifications %}
-                                        <li>
-                                            {% set notif_class = '' %}
-                                            {% if '⚠️' in notification.message or 'rechazada' in notification.message.lower() or 'pendiente' in notification.message.lower() %}
-                                                {% set notif_class = 'notification-urgent' %}
-                                            {% elif '✅' in notification.message or 'aceptada' in notification.message.lower() or 'completado' in notification.message.lower() or 'terminado' in notification.message.lower() or 'recogida' in notification.message.lower() %}
-                                                {% set notif_class = 'notification-success' %}
-                                            {% elif '🔧' in notification.message or 'iniciado' in notification.message.lower() or 'proceso' in notification.message.lower() %}
-                                                {% set notif_class = 'notification-warning' %}
-                                            {% elif '📧' in notification.message or 'enviada' in notification.message.lower() or '📦' in notification.message %}
-                                                {% set notif_class = 'notification-info' %}
+    <body class="fade-in-up sidebar-layout">
+    
+    <!-- Topbar Superior -->
+    <nav class="topbar">
+        <div class="topbar-container">
+            <div class="topbar-left">
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <a class="topbar-brand" href="{{ url_for('main.index') }}">
+                    <img src="https://res.cloudinary.com/dwdnfpr8i/image/upload/v1762146543/logo-DR_MEJIA_za9ocq.png" 
+                         alt="Logo Dr. Mejía" 
+                         class="topbar-logo">
+                    <span class="topbar-brand-text">Opticas Dr. Mejía</span>
+                </a>
+
+            </div>
+            <div class="topbar-right">
+                {% if current_user.is_authenticated %}
+                    <!-- Notificaciones -->
+                    <div class="topbar-item dropdown">
+                        <a class="topbar-icon" href="#" id="notificationsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-bell"></i>
+                            {% if unread_notifications_count > 0 %}
+                                <span class="topbar-badge" id="notificationBadge">{{ unread_notifications_count }}</span>
+                            {% endif %}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationsDropdown" id="notificationsMenu">
+                            {% if latest_notifications %}
+                                {% for notification in latest_notifications %}
+                                    <li>
+                                        {% set notif_class = '' %}
+                                        {% if '⚠️' in notification.message or 'rechazada' in notification.message.lower() or 'pendiente' in notification.message.lower() %}
+                                            {% set notif_class = 'notification-urgent' %}
+                                        {% elif '✅' in notification.message or 'aceptada' in notification.message.lower() or 'completado' in notification.message.lower() or 'terminado' in notification.message.lower() or 'recogida' in notification.message.lower() %}
+                                            {% set notif_class = 'notification-success' %}
+                                        {% elif '🔧' in notification.message or 'iniciado' in notification.message.lower() or 'proceso' in notification.message.lower() %}
+                                            {% set notif_class = 'notification-warning' %}
+                                        {% elif '📧' in notification.message or 'enviada' in notification.message.lower() or '📦' in notification.message %}
+                                            {% set notif_class = 'notification-info' %}
+                                        {% endif %}
+                                        
+                                        <a class="dropdown-item {% if not notification.is_read %}fw-bold{% endif %} {{ notif_class }}" 
+                                           href="{{ url_for('main.view_order', order_id=notification.work_order_id) if notification.work_order_id else url_for('main.view_notifications') }}">
+                                            {% if '⚠️' in notification.message %}
+                                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                            {% elif '✅' in notification.message %}
+                                                <i class="fas fa-check-circle me-2"></i>
+                                            {% elif '🔧' in notification.message %}
+                                                <i class="fas fa-cog me-2"></i>
+                                            {% elif '📧' in notification.message %}
+                                                <i class="fas fa-envelope me-2"></i>
+                                            {% elif '📦' in notification.message %}
+                                                <i class="fas fa-box me-2"></i>
+                                            {% else %}
+                                                <i class="fas fa-info-circle me-2"></i>
                                             {% endif %}
-                                            
-                                            <a class="dropdown-item {% if not notification.is_read %}fw-bold{% endif %} {{ notif_class }}" 
-                                               href="{{ url_for('main.view_order', order_id=notification.work_order_id) if notification.work_order_id else url_for('main.view_notifications') }}">
-                                                {% if '⚠️' in notification.message %}
-                                                    <i class="fas fa-exclamation-triangle me-2"></i>
-                                                {% elif '✅' in notification.message %}
-                                                    <i class="fas fa-check-circle me-2"></i>
-                                                {% elif '🔧' in notification.message %}
-                                                    <i class="fas fa-cog me-2"></i>
-                                                {% elif '📧' in notification.message %}
-                                                    <i class="fas fa-envelope me-2"></i>
-                                                {% elif '📦' in notification.message %}
-                                                    <i class="fas fa-box me-2"></i>
-                                                {% else %}
-                                                    <i class="fas fa-info-circle me-2"></i>
-                                                {% endif %}
-                                                {{ notification.message }}
-                                                <small class="d-block mt-1">
-                                                    <i class="fas fa-clock me-1"></i>{{ notification.created_at.strftime('%H:%M %d/%m') }}
-                                                </small>
-                                            </a>
-                                        </li>
-                                    {% endfor %}
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item text-center fw-bold" href="{{ url_for('main.view_notifications') }}">
-                                        <i class="fas fa-eye me-2"></i>Ver todas las notificaciones
-                                    </a></li>
-                                {% else %}
-                                    <li><span class="dropdown-item text-muted text-center">
-                                        <i class="fas fa-bell-slash me-2"></i>No hay notificaciones nuevas.
-                                    </span></li>
-                                {% endif %}
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-user-circle me-1"></i> {{ current_user.username }} 
-                                <span class="badge bg-light text-primary ms-1">{{ current_user.role.replace('_', ' ').title() }}</span>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                <li><a class="dropdown-item" href="#">
-                                    <i class="fas fa-user me-2"></i> Perfil
-                                </a></li>
-                                {% if current_user.role == 'admin' %}
-                                <li><a class="dropdown-item" href="{{ url_for('main.change_my_password') }}">
-                                    <i class="fas fa-key me-2"></i> Cambiar Contraseña
-                                </a></li>
-                                {% endif %}
+                                            {{ notification.message }}
+                                            <small class="d-block mt-1">
+                                                <i class="fas fa-clock me-1"></i>{{ notification.created_at.strftime('%H:%M %d/%m') }}
+                                            </small>
+                                        </a>
+                                    </li>
+                                {% endfor %}
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item text-danger" href="{{ url_for('main.logout') }}">
-                                    <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
+                                <li><a class="dropdown-item text-center fw-bold" href="{{ url_for('main.view_notifications') }}">
+                                    <i class="fas fa-eye me-2"></i>Ver todas las notificaciones
                                 </a></li>
-                            </ul>
-                        </li>
-                    {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.login') }}">
-                                <i class="fas fa-sign-in-alt me-1"></i> Iniciar Sesión
-                            </a>
-                        </li>
-                    {% endif %}
-                </ul>
+                            {% else %}
+                                <li><span class="dropdown-item text-muted text-center">
+                                    <i class="fas fa-bell-slash me-2"></i>No hay notificaciones nuevas.
+                                </span></li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    
+                    <!-- Perfil de Usuario -->
+                    <div class="topbar-item dropdown">
+                        <a class="topbar-user" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user-circle"></i>
+                            <span class="topbar-username">
+                                {% if current_user.role == 'admin_sede' and current_user.sede_asignada %}
+                                    {{ current_user.sede_asignada.name }}
+                                {% else %}
+                                    {{ current_user.username }}
+                                {% endif %}
+                            </span>
+                            <i class="fas fa-chevron-down"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li class="dropdown-header">
+                                <strong>
+                                    {% if current_user.role == 'admin_sede' and current_user.sede_asignada %}
+                                        {{ current_user.sede_asignada.name }}
+                                    {% else %}
+                                        {{ current_user.username }}
+                                    {% endif %}
+                                </strong>
+                                <br><small>{{ current_user.role.replace('_', ' ').title() }}</small>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#">
+                                <i class="fas fa-user me-2"></i> Perfil
+                            </a></li>
+                            {% if current_user.role == 'admin' %}
+                            <li><a class="dropdown-item" href="{{ url_for('main.change_my_password') }}">
+                                <i class="fas fa-key me-2"></i> Cambiar Contraseña
+                            </a></li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="{{ url_for('main.logout') }}">
+                                <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
+                            </a></li>
+                        </ul>
+                    </div>
+                {% else %}
+                    <a class="btn btn-light btn-sm" href="{{ url_for('main.login') }}">
+                        <i class="fas fa-sign-in-alt me-1"></i> Iniciar Sesión
+                    </a>
+                {% endif %}
             </div>
         </div>
     </nav>
-    <div class="container-fluid main-content">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                        {% if category == 'success' %}
-                            <i class="fas fa-check-circle me-2"></i>
-                        {% elif category == 'danger' %}
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                        {% elif category == 'warning' %}
-                            <i class="fas fa-exclamation-circle me-2"></i>
-                        {% elif category == 'info' %}
-                            <i class="fas fa-info-circle me-2"></i>
-                        {% else %}
-                            <i class="fas fa-info me-2"></i>
-                        {% endif %}
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-        {% block content %}{% endblock %}
+
+    <!-- Sidebar Lateral -->
+    {% if current_user.is_authenticated %}
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h5><i class="fas fa-th-large me-2"></i>Menú Principal</h5>
+        </div>
+        <nav class="sidebar-nav">
+            <ul class="sidebar-menu">
+                {% if current_user.role != 'admin_sede' %}
+                <li class="sidebar-item">
+                    <a class="sidebar-link" href="{{ url_for('main.index') }}">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Panel Principal</span>
+                    </a>
+                </li>
+                {% endif %}
+                <li class="sidebar-item">
+                    <a class="sidebar-link" href="{{ url_for('main.list_orders') }}">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Órdenes de Trabajo</span>
+                    </a>
+                </li>
+                
+                {% if current_user.role == 'admin' or current_user.role == 'asistente' %}
+                    <li class="sidebar-item">
+                        <a class="sidebar-link" href="{{ url_for('main.list_providers') }}">
+                            <i class="fas fa-truck"></i>
+                            <span>Proveedores</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link" href="{{ url_for('main.list_sedes') }}">
+                            <i class="fas fa-building"></i>
+                            <span>Sedes</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link" href="{{ url_for('main.list_pending_payments') }}">
+                            <i class="fas fa-clock"></i>
+                            <span>Pagos Pendientes</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link" href="{{ url_for('main.reports') }}">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>Reportes</span>
+                        </a>
+                    </li>
+                {% elif current_user.role == 'admin_sede' %}
+                    <li class="sidebar-item">
+                        <a class="sidebar-link" href="{{ url_for('main.sede_payments') }}">
+                            <i class="fas fa-credit-card"></i>
+                            <span>Mis Pagos</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link" href="{{ url_for('main.my_sede_messages') }}">
+                            <i class="fas fa-envelope"></i>
+                            <span>Mensajes</span>
+                            {% if sede_messages_count > 0 %}
+                                <span class="sidebar-badge">{{ sede_messages_count }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                {% endif %}
+                
+                {% if current_user.role == 'admin' %}
+                    <li class="sidebar-divider"></li>
+                    <li class="sidebar-header">
+                        <span><i class="fas fa-cog me-2"></i>Admin Central</span>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link" href="{{ url_for('main.list_pending_review_orders') }}">
+                            <i class="fas fa-tasks"></i>
+                            <span>Órdenes Pendientes</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link" href="{{ url_for('main.admin_users') }}">
+                            <i class="fas fa-users-cog"></i>
+                            <span>Usuarios del Sistema</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link" href="{{ url_for('main.register') }}">
+                            <i class="fas fa-user-plus"></i>
+                            <span>Crear Usuario</span>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </aside>
+    {% endif %}
+
+    <!-- Contenido Principal -->
+    <div class="main-wrapper">
+        <div class="main-content">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {% if category == 'success' %}
+                                <i class="fas fa-check-circle me-2"></i>
+                            {% elif category == 'danger' %}
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                            {% elif category == 'warning' %}
+                                <i class="fas fa-exclamation-circle me-2"></i>
+                            {% elif category == 'info' %}
+                                <i class="fas fa-info-circle me-2"></i>
+                            {% else %}
+                                <i class="fas fa-info me-2"></i>
+                            {% endif %}
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            {% block content %}{% endblock %}
+        </div>
     </div>
-    <footer class="mt-5 py-4 bg-light border-top">
-        <div class="container-fluid">
-            <div class="row align-items-center">
-                <div class="col-12 text-center">
-                    <p class="text-muted mb-0">
-                        <i class="fas fa-copyright me-2"></i>
-                        <strong>2025 Inversiones Dr. Mejía SAS</strong>
-                        <span class="mx-3">|</span>
-                        <i class="fas fa-shield-alt me-1"></i>
-                        Todos los derechos reservados
-                    </p>
-                </div>
-            </div>
+
+    <footer class="main-footer">
+        <div class="footer-container">
+            <p class="mb-0">
+                <i class="fas fa-copyright me-2"></i>
+                <strong>2025 Inversiones Dr. Mejía SAS</strong>
+                <span class="mx-3">|</span>
+                <i class="fas fa-shield-alt me-1"></i>
+                Todos los derechos reservados
+            </p>
         </div>
     </footer>
+
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.7/dist/umd/popper.min.js" 
             crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js" 
             crossorigin="anonymous"></script>
     <script>
-
+        // Toggle Sidebar
         document.addEventListener('DOMContentLoaded', function() {
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebar = document.getElementById('sidebar');
+            const body = document.body;
 
-            const dropdownElementList = [].slice.call(document.querySelectorAll('[data-bs-toggle="dropdown"]'));
-            const dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
-                return new bootstrap.Dropdown(dropdownToggleEl);
-            });
+            // Crear overlay para móviles
+            const overlay = document.createElement('div');
+            overlay.className = 'sidebar-overlay';
+            document.body.appendChild(overlay);
 
-            const alerts = document.querySelectorAll('.alert:not(.alert-danger)');
-            alerts.forEach(function(alert) {
-                setTimeout(function() {
-                    if (alert.classList.contains('show')) {
-                        const bsAlert = new bootstrap.Alert(alert);
-                        bsAlert.close();
+            if (sidebarToggle && sidebar) {
+                sidebarToggle.addEventListener('click', function() {
+                    const isMobile = window.innerWidth <= 992;
+                    
+                    if (isMobile) {
+                        // En móvil, mostrar/ocultar sidebar con overlay
+                        sidebar.classList.toggle('show');
+                        overlay.classList.toggle('show');
+                    } else {
+                        // En desktop, colapsar/expandir sidebar
+                        sidebar.classList.toggle('collapsed');
+                        body.classList.toggle('sidebar-collapsed');
+                        
+                        // Guardar preferencia
+                        localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
                     }
-                }, 5000);
-            });
+                });
 
-            const cards = document.querySelectorAll('.card');
-            cards.forEach(function(card) {
-                if (!card.classList.contains('no-hover')) {
-                    card.classList.add('hover-effect');
+                // Cerrar sidebar al hacer clic en overlay (móvil)
+                overlay.addEventListener('click', function() {
+                    sidebar.classList.remove('show');
+                    overlay.classList.remove('show');
+                });
+
+                // Cerrar sidebar al hacer clic en un enlace (móvil)
+                const sidebarLinks = document.querySelectorAll('.sidebar-link');
+                sidebarLinks.forEach(link => {
+                    link.addEventListener('click', function() {
+                        if (window.innerWidth <= 992) {
+                            setTimeout(() => {
+                                sidebar.classList.remove('show');
+                                overlay.classList.remove('show');
+                            }, 200);
+                        }
+                    });
+                });
+
+                // Restaurar preferencia solo en desktop
+                if (window.innerWidth > 992) {
+                    const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+                    if (isCollapsed) {
+                        sidebar.classList.add('collapsed');
+                        body.classList.add('sidebar-collapsed');
+                    }
                 }
-            });
 
-            const navLinks = document.querySelectorAll('.nav-link');
-            navLinks.forEach(function(link) {
-                if (link.href === window.location.href) {
-                    link.classList.add('active');
-                    link.style.background = 'rgba(255, 255, 255, 0.2)';
-                    link.style.borderRadius = '0.5rem';
+                // Manejar resize de ventana
+                let resizeTimer;
+                window.addEventListener('resize', function() {
+                    clearTimeout(resizeTimer);
+                    resizeTimer = setTimeout(function() {
+                        if (window.innerWidth > 992) {
+                            // En desktop, remover clases de móvil
+                            sidebar.classList.remove('show');
+                            overlay.classList.remove('show');
+                        } else {
+                            // En móvil, remover clases de desktop
+                            sidebar.classList.remove('collapsed');
+                            body.classList.remove('sidebar-collapsed');
+                        }
+                    }, 250);
+                });
+            }
+
+            // Marcar enlace activo
+            const currentPath = window.location.pathname;
+            const sidebarLinks = document.querySelectorAll('.sidebar-link');
+            sidebarLinks.forEach(link => {
+                if (link.getAttribute('href') === currentPath) {
+                    link.parentElement.classList.add('active');
                 }
             });
         });
@@ -605,6 +704,61 @@
 
         const sessionManager = new SessionManager();
         {% endif %}
+    </script>
+
+    <script>
+        // Auto-cerrar mensajes flash después de 3 segundos
+        document.addEventListener('DOMContentLoaded', function() {
+            const alerts = document.querySelectorAll('.alert:not(.alert-permanent)');
+            alerts.forEach(function(alert) {
+                setTimeout(function() {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }, 3000); // 3 segundos
+            });
+
+            // Marcar notificaciones como leídas al abrir el dropdown
+            const notificationsDropdown = document.getElementById('notificationsDropdown');
+            if (notificationsDropdown) {
+                notificationsDropdown.addEventListener('click', function() {
+                    // Esperar un momento para que se abra el dropdown
+                    setTimeout(function() {
+                        // Obtener el token CSRF del meta tag o de un input hidden
+                        let csrfToken = '';
+                        const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+                        if (csrfMeta) {
+                            csrfToken = csrfMeta.getAttribute('content');
+                        } else {
+                            const csrfInput = document.querySelector('input[name="csrf_token"]');
+                            if (csrfInput) {
+                                csrfToken = csrfInput.value;
+                            }
+                        }
+                        
+                        fetch('{{ url_for("main.mark_all_notifications_read") }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': csrfToken
+                            }
+                        }).then(function(response) {
+                            if (response.ok) {
+                                // Remover el badge de notificaciones
+                                const badge = document.getElementById('notificationBadge');
+                                if (badge) {
+                                    badge.remove();
+                                }
+                                // Remover el fw-bold de las notificaciones
+                                const notifItems = document.querySelectorAll('#notificationsMenu .fw-bold');
+                                notifItems.forEach(function(item) {
+                                    item.classList.remove('fw-bold');
+                                });
+                            }
+                        });
+                    }, 100);
+                });
+            }
+        });
     </script>
 
     <script>

@@ -36,7 +36,7 @@
                     <div class="text-primary mb-2">
                         <i class="fas fa-building fa-2x"></i>
                     </div>
-                    <h4 class="mb-1">{{ system_stats.total_sedes }}</h4>
+                    <h4 class="mb-1 fw-bold">{{ system_stats.total_sedes }}</h4>
                     <small class="text-muted">Total Sedes</small>
                     <div class="mt-1">
                         <small class="badge bg-success">{{ system_stats.total_sedes_active }} activas</small>
@@ -50,7 +50,7 @@
                     <div class="text-info mb-2">
                         <i class="fas fa-shopping-cart fa-2x"></i>
                     </div>
-                    <h4 class="mb-1">{{ system_stats.total_orders_system }}</h4>
+                    <h4 class="mb-1 fw-bold">{{ system_stats.total_orders_system }}</h4>
                     <small class="text-muted">Órdenes Totales</small>
                 </div>
             </div>
@@ -61,7 +61,7 @@
                     <div class="text-warning mb-2">
                         <i class="fas fa-calendar-alt fa-2x"></i>
                     </div>
-                    <h4 class="mb-1">{{ system_stats.orders_this_month_system }}</h4>
+                    <h4 class="mb-1 fw-bold">{{ system_stats.orders_this_month_system }}</h4>
                     <small class="text-muted">Órdenes Este Mes</small>
                 </div>
             </div>
@@ -72,7 +72,7 @@
                     <div class="text-success mb-2">
                         <i class="fas fa-dollar-sign fa-2x"></i>
                     </div>
-                    <h4 class="mb-1">${{ "{:,.0f}".format(system_stats.total_sales_system) }}</h4>
+                    <h4 class="mb-1 fw-bold">${{ "{:,.0f}".format(system_stats.total_sales_system) }}</h4>
                     <small class="text-muted">Ventas Totales</small>
                 </div>
             </div>
@@ -83,7 +83,7 @@
                     <div class="text-success mb-2">
                         <i class="fas fa-chart-bar fa-2x"></i>
                     </div>
-                    <h4 class="mb-1">${{ "{:,.0f}".format(system_stats.sales_this_month_system) }}</h4>
+                    <h4 class="mb-1 fw-bold">${{ "{:,.0f}".format(system_stats.sales_this_month_system) }}</h4>
                     <small class="text-muted">Ventas Este Mes</small>
                 </div>
             </div>
@@ -94,7 +94,7 @@
                     <div class="text-danger mb-2">
                         <i class="fas fa-exclamation-triangle fa-2x"></i>
                     </div>
-                    <h4 class="mb-1">${{ "{:,.0f}".format(system_stats.total_pending_payments) }}</h4>
+                    <h4 class="mb-1 fw-bold">${{ "{:,.0f}".format(system_stats.total_pending_payments) }}</h4>
                     <small class="text-muted">Pagos Pendientes</small>
                 </div>
             </div>
@@ -104,16 +104,16 @@
     <div class="row mb-1">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
-                <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
+                <div class="card-header bg-warning text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-white">
                         <i class="fas fa-glasses"></i> 
                         Estadísticas de Tipos de Lentes
                     </h5>
                     <div class="d-flex align-items-center">
-                        <small id="last-updated" class="text-muted me-3">
+                        <small id="last-updated" class="text-white me-3">
                             Actualizado: <span id="update-time">Cargando...</span>
                         </small>
-                        <button id="refresh-stats" class="btn btn-outline-dark btn-sm" onclick="refreshDashboardStats()" title="Actualizar estadísticas">
+                        <button id="refresh-stats" class="btn btn-outline-light btn-sm" onclick="refreshDashboardStats()" title="Actualizar estadísticas">
                             <i class="fas fa-sync-alt"></i> Actualizar
                         </button>
                     </div>
@@ -127,7 +127,7 @@
                             <div class="row">
                                 <div class="col-4">
                                     <div class="text-center p-3 border rounded">
-                                        <h4 class="mb-1 text-primary" id="total-progresivo-count">{{ lens_data.get('Progresivo', {}).get('count', 0) }}</h4>
+                                        <h4 class="mb-1 text-primary fw-bold" id="total-progresivo-count">{{ lens_data.get('Progresivo', {}).get('count', 0) }}</h4>
                                         <small class="text-muted">Progresivos</small>
                                         {% if total_lentes > 0 %}
                                         <br><small class="badge bg-primary" id="total-progresivo-percent">{{ "%.1f"|format((lens_data.get('Progresivo', {}).get('count', 0) / total_lentes * 100)) }}%</small>
@@ -136,7 +136,7 @@
                                 </div>
                                 <div class="col-4">
                                     <div class="text-center p-3 border rounded">
-                                        <h4 class="mb-1 text-info" id="total-bifocal-count">{{ lens_data.get('Bifocal', {}).get('count', 0) }}</h4>
+                                        <h4 class="mb-1 text-info fw-bold" id="total-bifocal-count">{{ lens_data.get('Bifocal', {}).get('count', 0) }}</h4>
                                         <small class="text-muted">Bifocales</small>
                                         {% if total_lentes > 0 %}
                                         <br><small class="badge bg-info" id="total-bifocal-percent">{{ "%.1f"|format((lens_data.get('Bifocal', {}).get('count', 0) / total_lentes * 100)) }}%</small>
@@ -145,7 +145,7 @@
                                 </div>
                                 <div class="col-4">
                                     <div class="text-center p-3 border rounded">
-                                        <h4 class="mb-1 text-success" id="total-monofocal-count">{{ lens_data.get('Monofocal', {}).get('count', 0) }}</h4>
+                                        <h4 class="mb-1 text-success fw-bold" id="total-monofocal-count">{{ lens_data.get('Monofocal', {}).get('count', 0) }}</h4>
                                         <small class="text-muted">Monofocales</small>
                                         {% if total_lentes > 0 %}
                                         <br><small class="badge bg-success" id="total-monofocal-percent">{{ "%.1f"|format((lens_data.get('Monofocal', {}).get('count', 0) / total_lentes * 100)) }}%</small>
@@ -161,7 +161,7 @@
                             <div class="row">
                                 <div class="col-4">
                                     <div class="text-center p-3 border rounded bg-light">
-                                        <h5 class="mb-1 text-primary" id="month-progresivo-count">{{ lens_data_month.get('Progresivo', {}).get('count', 0) }}</h5>
+                                        <h5 class="mb-1 text-primary fw-bold" id="month-progresivo-count">{{ lens_data_month.get('Progresivo', {}).get('count', 0) }}</h5>
                                         <small class="text-muted">Progresivos</small>
                                         {% if total_lentes_month > 0 %}
                                         <br><small class="badge bg-primary" id="month-progresivo-percent">{{ "%.1f"|format((lens_data_month.get('Progresivo', {}).get('count', 0) / total_lentes_month * 100)) }}%</small>
@@ -170,7 +170,7 @@
                                 </div>
                                 <div class="col-4">
                                     <div class="text-center p-3 border rounded bg-light">
-                                        <h5 class="mb-1 text-info" id="month-bifocal-count">{{ lens_data_month.get('Bifocal', {}).get('count', 0) }}</h5>
+                                        <h5 class="mb-1 text-info fw-bold" id="month-bifocal-count">{{ lens_data_month.get('Bifocal', {}).get('count', 0) }}</h5>
                                         <small class="text-muted">Bifocales</small>
                                         {% if total_lentes_month > 0 %}
                                         <br><small class="badge bg-info" id="month-bifocal-percent">{{ "%.1f"|format((lens_data_month.get('Bifocal', {}).get('count', 0) / total_lentes_month * 100)) }}%</small>
@@ -179,7 +179,7 @@
                                 </div>
                                 <div class="col-4">
                                     <div class="text-center p-3 border rounded bg-light">
-                                        <h5 class="mb-1 text-success" id="month-monofocal-count">{{ lens_data_month.get('Monofocal', {}).get('count', 0) }}</h5>
+                                        <h5 class="mb-1 text-success fw-bold" id="month-monofocal-count">{{ lens_data_month.get('Monofocal', {}).get('count', 0) }}</h5>
                                         <small class="text-muted">Monofocales</small>
                                         {% if total_lentes_month > 0 %}
                                         <br><small class="badge bg-success" id="month-monofocal-percent">{{ "%.1f"|format((lens_data_month.get('Monofocal', {}).get('count', 0) / total_lentes_month * 100)) }}%</small>
@@ -213,19 +213,19 @@
                                 <div class="col-6 mb-3">
                                     <div class="text-center p-3 border rounded bg-light">
                                         <small class="text-muted d-block">Ventas al Cliente</small>
-                                        <h4 class="mb-0 text-success">${{ "{:,.0f}".format(profit_stats.total_revenue) }}</h4>
+                                        <h4 class="mb-0 text-dark fw-bold">${{ "{:,.0f}".format(profit_stats.total_revenue) }}</h4>
                                     </div>
                                 </div>
                                 <div class="col-6 mb-3">
                                     <div class="text-center p-3 border rounded bg-light">
                                         <small class="text-muted d-block">Costo Proveedor</small>
-                                        <h4 class="mb-0 text-danger">${{ "{:,.0f}".format(profit_stats.total_costs) }}</h4>
+                                        <h4 class="mb-0 text-dark fw-bold">${{ "{:,.0f}".format(profit_stats.total_costs) }}</h4>
                                     </div>
                                 </div>
                                 <div class="col-12">
                                     <div class="text-center p-3 border rounded" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
                                         <small class="text-white d-block fw-bold">GANANCIA TOTAL</small>
-                                        <h2 class="mb-0 text-white">${{ "{:,.0f}".format(profit_stats.total_profit) }}</h2>
+                                        <h2 class="mb-0 text-white fw-bold">${{ "{:,.0f}".format(profit_stats.total_profit) }}</h2>
                                         <small class="badge bg-light text-dark mt-2">Margen: {{ profit_stats.profit_margin }}%</small>
                                     </div>
                                 </div>
@@ -239,19 +239,19 @@
                                 <div class="col-6 mb-3">
                                     <div class="text-center p-3 border rounded bg-light">
                                         <small class="text-muted d-block">Ventas al Cliente</small>
-                                        <h4 class="mb-0 text-success">${{ "{:,.0f}".format(profit_stats.revenue_this_month) }}</h4>
+                                        <h4 class="mb-0 text-dark fw-bold">${{ "{:,.0f}".format(profit_stats.revenue_this_month) }}</h4>
                                     </div>
                                 </div>
                                 <div class="col-6 mb-3">
                                     <div class="text-center p-3 border rounded bg-light">
                                         <small class="text-muted d-block">Costo Proveedor</small>
-                                        <h4 class="mb-0 text-danger">${{ "{:,.0f}".format(profit_stats.costs_this_month) }}</h4>
+                                        <h4 class="mb-0 text-dark fw-bold">${{ "{:,.0f}".format(profit_stats.costs_this_month) }}</h4>
                                     </div>
                                 </div>
                                 <div class="col-12">
                                     <div class="text-center p-3 border rounded" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
                                         <small class="text-white d-block fw-bold">GANANCIA DEL MES</small>
-                                        <h2 class="mb-0 text-white">${{ "{:,.0f}".format(profit_stats.profit_this_month) }}</h2>
+                                        <h2 class="mb-0 text-white fw-bold">${{ "{:,.0f}".format(profit_stats.profit_this_month) }}</h2>
                                         <small class="badge bg-light text-dark mt-2">Margen: {{ profit_stats.profit_margin_month }}%</small>
                                     </div>
                                 </div>
@@ -282,7 +282,7 @@
                                 <small class="text-muted">{{ sede_stat.sede.city }}</small>
                             </div>
                             <div class="text-end">
-                                <strong class="text-success">${{ "{:,.0f}".format(sede_stat.sales_this_month) }}</strong>
+                                <strong class="text-dark fw-bold">${{ "{:,.0f}".format(sede_stat.sales_this_month) }}</strong>
                                 <br>
                                 <small class="text-muted">{{ sede_stat.orders_this_month }} órdenes</small>
                             </div>
@@ -313,7 +313,7 @@
                                 <small class="text-muted">{{ sede_stat.sede.city }}</small>
                             </div>
                             <div class="text-end">
-                                <strong class="text-info">{{ sede_stat.orders_this_month }}</strong>
+                                <strong class="text-dark fw-bold">{{ sede_stat.orders_this_month }}</strong>
                                 <br>
                                 <small class="text-muted">órdenes</small>
                             </div>
@@ -641,6 +641,7 @@ function refreshStats() {
     fetch('/api/admin/stats')
         .then(response => response.json())
         .then(data => {
+            // Actualizar tarjetas superiores
             const sedesCard = document.querySelector('.col-lg-2:first-child h4');
             const sedesActiveCard = document.querySelector('.col-lg-2:first-child .badge');
             if (sedesCard) {
@@ -653,6 +654,59 @@ function refreshStats() {
             const ordersCard = document.querySelector('.col-lg-2:nth-child(2) h4');
             if (ordersCard) {
                 ordersCard.textContent = data.total_orders;
+            }
+
+            const ordersMonthCard = document.querySelector('.col-lg-2:nth-child(3) h4');
+            if (ordersMonthCard) {
+                ordersMonthCard.textContent = data.orders_this_month;
+            }
+
+            // Actualizar Top 5 Sedes por Ventas
+            if (data.top_sedes_sales && data.top_sedes_sales.length > 0) {
+                const topSalesContainer = document.querySelector('.card-header.bg-success').parentElement.querySelector('.card-body');
+                let salesHTML = '';
+                data.top_sedes_sales.forEach((sede, index) => {
+                    salesHTML += `
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <strong>${index + 1}. ${sede.name}</strong>
+                                <br>
+                                <small class="text-muted">${sede.city}</small>
+                            </div>
+                            <div class="text-end">
+                                <strong class="text-dark fw-bold">$${sede.sales.toLocaleString('es-CO', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</strong>
+                                <br>
+                                <small class="text-muted">${sede.orders} órdenes</small>
+                            </div>
+                        </div>
+                        ${index < data.top_sedes_sales.length - 1 ? '<hr class="my-2">' : ''}
+                    `;
+                });
+                topSalesContainer.innerHTML = salesHTML;
+            }
+
+            // Actualizar Top 5 Sedes por Órdenes
+            if (data.top_sedes_orders && data.top_sedes_orders.length > 0) {
+                const topOrdersContainer = document.querySelector('.card-header.bg-info').parentElement.querySelector('.card-body');
+                let ordersHTML = '';
+                data.top_sedes_orders.forEach((sede, index) => {
+                    ordersHTML += `
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <strong>${index + 1}. ${sede.name}</strong>
+                                <br>
+                                <small class="text-muted">${sede.city}</small>
+                            </div>
+                            <div class="text-end">
+                                <strong class="text-dark fw-bold">${sede.orders}</strong>
+                                <br>
+                                <small class="text-muted">órdenes</small>
+                            </div>
+                        </div>
+                        ${index < data.top_sedes_orders.length - 1 ? '<hr class="my-2">' : ''}
+                    `;
+                });
+                topOrdersContainer.innerHTML = ordersHTML;
             }
 
             showNotification('Estadísticas actualizadas correctamente', 'success');

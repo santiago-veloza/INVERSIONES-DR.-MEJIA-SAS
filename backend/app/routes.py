@@ -166,83 +166,126 @@ def login():
         return redirect(url_for('main.index'))
     
     if request.method == 'POST':
-        # Obtengo datos del formulario directamente
-        username = request.form.get('username', '').strip()
-        password = request.form.get('password', '')
+        # Obtengo datos del formulario
         user_type = request.form.get('user_type', '')
         sede_id = request.form.get('sede_id', type=int)
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '')
         remember_me = 'remember_me' in request.form
         
         # Validaciones básicas
-        if not username or not password or not user_type:
+        if not user_type or not password:
             flash('Todos los campos son obligatorios.', 'danger')
             return redirect(url_for('main.login'))
         
-        # Buscar usuario en la base de datos
-        user = User.query.filter_by(username=username).first()
-        
-        # Valido que el usuario existe, password es correcto y está activo
-        if user is None or not user.check_password(password) or not user.is_active:
-            # Registrar intento fallido de login
-            reason = 'Invalid credentials'
-            if user and not user.is_active:
-                reason = 'Account inactive'
-            elif user and not user.check_password(password):
-                reason = 'Invalid password'
-            elif not user:
-                reason = 'User not found'
-            
-            log_failed_login(username, reason)
-            flash('Usuario o contraseña inválidos o cuenta inactiva.', 'danger')
-            return redirect(url_for('main.login'))
-        
-        # Valido que el tipo de usuario seleccionado coincida con el rol del usuario
-        if user_type == 'central' and user.role not in ['admin', 'asistente']:
-            flash('Este usuario no tiene acceso a Administración Central.', 'danger')
-            return redirect(url_for('main.login'))
-        elif user_type == 'sede' and user.role != 'admin_sede':
-            flash('Este usuario no es administrador de sede.', 'danger')
-            return redirect(url_for('main.login'))
-        elif user_type == 'proveedor' and user.role != 'proveedor':
-            flash('Este usuario no es proveedor.', 'danger')
-            return redirect(url_for('main.login'))
-        
-        # Para administradores de sede, validar que se seleccionó una sede válida
+        # NUEVO SISTEMA: Login por sede con contraseña compartida
         if user_type == 'sede':
             if not sede_id or sede_id == 0:
                 flash('Debe seleccionar una sede.', 'danger')
                 return redirect(url_for('main.login'))
             
-            # Verifico que el usuario puede acceder a esta sede
-            if user.sede_id and user.sede_id != sede_id:
-                flash('No tiene permisos para acceder a esta sede.', 'danger')
+            # Verificar que la sede existe
+            sede = Sede.query.get(sede_id)
+            if not sede or not sede.is_active:
+                flash('La sede seleccionada no es válida.', 'danger')
+                return redirect(url_for('main.login'))
+            
+            # Buscar el usuario genérico de la sede (formato: sede_[id])
+            sede_username = f'sede_{sede_id}'
+            user = User.query.filter_by(username=sede_username, role='admin_sede', sede_id=sede_id).first()
+            
+            # Si no existe el usuario de la sede, lo creo automáticamente
+            if not user:
+                user = User(
+                    username=sede_username,
+                    email=f'sede{sede_id}@opticasdrmejia.com',
+                    role='admin_sede',
+                    sede_id=sede_id,
+                    is_active=True
+                )
+                # Contraseña compartida para todas las sedes: "OpticasDrMejia2024"
+                user.set_password('OpticasDrMejia2024')
+                db.session.add(user)
+                db.session.commit()
+            
+            # Validar la contraseña compartida
+            if not user.check_password(password):
+                log_failed_login(sede_username, 'Invalid password')
+                flash('Contraseña incorrecta.', 'danger')
                 return redirect(url_for('main.login'))
             
             # Almacenar la sede seleccionada en la sesión
             from flask import session
             session['sede_seleccionada'] = sede_id
+            
+            # Login exitoso
+            login_user(user, remember=remember_me)
+            
+            # Registrar login exitoso
+            AuditLog.log_action(
+                action_type=EventTypes.LOGIN_SUCCESS,
+                description=f"Login exitoso - Sede: {sede.name}",
+                user=user,
+                severity=Severity.INFO,
+                category=Category.USER_ACTION,
+                metadata={'sede_id': sede_id, 'sede_name': sede.name}
+            )
+            
+            flash(f'Bienvenido a {sede.name} - {sede.city}!', 'success')
         
-        # Login exitoso
-        login_user(user, remember=remember_me)
+        # Sistema tradicional para admin central y proveedores
+        else:
+            if not username:
+                flash('Debe ingresar un nombre de usuario.', 'danger')
+                return redirect(url_for('main.login'))
+            
+            # Buscar usuario
+            user = User.query.filter_by(username=username).first()
+            
+            # Validar usuario, contraseña y estado
+            if user is None or not user.check_password(password) or not user.is_active:
+                reason = 'Invalid credentials'
+                if user and not user.is_active:
+                    reason = 'Account inactive'
+                elif user and not user.check_password(password):
+                    reason = 'Invalid password'
+                elif not user:
+                    reason = 'User not found'
+                
+                log_failed_login(username, reason)
+                flash('Usuario o contraseña inválidos o cuenta inactiva.', 'danger')
+                return redirect(url_for('main.login'))
+            
+            # Validar tipo de usuario
+            if user_type == 'central' and user.role not in ['admin', 'asistente']:
+                flash('Este usuario no tiene acceso a Administración Central.', 'danger')
+                return redirect(url_for('main.login'))
+            elif user_type == 'proveedor' and user.role != 'proveedor':
+                flash('Este usuario no es proveedor.', 'danger')
+                return redirect(url_for('main.login'))
+            
+            # Login exitoso
+            login_user(user, remember=remember_me)
+            
+            # Registrar login
+            AuditLog.log_action(
+                action_type=EventTypes.LOGIN_SUCCESS,
+                description=f"Login exitoso - Tipo: {user_type}",
+                user=user,
+                severity=Severity.INFO,
+                category=Category.USER_ACTION,
+                metadata={'user_type': user_type, 'role': user.role}
+            )
+            
+            # Mensaje de bienvenida
+            if user.role == 'admin':
+                flash(f'Bienvenido Administrador Central, {user.username}!', 'success')
+            elif user.role == 'asistente':
+                flash(f'Bienvenido Asistente, {user.username}!', 'success')
+            elif user.role == 'proveedor':
+                flash(f'Bienvenido Proveedor, {user.username}!', 'success')
         
-        # Registrar login exitoso en auditoría
-        metadata = {
-            'user_type': user_type,
-            'sede_id': sede_id if user_type == 'sede' else None,
-            'remember_me': remember_me,
-            'role': user.role
-        }
-        
-        AuditLog.log_action(
-            action_type=EventTypes.LOGIN_SUCCESS,
-            description=f"Login exitoso - Tipo: {user_type}",
-            user=user,
-            severity=Severity.INFO,
-            category=Category.USER_ACTION,
-            metadata=metadata
-        )
-        
-        # Inicializar timeout de sesión
+        # Configurar sesión
         from flask import session
         from datetime import datetime
         session['last_activity'] = datetime.now().isoformat()
@@ -252,22 +295,10 @@ def login():
         if not next_page or urlparse(next_page).netloc != '':
             next_page = url_for('main.index')
         
-        # Implementé mensajes personalizados según el tipo de usuario
-        if user.role == 'admin':
-            flash(f'Bienvenido Administrador Central, {user.username}!', 'success')
-        elif user.role == 'asistente':
-            flash(f'Bienvenido Asistente, {user.username}!', 'success')
-        elif user.role == 'admin_sede':
-            sede = Sede.query.get(session.get('sede_seleccionada'))
-            flash(f'Bienvenido Administrador de {sede.name}, {user.username}!', 'success')
-        elif user.role == 'proveedor':
-            flash(f'Bienvenido Proveedor, {user.username}!', 'success')
-        
         return redirect(next_page)
     
     # GET request - mostrar el formulario de login
-    # Obtengo sedes para el select
-    sedes = Sede.query.filter_by(is_active=True).order_by(Sede.city, Sede.name).all()
+    sedes = Sede.query.filter_by(is_active=True).order_by(Sede.department, Sede.city, Sede.name).all()
     return render_template('auth/login.html', title='Iniciar Sesión', sedes=sedes)
 
 @bp.route('/logout')
@@ -298,7 +329,11 @@ def register():
 @bp.route('/index')
 @login_required
 def index():
-    if current_user.role in ['admin', 'asistente', 'admin_sede']:
+    # Si es admin de sede, redirigir directamente a sus órdenes
+    if current_user.role == 'admin_sede' and current_user.sede_id:
+        return redirect(url_for('main.list_orders', sede=current_user.sede_id))
+    
+    if current_user.role in ['admin', 'asistente']:
         from sqlalchemy import func
         
         total_orders = WorkOrder.query.count()
@@ -698,6 +733,48 @@ def api_admin_stats():
         if lens_type not in lens_data_month:
             lens_data_month[lens_type] = 0
     
+    # Top 5 sedes por ventas este mes
+    top_sedes_sales = db.session.query(
+        Sede,
+        func.sum(WorkOrder.sale_price).label('sales_month'),
+        func.count(WorkOrder.id).label('orders_month')
+    ).join(WorkOrder, Sede.id == WorkOrder.sede_id).filter(
+        and_(
+            extract('month', WorkOrder.created_at) == current_month,
+            extract('year', WorkOrder.created_at) == current_year,
+            WorkOrder.sale_price.isnot(None)
+        )
+    ).group_by(Sede.id).order_by(func.sum(WorkOrder.sale_price).desc()).limit(5).all()
+    
+    # Top 5 sedes por número de órdenes este mes
+    top_sedes_orders = db.session.query(
+        Sede,
+        func.count(WorkOrder.id).label('orders_month')
+    ).join(WorkOrder, Sede.id == WorkOrder.sede_id).filter(
+        and_(
+            extract('month', WorkOrder.created_at) == current_month,
+            extract('year', WorkOrder.created_at) == current_year
+        )
+    ).group_by(Sede.id).order_by(func.count(WorkOrder.id).desc()).limit(5).all()
+    
+    # Convertir a diccionarios
+    top_sales = []
+    for sede, sales, orders in top_sedes_sales:
+        top_sales.append({
+            'name': sede.name,
+            'city': sede.city,
+            'sales': float(sales or 0),
+            'orders': orders
+        })
+    
+    top_orders = []
+    for sede, orders in top_sedes_orders:
+        top_orders.append({
+            'name': sede.name,
+            'city': sede.city,
+            'orders': orders
+        })
+    
     return jsonify({
         'total_orders': total_orders,
         'orders_this_month': orders_this_month,
@@ -706,6 +783,8 @@ def api_admin_stats():
         'total_sedes_active': total_sedes_active,
         'lens_data': lens_data,
         'lens_data_month': lens_data_month,
+        'top_sedes_sales': top_sales,
+        'top_sedes_orders': top_orders,
         'current_month': current_month,
         'current_year': current_year,
         'timestamp': datetime.now().isoformat()
@@ -879,33 +958,28 @@ def list_sedes():
 @role_required('admin', 'asistente')
 def add_sede():
     name = request.form.get('name')
+    department = request.form.get('department')
     city = request.form.get('city')
     address = request.form.get('address')
     phone = request.form.get('phone')
+    email = request.form.get('email')
     manager = request.form.get('manager')
     
     # Datos del administrador
     admin_username = request.form.get('admin_username')
     admin_email = request.form.get('admin_email')
-    admin_password = request.form.get('admin_password')
-    admin_password2 = request.form.get('admin_password2')
+    
+    # Contraseña compartida para todas las sedes
+    SHARED_PASSWORD = "OpticasDrMejia2024"
     
     # Valido datos básicos de la sede
-    if not name or not city:
-        flash('Nombre y ciudad son campos obligatorios.', 'error')
+    if not name or not city or not department:
+        flash('Nombre, departamento y ciudad son campos obligatorios.', 'error')
         return redirect(url_for('main.list_sedes'))
     
     # Valido datos del administrador
-    if not admin_username or not admin_email or not admin_password:
-        flash('Usuario, email y contraseña del administrador son obligatorios.', 'error')
-        return redirect(url_for('main.list_sedes'))
-    
-    if admin_password != admin_password2:
-        flash('Las contraseñas del administrador no coinciden.', 'error')
-        return redirect(url_for('main.list_sedes'))
-    
-    if len(admin_password) < 6:
-        flash('La contraseña del administrador debe tener al menos 6 caracteres.', 'error')
+    if not admin_username or not admin_email:
+        flash('Usuario y email del administrador son obligatorios.', 'error')
         return redirect(url_for('main.list_sedes'))
     
     # Verifico si ya existe una sede con el mismo nombre
@@ -929,16 +1003,18 @@ def add_sede():
         # Creo la sede primero
         new_sede = Sede(
             name=name,
+            department=department,
             city=city,
             address=address,
             phone=phone,
+            email=email,
             manager=manager,
             is_active=True
         )
         db.session.add(new_sede)
         db.session.flush()  # Para obtener el ID de la sede
         
-        # Creo el usuario administrador de la sede
+        # Creo el usuario administrador de la sede con contraseña compartida
         admin_user = User(
             username=admin_username,
             email=admin_email,
@@ -946,13 +1022,13 @@ def add_sede():
             sede_id=new_sede.id,
             is_active=True
         )
-        admin_user.set_password(admin_password)
+        admin_user.set_password(SHARED_PASSWORD)
         db.session.add(admin_user)
         
         # Confirmar ambas transacciones
         db.session.commit()
         
-        flash(f'Sede "{name}" creada exitosamente con su administrador "{admin_username}".', 'success')
+        flash(f'Sede "{name}" creada exitosamente con su administrador "{admin_username}". Contraseña: {SHARED_PASSWORD}', 'success')
         
     except Exception as e:
         db.session.rollback()
@@ -981,13 +1057,15 @@ def edit_sede(sede_id):
     sede = Sede.query.get_or_404(sede_id)
     
     name = request.form.get('name')
+    department = request.form.get('department')
     city = request.form.get('city')
     address = request.form.get('address')
     phone = request.form.get('phone')
+    email = request.form.get('email')
     manager = request.form.get('manager')
     
-    if not name or not city:
-        flash('Nombre y ciudad son campos obligatorios.', 'error')
+    if not name or not city or not department:
+        flash('Nombre, departamento y ciudad son campos obligatorios.', 'error')
         return redirect(url_for('main.list_sedes'))
     
     # Verifico si ya existe otra sede con el mismo nombre (excluyendo la actual)
@@ -998,15 +1076,59 @@ def edit_sede(sede_id):
     
     try:
         sede.name = name
+        sede.department = department
         sede.city = city
         sede.address = address
         sede.phone = phone
+        sede.email = email
         sede.manager = manager
         db.session.commit()
         flash(f'Sede "{name}" actualizada exitosamente.', 'success')
     except Exception as e:
         db.session.rollback()
         flash(f'Error al actualizar la sede: {str(e)}', 'error')
+    
+    return redirect(url_for('main.list_sedes'))
+
+@bp.route('/sede/change_shared_password', methods=['POST'])
+@login_required
+@role_required('admin', 'asistente')
+def change_shared_sede_password():
+    """Cambia la contraseña compartida para todas las sedes"""
+    new_password = request.form.get('new_shared_password')
+    confirm_password = request.form.get('confirm_shared_password')
+    
+    # Validaciones
+    if not new_password or not confirm_password:
+        flash('Todos los campos son obligatorios.', 'error')
+        return redirect(url_for('main.list_sedes'))
+    
+    if new_password != confirm_password:
+        flash('Las contraseñas no coinciden.', 'error')
+        return redirect(url_for('main.list_sedes'))
+    
+    if len(new_password) < 6:
+        flash('La contraseña debe tener al menos 6 caracteres.', 'error')
+        return redirect(url_for('main.list_sedes'))
+    
+    try:
+        # Obtener todas las sedes activas
+        sedes = Sede.query.filter_by(is_active=True).all()
+        
+        # Actualizar la contraseña de todos los usuarios admin_sede
+        updated_count = 0
+        for sede in sedes:
+            admin_user = User.query.filter_by(sede_id=sede.id, role='admin_sede', is_active=True).first()
+            if admin_user:
+                admin_user.set_password(new_password)
+                updated_count += 1
+        
+        db.session.commit()
+        flash(f'Contraseña compartida actualizada exitosamente para {updated_count} sedes. Nueva contraseña: {new_password}', 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al actualizar la contraseña compartida: {str(e)}', 'error')
     
     return redirect(url_for('main.list_sedes'))
 
@@ -1127,7 +1249,11 @@ def list_orders():
     sede_filter = request.args.get('sede', type=int)
     
     if current_user.role == 'proveedor' and current_user.provider:
-        orders = WorkOrder.query.filter_by(provider_id=current_user.provider.id).order_by(WorkOrder.created_at.desc()).all()
+        # Los proveedores NO deben ver órdenes que están pendientes de revisión admin
+        orders = WorkOrder.query.filter_by(
+            provider_id=current_user.provider.id,
+            pending_admin_review=False
+        ).order_by(WorkOrder.created_at.desc()).all()
     elif current_user.role == 'admin_sede' and current_user.sede_id:
         # Admin de sede solo ve órdenes de su sede
         orders = WorkOrder.query.filter_by(sede_id=current_user.sede_id).order_by(WorkOrder.created_at.desc()).all()
@@ -1170,11 +1296,10 @@ def create_order():
         
         order_number = str(uuid.uuid4()).split('-')[0].upper() # Genera un número de orden simple
         
-        # Detectar si es una orden de sede sin especificación de lentes
-        lens_class_provided = form.lens_class.data and form.lens_class.data.strip()
-        lens_type_provided = form.lens_type.data and form.lens_type.data.strip()
+        # TODAS las órdenes creadas por admin_sede deben pasar por revisión del admin central
+        # El admin central es quien completa los campos técnicos de lentes y luego envía al proveedor
         is_sede_order = current_user.role == 'admin_sede'
-        needs_admin_review = is_sede_order and (not lens_class_provided or not lens_type_provided)
+        needs_admin_review = is_sede_order  # Siempre True para sedes
         
         order = WorkOrder(
             order_number=order_number,
@@ -1185,10 +1310,10 @@ def create_order():
             orden_laboratorio=form.orden_laboratorio.data,
             empresa_convenio=form.empresa_convenio.data,
             ciudad_municipio=form.ciudad_municipio.data,
-            lens_type=form.lens_type.data if lens_type_provided else None,
+            lens_type=form.lens_type.data,
             sede_id=form.sede_id.data,
             provider_id=form.provider_id.data,
-            lens_class=form.lens_class.data if lens_class_provided else None,
+            lens_class=form.lens_class.data,
             frame_type=form.frame_type.data,
             # Fórmula con campos de texto libre
             formula_od=form.formula_od.data,
@@ -1319,9 +1444,19 @@ def edit_order(order_id):
                 flash('No puedes cambiar la sede de origen de la orden.', 'danger')
                 return render_template('ordenes/create_edit.html', title=f'Editar Orden {order.order_number}', form=form, order=order)
         
+        # Guardar el estado de pending_admin_review antes de populate_obj
+        was_pending_review = order.pending_admin_review
+        original_status = order.status
+        
         form.populate_obj(order)
         order.sale_price = form.sale_price.data  # Asegurar que sale_price se actualice
         order.created_by_user_id = current_user.id # Quien edita también se registra
+        
+        # Si la orden fue creada por una sede y está pendiente de revisión admin, mantener ese estado
+        if current_user.role == 'admin_sede' and was_pending_review:
+            order.pending_admin_review = True
+            order.status = 'pendiente_envio'  # Asegurar que no cambie a 'enviada'
+        
         db.session.commit()
         flash(f'Orden de Trabajo N° {order.order_number} actualizada exitosamente.', 'success')
         return redirect(url_for('main.view_order', order_id=order.id))
@@ -2077,6 +2212,14 @@ def mark_notification_read(notification_id):
     db.session.commit()
     flash('Notificación marcada como leída.', 'success')
     return redirect(request.referrer or url_for('main.view_notifications')) # Redirige a la página anterior o a la lista de notificaciones
+
+@bp.route('/notifications/mark_all_read', methods=['POST'])
+@login_required
+def mark_all_notifications_read():
+    """Marca todas las notificaciones del usuario como leídas"""
+    Notification.query.filter_by(user_id=current_user.id, is_read=False).update({'is_read': True})
+    db.session.commit()
+    return jsonify({'success': True})
 
 # --- Sistema de Mensajería Interna que implementé ---
 @bp.route('/messages/send', methods=['GET', 'POST'])
