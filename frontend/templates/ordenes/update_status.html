@@ -3,7 +3,7 @@
 <div class="container-lg px-3">
     <div class="row mb-3">
         <div class="col-12">
-            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #ffc107 0%, #ff8f00 100%);">
+            <div class="card border-0 shadow-sm order-status-card">
                 <div class="card-body text-white p-3">
                     <h3 class="mb-0 fw-bold">
                         <i class="fas fa-edit me-2"></i>Actualizar Estado - Orden N° {{ order.order_number }}
@@ -19,7 +19,6 @@
             </div>
         </div>
     </div>
-    
     <div class="row">
         <div class="col-md-8">
             <div class="card shadow-sm border-0">
@@ -38,8 +37,7 @@
                     <span class="text-danger">{{ error }}</span>
                 {% endfor %}
             </div>
-            
-            <div class="mb-3" id="rejection-reason-container" style="display: none;">
+            <div class="mb-3 d-none" id="rejection-reason-container">
                 {{ form.rejection_reason.label(class="form-label") }}
                 {{ form.rejection_reason(class="form-control", rows=3, placeholder="Especifique la razón del rechazo...") }}
                 <div class="form-text">{{ form.rejection_reason.description }}</div>
@@ -47,7 +45,6 @@
                     <span class="text-danger">{{ error }}</span>
                 {% endfor %}
             </div>
-            
             <div class="mb-3">
                 {{ form.comments.label(class="form-label") }}
                 {{ form.comments(class="form-control", rows=3) }}
@@ -65,7 +62,6 @@
             </div>
         </div>
     </div>
-        
         <div class="col-md-4">
             <div class="card shadow-sm border-0">
                 <div class="card-header bg-info text-white">
@@ -91,7 +87,6 @@
                         <span class="text-success fw-bold">${{ "{:,.0f}".format(order.total_amount) }}</span>
                     </p>
                     {% endif %}
-                    
                     {% if current_user.role == 'proveedor' %}
                     <hr>
                     <div class="alert alert-info p-2">
@@ -106,9 +101,7 @@
         </div>
     </div>
 </div>
-
     <script>
-
         document.getElementById('status').addEventListener('change', function() {
             const rejectionContainer = document.getElementById('rejection-reason-container');
             if (this.value === 'rechazada') {
@@ -119,7 +112,6 @@
                 document.getElementById('rejection_reason').required = false;
             }
         });
-
         document.addEventListener('DOMContentLoaded', function() {
             const statusSelect = document.getElementById('status');
             if (statusSelect.value === 'rechazada') {

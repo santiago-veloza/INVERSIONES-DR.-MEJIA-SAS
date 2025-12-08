@@ -1,0 +1,556 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-lg px-3">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-1 fw-bold">
+                        <i class="fas fa-tachometer-alt text-primary me-2"></i> 
+                        Dashboard Administrativo
+                    </h2>
+                    <p class="text-muted mb-0">
+                        <span id="load-time-indicator">
+                            {% if load_time %}
+                                <i class="fas fa-clock text-success"></i> Cargado en {{ load_time }}ms
+                            {% endif %}
+                        </span>
+                    </p>
+                </div>
+                <div class="d-flex align-items-center">
+                    <div id="loading-indicator" class="me-3 d-none">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <small class="text-muted ms-2">Cargando datos...</small>
+                    </div>
+                    <button id="refresh-btn" onclick="refreshAllData()" class="btn btn-outline-primary btn-sm me-2">
+                        <i class="fas fa-sync-alt"></i> Actualizar
+                    </button>
+                    <a href="{{ url_for('main.index') }}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-home"></i> Inicio
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- === KPIs BÁSICOS (CARGA INMEDIATA) === -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-0 h-100 dashboard-card dashboard-card-gradient-purple">
+                <div class="card-body text-center text-white p-4">
+                    <i class="fas fa-building fs-1 mb-3 opacity-80"></i>
+                    <h3 class="fw-bold mb-1">{{ total_sedes_active }}</h3>
+                    <small class="opacity-90">Sedes Activas</small>
+                    <div class="mt-2">
+                        <small class="badge bg-white bg-opacity-25">{{ total_sedes }} total</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-0 h-100 dashboard-card dashboard-card-gradient-green">
+                <div class="card-body text-center text-white p-4">
+                    <i class="fas fa-shopping-cart fs-1 mb-3 opacity-80"></i>
+                    <h3 class="fw-bold mb-1">{{ system_stats.total_orders or 0 }}</h3>
+                    <small class="opacity-90">Órdenes Totales</small>
+                    <div class="mt-2">
+                        <small class="badge bg-white bg-opacity-25">{{ system_stats.orders_this_month or 0 }} este mes</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-0 h-100 dashboard-card dashboard-card-gradient-blue">
+                <div class="card-body text-center text-white p-4">
+                    <i class="fas fa-dollar-sign fs-1 mb-3 opacity-80"></i>
+                    <h3 class="fw-bold mb-1" id="revenue-display">${{ "{:,.0f}".format(system_stats.total_revenue or 0) }}</h3>
+                    <small class="opacity-90">Ingresos Totales</small>
+                    <div class="mt-2">
+                        <small class="badge bg-white bg-opacity-25" id="pending-display">${{ "{:,.0f}".format(system_stats.pending_payments or 0) }} pendiente</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-0 h-100 dashboard-card dashboard-card-gradient-red">
+                <div class="card-body text-center text-white p-4">
+                    <div id="profit-loading" class="text-center">
+                        <div class="spinner-border spinner-border-sm opacity-75" role="status"></div>
+                    </div>
+                    <div id="profit-content" class="d-none">
+                        <i class="fas fa-chart-line fs-1 mb-3 opacity-80"></i>
+                        <h3 class="fw-bold mb-1" id="profit-amount">$0</h3>
+                        <small class="opacity-90">Ganancia Neta</small>
+                        <div class="mt-2">
+                            <small class="badge bg-white bg-opacity-25" id="profit-margin">0% margen</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- === TOP 5 RANKINGS (CARGA ASÍNCRONA) === -->
+    <div class="row mb-4">
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 h-100 dashboard-card dashboard-card-rounded">
+                <div class="card-header border-0 text-white position-relative dashboard-header-green">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-trophy me-3 fs-5"></i>
+                            <div>
+                                <h5 class="mb-1 fw-bold">Top 5 Ventas</h5>
+                                <small class="opacity-90">Sedes con mayores ingresos</small>
+                            </div>
+                        </div>
+                        <div id="top-sales-loading" class="spinner-border spinner-border-sm opacity-75" role="status"></div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div id="top-sales-content">
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-success" role="status"></div>
+                            <p class="mt-3 text-muted">Cargando rankings...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 h-100 dashboard-card dashboard-card-rounded">
+                <div class="card-header border-0 text-white position-relative dashboard-header-blue">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-chart-bar me-3 fs-5"></i>
+                            <div>
+                                <h5 class="mb-1 fw-bold">Top 5 Órdenes</h5>
+                                <small class="opacity-90">Mayor volumen operativo</small>
+                            </div>
+                        </div>
+                        <div id="top-orders-loading" class="spinner-border spinner-border-sm opacity-75" role="status"></div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div id="top-orders-content">
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <p class="mt-3 text-muted">Cargando rankings...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- === ANÁLISIS DE LENTES (CARGA ASÍNCRONA) === -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 dashboard-card dashboard-card-rounded">
+                <div class="card-header border-0 text-white dashboard-header-purple">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-glasses me-3 fs-5"></i>
+                            <div>
+                                <h5 class="mb-1 fw-bold">Análisis de Tipos de Lentes</h5>
+                                <small class="opacity-90">Distribución y rendimiento por categoría</small>
+                            </div>
+                        </div>
+                        <div id="lens-loading" class="spinner-border spinner-border-sm opacity-75" role="status"></div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="lens-analysis-content">
+                        <div class="row justify-content-center py-5">
+                            <div class="col-auto text-center">
+                                <div class="spinner-border text-purple" role="status"></div>
+                                <p class="mt-3 text-muted">Analizando tipos de lentes...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- === ESTADÍSTICAS DETALLADAS POR SEDE (CARGA ASÍNCRONA) === -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 dashboard-card dashboard-card-rounded">
+                <div class="card-header border-0 text-white dashboard-header-teal">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-chart-area me-3 fs-5"></i>
+                            <div>
+                                <h5 class="mb-1 fw-bold">Rendimiento Detallado por Sede</h5>
+                                <small class="opacity-90">Análisis completo de operaciones y resultados</small>
+                            </div>
+                        </div>
+                        <div id="sede-stats-loading" class="spinner-border spinner-border-sm opacity-75" role="status"></div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div id="sede-stats-content">
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-info" role="status"></div>
+                            <p class="mt-3 text-muted">Cargando estadísticas detalladas...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript para carga asíncrona -->
+<script>
+let isLoading = false;
+
+// Mostrar/ocultar indicador de carga global
+function toggleGlobalLoading(show) {
+    const indicator = document.getElementById('loading-indicator');
+    const refreshBtn = document.getElementById('refresh-btn');
+    
+    if (show) {
+        indicator.classList.remove('d-none');
+        refreshBtn.disabled = true;
+        isLoading = true;
+    } else {
+        indicator.classList.add('d-none');
+        refreshBtn.disabled = false;
+        isLoading = false;
+    }
+}
+
+// Función utilitaria para formatear moneda
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 0
+    }).format(amount);
+}
+
+// Cargar análisis de ganancias
+async function loadProfitAnalysis() {
+    try {
+        const response = await fetch('/api/admin/profit-analysis');
+        const result = await response.json();
+        
+        if (result.success) {
+            const data = result.data;
+            
+            // Actualizar interfaz
+            document.getElementById('profit-amount').textContent = formatCurrency(data.total_profit);
+            document.getElementById('profit-margin').textContent = data.profit_margin + '% margen';
+            
+            // Mostrar contenido
+            document.getElementById('profit-loading').style.display = 'none';
+            document.getElementById('profit-content').style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading profit analysis:', error);
+        document.getElementById('profit-loading').innerHTML = '<small class="text-danger"><i class="fas fa-exclamation-triangle"></i> Error al cargar</small>';
+    }
+}
+
+// Cargar estadísticas de sedes y Top 5
+async function loadSedeStats() {
+    try {
+        document.getElementById('top-sales-loading').style.display = 'block';
+        document.getElementById('top-orders-loading').style.display = 'block';
+        document.getElementById('sede-stats-loading').style.display = 'block';
+        
+        const response = await fetch('/api/admin/sede-stats');
+        const result = await response.json();
+        
+        if (result.success && result.data.length > 0) {
+            const sedes = result.data;
+            
+            // Generar Top 5 Ventas
+            const topSales = sedes.slice(0, 5);
+            let topSalesHtml = '<div class="list-group list-group-flush">';
+            
+            topSales.forEach((sede, index) => {
+                const position = index + 1;
+                let positionBadge;
+                
+                if (position === 1) {
+                    positionBadge = '<div class="bg-warning rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" style="width: 40px; height: 40px;"><i class="fas fa-crown"></i></div>';
+                } else if (position === 2) {
+                    positionBadge = `<div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" style="width: 40px; height: 40px;">${position}</div>`;
+                } else if (position === 3) {
+                    positionBadge = `<div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" style="width: 40px; height: 40px; background: linear-gradient(135deg, #cd7f32, #daa520);">${position}</div>`;
+                } else {
+                    positionBadge = `<div class="bg-light border rounded-circle d-flex align-items-center justify-content-center text-dark fw-bold" style="width: 40px; height: 40px;">${position}</div>`;
+                }
+                
+                topSalesHtml += `
+                <div class="list-group-item border-0 py-3 px-4">
+                    <div class="d-flex align-items-center">
+                        <div class="me-4 text-center" style="min-width: 45px;">${positionBadge}</div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1 fw-semibold">${sede.sede_city}</h6>
+                            <small class="text-muted">${sede.sede_name}</small>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold text-success fs-5">${formatCurrency(sede.total_sales)}</div>
+                            <small class="text-muted">Ventas totales</small>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            topSalesHtml += '</div>';
+            
+            // Generar Top 5 Órdenes (ordenar por órdenes)
+            const topOrders = [...sedes].sort((a, b) => b.total_orders - a.total_orders).slice(0, 5);
+            let topOrdersHtml = '<div class="list-group list-group-flush">';
+            
+            topOrders.forEach((sede, index) => {
+                const position = index + 1;
+                let positionBadge;
+                
+                if (position === 1) {
+                    positionBadge = '<div class="bg-primary rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" style="width: 40px; height: 40px;"><i class="fas fa-medal"></i></div>';
+                } else if (position === 2) {
+                    positionBadge = `<div class="bg-info rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" style="width: 40px; height: 40px;">${position}</div>`;
+                } else if (position === 3) {
+                    positionBadge = `<div class="bg-purple rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" style="width: 40px; height: 40px; background: #6f42c1;">${position}</div>`;
+                } else {
+                    positionBadge = `<div class="bg-light border rounded-circle d-flex align-items-center justify-content-center text-dark fw-bold" style="width: 40px; height: 40px;">${position}</div>`;
+                }
+                
+                topOrdersHtml += `
+                <div class="list-group-item border-0 py-3 px-4">
+                    <div class="d-flex align-items-center">
+                        <div class="me-4 text-center" style="min-width: 45px;">${positionBadge}</div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1 fw-semibold">${sede.sede_city}</h6>
+                            <small class="text-muted">${sede.sede_name}</small>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-primary rounded-pill fs-6 px-3 py-2">${sede.total_orders}</span>
+                            <div><small class="text-muted">Órdenes totales</small></div>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            topOrdersHtml += '</div>';
+            
+            // Generar tabla detallada
+            let tableHtml = `
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);">
+                        <tr>
+                            <th class="text-white fw-semibold px-4 py-3" style="border: none;">Sede</th>
+                            <th class="text-white fw-semibold text-center px-3 py-3" style="border: none;">Órdenes</th>
+                            <th class="text-white fw-semibold text-center px-3 py-3" style="border: none;">Completadas</th>
+                            <th class="text-white fw-semibold text-end px-3 py-3" style="border: none;">Ventas</th>
+                            <th class="text-white fw-semibold text-end px-3 py-3" style="border: none;">Pendiente</th>
+                            <th class="text-white fw-semibold text-center px-3 py-3" style="border: none;">Efectividad</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+            
+            sedes.forEach((sede, index) => {
+                const rowClass = index % 2 === 0 ? 'bg-light bg-opacity-50' : '';
+                tableHtml += `
+                <tr class="${rowClass}">
+                    <td class="px-4 py-3">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <div class="bg-primary bg-opacity-15 rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                    <i class="fas fa-building text-primary"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="fw-semibold">${sede.sede_name}</div>
+                                <small class="text-muted">${sede.sede_city}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="text-center px-3 py-3">
+                        <span class="badge bg-info rounded-pill">${sede.total_orders}</span>
+                        <div><small class="text-muted">${sede.orders_this_month} este mes</small></div>
+                    </td>
+                    <td class="text-center px-3 py-3">
+                        <span class="badge bg-success rounded-pill">${sede.orders_completed}</span>
+                    </td>
+                    <td class="text-end px-3 py-3">
+                        <div class="fw-bold text-success">${formatCurrency(sede.total_sales)}</div>
+                    </td>
+                    <td class="text-end px-3 py-3">
+                        <div class="fw-bold text-warning">${formatCurrency(sede.pending_payments)}</div>
+                    </td>
+                    <td class="text-center px-3 py-3">
+                        <div class="d-flex align-items-center justify-content-center">
+                            <div class="progress me-2" style="width: 60px; height: 8px;">
+                                <div class="progress-bar bg-success" style="width: ${sede.completion_rate}%"></div>
+                            </div>
+                            <small class="fw-semibold">${sede.completion_rate}%</small>
+                        </div>
+                    </td>
+                </tr>`;
+            });
+            
+            tableHtml += '</tbody></table></div>';
+            
+            // Actualizar contenido
+            document.getElementById('top-sales-content').innerHTML = topSalesHtml;
+            document.getElementById('top-orders-content').innerHTML = topOrdersHtml;
+            document.getElementById('sede-stats-content').innerHTML = tableHtml;
+            
+            // Ocultar indicadores de carga
+            document.getElementById('top-sales-loading').style.display = 'none';
+            document.getElementById('top-orders-loading').style.display = 'none';
+            document.getElementById('sede-stats-loading').style.display = 'none';
+            
+        } else {
+            throw new Error('No se pudieron cargar las estadísticas');
+        }
+        
+    } catch (error) {
+        console.error('Error loading sede stats:', error);
+        const errorMsg = '<div class="alert alert-warning m-3"><i class="fas fa-exclamation-triangle me-2"></i>Error al cargar datos</div>';
+        document.getElementById('top-sales-content').innerHTML = errorMsg;
+        document.getElementById('top-orders-content').innerHTML = errorMsg;
+        document.getElementById('sede-stats-content').innerHTML = errorMsg;
+    }
+}
+
+// Cargar análisis de lentes
+async function loadLensAnalysis() {
+    try {
+        document.getElementById('lens-loading').style.display = 'block';
+        
+        const response = await fetch('/api/admin/lens-analytics');
+        const result = await response.json();
+        
+        if (result.success && result.data.length > 0) {
+            const lenses = result.data;
+            
+            // Generar gráfico de barras con CSS
+            let lensHtml = '<div class="row">';
+            
+            lenses.forEach((lens, index) => {
+                if (index < 6) { // Mostrar solo los 6 principales
+                    const colorClasses = [
+                        'bg-primary', 'bg-success', 'bg-info', 'bg-warning', 'bg-danger', 'bg-secondary'
+                    ];
+                    
+                    lensHtml += `
+                    <div class="col-lg-2 col-md-4 col-6 mb-3">
+                        <div class="text-center">
+                            <div class="mb-2">
+                                <div class="progress mx-auto" style="width: 60px; height: 60px; transform: rotate(-90deg);">
+                                    <div class="progress-bar ${colorClasses[index % colorClasses.length]}" 
+                                         style="width: ${Math.min(lens.percentage, 100)}%"></div>
+                                </div>
+                            </div>
+                            <h6 class="mb-1 fw-semibold">${lens.lens_class}</h6>
+                            <div class="badge ${colorClasses[index % colorClasses.length]} mb-1">${lens.count} órdenes</div>
+                            <div><small class="text-muted">${lens.percentage}% del total</small></div>
+                            <div><small class="text-success">${formatCurrency(lens.total_sales)}</small></div>
+                        </div>
+                    </div>`;
+                }
+            });
+            
+            lensHtml += '</div>';
+            
+            // Actualizar contenido
+            document.getElementById('lens-analysis-content').innerHTML = lensHtml;
+            document.getElementById('lens-loading').style.display = 'none';
+            
+        } else {
+            throw new Error('No se pudieron cargar los análisis de lentes');
+        }
+        
+    } catch (error) {
+        console.error('Error loading lens analysis:', error);
+        document.getElementById('lens-analysis-content').innerHTML = '<div class="alert alert-warning m-3"><i class="fas fa-exclamation-triangle me-2"></i>Error al cargar análisis de lentes</div>';
+        document.getElementById('lens-loading').style.display = 'none';
+    }
+}
+
+// Función para refrescar todos los datos
+async function refreshAllData() {
+    if (isLoading) return;
+    
+    toggleGlobalLoading(true);
+    
+    try {
+        // Cargar todos los componentes en paralelo
+        await Promise.all([
+            loadProfitAnalysis(),
+            loadSedeStats(),
+            loadLensAnalysis()
+        ]);
+        
+        // Actualizar indicador de tiempo
+        const now = new Date();
+        document.getElementById('load-time-indicator').innerHTML = 
+            `<i class="fas fa-check-circle text-success"></i> Actualizado a las ${now.toLocaleTimeString()}`;
+            
+    } catch (error) {
+        console.error('Error refreshing data:', error);
+    } finally {
+        toggleGlobalLoading(false);
+    }
+}
+
+// Inicializar carga de datos al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    // Pequeño delay para que se vea la transición
+    setTimeout(() => {
+        refreshAllData();
+    }, 500);
+});
+</script>
+
+<style>
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+}
+
+.progress {
+    border-radius: 50px;
+}
+
+.card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.12) !important;
+}
+
+.list-group-item:hover {
+    background-color: rgba(0,123,255,0.05);
+}
+
+.table-responsive {
+    border-radius: 0 0 15px 15px;
+    overflow: hidden;
+}
+
+.table tr:hover {
+    background-color: rgba(0,123,255,0.05) !important;
+}
+
+/* Efectos de carga */
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+.loading {
+    animation: pulse 1.5s infinite;
+}
+</style>
+{% endblock %}

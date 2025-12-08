@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-
 {% block content %}
     <div class="container-fluid">
         <div class="row justify-content-center">
@@ -13,7 +12,6 @@
                     <div class="card-body">
                         <form method="POST">
                             {{ form.hidden_tag() }}
-                            
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
@@ -42,7 +40,6 @@
                                     </div>
                                 </div>
                             </div>
-
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
@@ -71,7 +68,6 @@
                                     </div>
                                 </div>
                             </div>
-
                             <div class="mb-3">
                                 <div class="form-check">
                                     {{ form.is_active(class="form-check-input") }}
@@ -85,13 +81,11 @@
                                     </div>
                                 {% endif %}
                             </div>
-
                             <div class="alert alert-info">
                                 <i class="fas fa-info-circle"></i>
                                 <strong>Información:</strong> El rol del usuario no puede ser modificado desde esta interfaz. 
                                 Si necesitas cambiar el rol, contacta al administrador central.
                             </div>
-
                             <div class="d-flex justify-content-between">
                                 <a href="{{ url_for('main.admin_users') }}" class="btn btn-secondary">
                                     <i class="fas fa-arrow-left"></i> Volver

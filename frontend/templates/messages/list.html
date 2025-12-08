@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-
 {% block content %}
     <div class="container-fluid">
         <div class="d-flex justify-content-between align-items-center mb-4">
@@ -10,7 +9,6 @@
                 <i class="fas fa-plus"></i> Nuevo Mensaje
             </a>
         </div>
-
         {% if messages %}
             <div class="row">
                 {% for message in messages %}
@@ -52,7 +50,6 @@
                             <p class="card-text">
                                 {{ message.message[:100] }}{% if message.message|length > 100 %}...{% endif %}
                             </p>
-                            
                             <div class="d-flex align-items-center mb-2">
                                 <i class="fas fa-map-marker-alt text-muted me-2"></i>
                                 <small class="text-muted">
@@ -63,7 +60,6 @@
                                     {% endif %}
                                 </small>
                             </div>
-                            
                             {% if message.expires_at %}
                             <div class="d-flex align-items-center mb-2">
                                 <i class="fas fa-calendar-times text-muted me-2"></i>
@@ -145,25 +141,20 @@
         </div>
     </div>
 {% endblock %}
-
 {% block scripts %}
 <script>
 const messages = {{ messages_json|tojson }};
-
 function viewMessage(messageId) {
     const message = messages.find(m => m.id === messageId);
     if (!message) return;
-    
     const priorityBadges = {
         'urgente': '<span class="badge bg-danger">🚨 URGENTE</span>',
         'alta': '<span class="badge bg-warning">⚠️ ALTA</span>',
         'normal': '<span class="badge bg-info">📢 NORMAL</span>'
     };
-    
     const destination = message.is_global ? 
         '<span class="badge bg-success">📢 Todas las Sedes</span>' : 
         `<span class="badge bg-primary">🏢 ${message.sede ? message.sede.name + ' - ' + message.sede.city : 'Sede específica'}</span>`;
-    
     document.getElementById('messageModalTitle').innerHTML = message.title;
     document.getElementById('messageModalBody').innerHTML = `
         <div class="mb-3">
@@ -196,7 +187,6 @@ function viewMessage(messageId) {
             </div>
         ` : ''}
     `;
-    
     new bootstrap.Modal(document.getElementById('messageModal')).show();
 }
 </script>

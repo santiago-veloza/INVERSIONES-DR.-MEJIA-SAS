@@ -223,7 +223,7 @@
                                     </div>
                                 </div>
                                 <div class="col-12">
-                                    <div class="text-center p-3 border rounded" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                    <div class="text-center p-3 border rounded dashboard-card-gradient-purple">
                                         <small class="text-white d-block fw-bold">GANANCIA TOTAL</small>
                                         <h2 class="mb-0 text-white fw-bold">${{ "{:,.0f}".format(profit_stats.total_profit) }}</h2>
                                         <small class="badge bg-light text-dark mt-2">Margen: {{ profit_stats.profit_margin }}%</small>
@@ -262,202 +262,101 @@
             </div>
         </div>
     </div>
-    
-    <div class="row mb-1">
-        <div class="col-md-6">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-trophy"></i> 
-                        Top 5 Sedes por Ventas ({{ current_month }}/{{ current_year }})
-                    </h5>
-                </div>
-                <div class="card-body">
-                    {% if top_sedes_month %}
-                        {% for sede_stat in top_sedes_month %}
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div>
-                                <strong>{{ loop.index }}. {{ sede_stat.sede.name }}</strong>
-                                <br>
-                                <small class="text-muted">{{ sede_stat.sede.city }}</small>
-                            </div>
-                            <div class="text-end">
-                                <strong class="text-dark fw-bold">${{ "{:,.0f}".format(sede_stat.sales_this_month) }}</strong>
-                                <br>
-                                <small class="text-muted">{{ sede_stat.orders_this_month }} órdenes</small>
-                            </div>
-                        </div>
-                        {% if not loop.last %}<hr class="my-2">{% endif %}
-                        {% endfor %}
-                    {% else %}
-                        <p class="text-muted mb-0">No hay datos de ventas para este mes.</p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-chart-bar"></i> 
-                        Top 5 Sedes por Órdenes ({{ current_month }}/{{ current_year }})
-                    </h5>
-                </div>
-                <div class="card-body">
-                    {% if top_sedes_orders %}
-                        {% for sede_stat in top_sedes_orders %}
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div>
-                                <strong>{{ loop.index }}. {{ sede_stat.sede.name }}</strong>
-                                <br>
-                                <small class="text-muted">{{ sede_stat.sede.city }}</small>
-                            </div>
-                            <div class="text-end">
-                                <strong class="text-dark fw-bold">{{ sede_stat.orders_this_month }}</strong>
-                                <br>
-                                <small class="text-muted">órdenes</small>
-                            </div>
-                        </div>
-                        {% if not loop.last %}<hr class="my-2">{% endif %}
-                        {% endfor %}
-                    {% else %}
-                        <p class="text-muted mb-0">No hay datos de órdenes para este mes.</p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-table"></i> 
-                        Estadísticas Detalladas por Sede
-                    </h5>
+
+    <!-- Top 5 Sedes -->
+    <div class="row mb-2 justify-content-center">
+        <!-- Top 5 Sedes por Ventas -->
+        <div class="col-lg-6 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-success text-white py-2">
+                    <h6 class="mb-0 d-flex align-items-center">
+                        <i class="fas fa-trophy me-2"></i> 
+                        <span>Top 5 Sedes por Ventas</span>
+                    </h6>
                 </div>
                 <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0" id="sedesTable">
-                            <thead class="table-light">
-                                <tr>
-                                    <th class="border-0">Sede</th>
-                                    <th class="border-0 text-center">Ciudad</th>
-                                    <th class="border-0 text-center">Encargado</th>
-                                    <th class="border-0 text-center">Órdenes Totales</th>
-                                    <th class="border-0 text-center">Órdenes Mes</th>
-                                    <th class="border-0 text-center">Progresivos</th>
-                                    <th class="border-0 text-center">Bifocales</th>
-                                    <th class="border-0 text-center">Monofocales</th>
-                                    <th class="border-0 text-center">Completadas</th>
-                                    <th class="border-0 text-center">En Progreso</th>
-                                    <th class="border-0 text-center">Listas</th>
-                                    <th class="border-0 text-center">Ventas Mes</th>
-                                    <th class="border-0 text-center">Ventas Totales</th>
-                                    <th class="border-0 text-center">Pendientes Pago</th>
-                                    <th class="border-0 text-center">% Completadas</th>
-                                    <th class="border-0 text-center">Días Promedio</th>
-                                    <th class="border-0 text-center">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for sede_stat in sede_stats %}
-                                <tr onclick="openSedeModal({{ sede_stat.sede.id }}, '{{ sede_stat.sede.name }}', '{{ sede_stat.sede.city }}', '{{ sede_stat.sede.manager or 'Sin asignar' }}', '{{ sede_stat.sede.phone or 'Sin teléfono' }}', '{{ sede_stat.sede.address or 'Sin dirección' }}', {{ sede_stat.total_orders }}, {{ sede_stat.orders_this_month }}, {{ sede_stat.orders_completed }}, {{ sede_stat.orders_in_progress }}, {{ sede_stat.orders_ready }}, {{ sede_stat.sales_this_month }}, {{ sede_stat.total_sales }}, {{ sede_stat.pending_payments }}, {{ sede_stat.completion_rate }}, {{ sede_stat.lens_breakdown.get('Progresivo', 0) }}, {{ sede_stat.lens_breakdown.get('Bifocal', 0) }}, {{ sede_stat.lens_breakdown.get('Monofocal', 0) }})" 
-                                    class="clickable-row position-relative">
-                                    <td>
-                                        <div>
-                                            <strong>{{ sede_stat.sede.name }}</strong>
-                                            <br>
-                                            <small class="text-muted">{{ sede_stat.sede.phone or 'Sin teléfono' }}</small>
-                                        </div>
-                                    </td>
-                                    <td class="text-center">{{ sede_stat.sede.city }}</td>
-                                    <td class="text-center">
-                                        {{ sede_stat.sede.manager or 'Sin asignar' }}
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="badge bg-secondary fs-6">{{ sede_stat.total_orders }}</span>
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="badge bg-warning fs-6">{{ sede_stat.orders_this_month }}</span>
-                                    </td>
+                    <div class="list-group list-group-flush">
+                        {% if top_sedes_sales %}
+                            {% for sede in top_sedes_sales %}
+                            <div class="list-group-item d-flex align-items-center py-2 px-3 {% if loop.index == 1 %}bg-light{% endif %}">
+                                <!-- Posición -->
+                                <div class="me-3 text-center" style="min-width: 28px;">
+                                    {% if loop.index == 1 %}
+                                        <i class="fas fa-medal text-warning" style="font-size: 1.3em;"></i>
+                                    {% elif loop.index == 2 %}
+                                        <i class="fas fa-medal text-secondary" style="font-size: 1.2em;"></i>
+                                    {% elif loop.index == 3 %}
+                                        <i class="fas fa-medal" style="color: #cd7f32; font-size: 1.1em;"></i>
+                                    {% else %}
+                                        <span class="badge bg-light text-dark border" style="font-size: 0.85em;">{{ loop.index }}</span>
+                                    {% endif %}
+                                </div>
+                                <!-- Info Sede -->
+                                <div class="flex-grow-1 overflow-hidden">
+                                    <div class="fw-semibold text-truncate" style="font-size: 0.9em;">{{ sede.name }}</div>
+                                    <small class="text-muted">{{ sede.city }}</small>
+                                </div>
+                                <!-- Ventas -->
+                                <div class="text-end ms-2">
+                                    <div class="fw-bold text-success" style="font-size: 0.95em;">${{ "{:,.0f}".format(sede.sales) }}</div>
+                                    <small class="text-muted">{{ sede.orders }} órdenes</small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="list-group-item text-center text-muted py-4">
+                                <i class="fas fa-inbox mb-2" style="font-size: 1.5em;"></i>
+                                <div>No hay datos</div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                                    <td class="text-center">
-                                        <span class="badge bg-primary fs-6">{{ sede_stat.lens_breakdown.get('Progresivo', 0) }}</span>
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="badge bg-info fs-6">{{ sede_stat.lens_breakdown.get('Bifocal', 0) }}</span>
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="badge bg-success fs-6">{{ sede_stat.lens_breakdown.get('Monofocal', 0) }}</span>
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="badge bg-success fs-6">{{ sede_stat.orders_completed }}</span>
-                                        {% if sede_stat.orders_completed_this_month > 0 %}
-                                        <br><small class="text-muted">({{ sede_stat.orders_completed_this_month }} este mes)</small>
-                                        {% endif %}
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="badge bg-info fs-6">{{ sede_stat.orders_in_progress }}</span>
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="badge bg-primary fs-6">{{ sede_stat.orders_ready }}</span>
-                                    </td>
-                                    <td class="text-center">
-                                        <strong class="text-success">${{ "{:,.0f}".format(sede_stat.sales_this_month) }}</strong>
-                                    </td>
-                                    <td class="text-center">
-                                        <strong class="text-primary">${{ "{:,.0f}".format(sede_stat.total_sales) }}</strong>
-                                    </td>
-                                    <td class="text-center">
-                                        {% if sede_stat.pending_payments > 0 %}
-                                        <strong class="text-danger">${{ "{:,.0f}".format(sede_stat.pending_payments) }}</strong>
-                                        {% else %}
-                                        <span class="text-muted">$0</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="text-center">
-                                        <div class="progress progress-custom">
-                                            <div class="progress-bar 
-                                                {% if sede_stat.completion_rate >= 80 %}bg-success
-                                                {% elif sede_stat.completion_rate >= 60 %}bg-warning
-                                                {% else %}bg-danger{% endif %}" 
-                                                role="progressbar" 
-                                                style="width: {{ sede_stat.completion_rate }}%"
-                                                aria-valuenow="{{ sede_stat.completion_rate }}" 
-                                                aria-valuemin="0" 
-                                                aria-valuemax="100">
-                                                {{ sede_stat.completion_rate }}%
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="text-center">
-                                        {% if sede_stat.avg_completion_days > 0 %}
-                                        <span class="badge {% if sede_stat.avg_completion_days <= 3 %}bg-success{% elif sede_stat.avg_completion_days <= 7 %}bg-warning{% else %}bg-danger{% endif %} fs-6">
-                                            {{ sede_stat.avg_completion_days }} días
-                                        </span>
-                                        {% else %}
-                                        <span class="text-muted">N/A</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="text-center">
-                                        <div class="btn-group" role="group">
-                                            <button class="btn btn-outline-primary btn-sm" 
-                                                    onclick="viewSedeDetails({{ sede_stat.sede.id }})"
-                                                    title="Ver detalles">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <a href="{{ url_for('main.list_orders') }}?sede={{ sede_stat.sede.id }}" 
-                                                class="btn btn-outline-info btn-sm"
-                                                title="Ver órdenes">
-                                                <i class="fas fa-list"></i>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+        <!-- Top 5 Sedes por Órdenes -->
+        <div class="col-lg-6 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-info text-white py-2">
+                    <h6 class="mb-0 d-flex align-items-center">
+                        <i class="fas fa-chart-bar me-2"></i> 
+                        <span>Top 5 Sedes por Órdenes</span>
+                    </h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% if top_sedes_orders %}
+                            {% for sede in top_sedes_orders %}
+                            <div class="list-group-item d-flex align-items-center py-2 px-3 {% if loop.index == 1 %}bg-light{% endif %}">
+                                <!-- Posición -->
+                                <div class="me-3 text-center" style="min-width: 28px;">
+                                    {% if loop.index == 1 %}
+                                        <i class="fas fa-medal text-warning" style="font-size: 1.3em;"></i>
+                                    {% elif loop.index == 2 %}
+                                        <i class="fas fa-medal text-secondary" style="font-size: 1.2em;"></i>
+                                    {% elif loop.index == 3 %}
+                                        <i class="fas fa-medal" style="color: #cd7f32; font-size: 1.1em;"></i>
+                                    {% else %}
+                                        <span class="badge bg-light text-dark border" style="font-size: 0.85em;">{{ loop.index }}</span>
+                                    {% endif %}
+                                </div>
+                                <!-- Info Sede -->
+                                <div class="flex-grow-1 overflow-hidden">
+                                    <div class="fw-semibold text-truncate" style="font-size: 0.9em;">{{ sede.name }}</div>
+                                    <small class="text-muted">{{ sede.city }}</small>
+                                </div>
+                                <!-- Órdenes -->
+                                <div class="text-end ms-2">
+                                    <span class="badge bg-primary rounded-pill px-3 py-2" style="font-size: 0.95em;">{{ sede.orders }}</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="list-group-item text-center text-muted py-4">
+                                <i class="fas fa-inbox mb-2" style="font-size: 1.5em;"></i>
+                                <div>No hay datos</div>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -552,7 +451,7 @@
                         </div>
                         <div class="mb-2">
                             <strong>Bifocales:</strong>
-                            <span id="modal-lens-bifocal" class="badge bg-info ms-2"></span>
+                            <span id="modal-lens-bifocal" class="badge bg-warning ms-2"></span>
                         </div>
                         <div class="mb-2">
                             <strong>Monofocales:</strong>
@@ -914,7 +813,12 @@ function refreshDashboardStats() {
     refreshBtn.disabled = true;
 
     fetch('/api/admin/stats')
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
             console.log('Estadísticas actualizadas:', data);
             console.log('Datos de lentes totales:', data.lens_data);
@@ -927,7 +831,7 @@ function refreshDashboardStats() {
         })
         .catch(error => {
             console.error('Error al actualizar estadísticas:', error);
-            showNotification('Error al actualizar las estadísticas', 'error');
+            showNotification('Error al actualizar las estadísticas: ' + error.message, 'error');
         })
         .finally(() => {
             refreshBtn.innerHTML = originalHtml;

@@ -107,7 +107,8 @@ class WorkOrder(db.Model):
     
     # Implementé clasificación de lentes (nuevo)
     lens_class = db.Column(db.String(20)) # Progresivo, Bifocal, Monofocal
-    lens_type = db.Column(db.String(128)) # Tipo de lente y filtros específicos (opcional hasta que admin complete)
+    lens_type = db.Column(db.String(128)) # Tipo de lente y filtros específicos (completado por admin)
+    lens_type_asesor = db.Column(db.String(128)) # Tipo de lente ingresado por asesor/sede
     frame_type = db.Column(db.String(128)) # Tipo de montura
     
     # Control de flujo: Sede crea → Admin completa lentes → Admin envía a proveedor
@@ -131,7 +132,7 @@ class WorkOrder(db.Model):
     comments = db.Column(db.Text)
 
     # Relaciones
-    provider_id = db.Column(db.Integer, db.ForeignKey('provider.id'), nullable=False)
+    provider_id = db.Column(db.Integer, db.ForeignKey('provider.id'), nullable=True)  # Nullable porque sedes no asignan proveedor
     sede_id = db.Column(db.Integer, db.ForeignKey('sede.id'), nullable=False)  # Sede que creó la orden
     created_by_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     created_by = db.relationship('User', backref='created_orders', foreign_keys=[created_by_user_id])

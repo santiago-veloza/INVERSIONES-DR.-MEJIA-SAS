@@ -28,7 +28,7 @@
     <div class="container-fluid p-0">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-                <div style="position: fixed; top: 20px; right: 20px; z-index: 9999; max-width: 400px;">
+                <div class="notification-fixed">
                     {% for category, message in messages %}
                         <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
                             {% if category == 'success' %}

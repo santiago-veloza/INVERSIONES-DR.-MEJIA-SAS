@@ -61,7 +61,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             const roleSelect = document.getElementById('role');
             const providerSelectField = document.getElementById('provider_select_field');
-
             function toggleProviderSelect() {
                 if (roleSelect.value === 'proveedor') {
                     providerSelectField.style.display = 'block';
@@ -69,7 +68,6 @@
                     providerSelectField.style.display = 'none';
                 }
             }
-
             roleSelect.addEventListener('change', toggleProviderSelect);
             toggleProviderSelect(); 
         });

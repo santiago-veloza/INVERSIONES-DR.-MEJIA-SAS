@@ -1,8 +1,11 @@
 from flask import render_template, flash, redirect, url_for, request, current_app, send_from_directory, jsonify
 from flask_login import current_user, login_user, logout_user, login_required
-from backend.app import db, login_manager, csrf
+from backend.app import db, login_manager, csrf, cache
 from backend.app import bp
 from backend.app.models import User, Provider, WorkOrder, Payment, Notification, Sede, SedeMessage, AuditLog
+import time
+from flask_caching import Cache
+import time
 from backend.app.forms import (
     LoginForm, RegistrationForm, ProviderForm, ProviderEditForm, WorkOrderForm,
     WorkOrderStatusForm, PaymentForm, PendingPaymentsFilterForm, UserForm, SedeAdminForm, SedeMessageForm,
@@ -180,22 +183,31 @@ def login():
         
         # NUEVO SISTEMA: Login por sede con contraseña compartida
         if user_type == 'sede':
+            print(f"DEBUG: Login por sede - sede_id recibido: {sede_id}")
+            
             if not sede_id or sede_id == 0:
-                flash('Debe seleccionar una sede.', 'danger')
+                print(f"DEBUG: Sede ID inválido: {sede_id}")
+                flash('Debe seleccionar una sede válida de la lista.', 'danger')
                 return redirect(url_for('main.login'))
             
             # Verificar que la sede existe
             sede = Sede.query.get(sede_id)
+            print(f"DEBUG: Sede encontrada: {sede.name if sede else 'None'} - Activa: {sede.is_active if sede else 'N/A'}")
+            
             if not sede or not sede.is_active:
-                flash('La sede seleccionada no es válida.', 'danger')
+                flash(f'La sede seleccionada (ID: {sede_id}) no es válida o está inactiva.', 'danger')
                 return redirect(url_for('main.login'))
             
             # Buscar el usuario genérico de la sede (formato: sede_[id])
             sede_username = f'sede_{sede_id}'
+            print(f"DEBUG: Buscando usuario: {sede_username}")
+            
             user = User.query.filter_by(username=sede_username, role='admin_sede', sede_id=sede_id).first()
+            print(f"DEBUG: Usuario encontrado: {user.username if user else 'None'}")
             
             # Si no existe el usuario de la sede, lo creo automáticamente
             if not user:
+                print(f"DEBUG: Creando usuario automáticamente para sede {sede_id}")
                 user = User(
                     username=sede_username,
                     email=f'sede{sede_id}@opticasdrmejia.com',
@@ -207,19 +219,26 @@ def login():
                 user.set_password('OpticasDrMejia2024')
                 db.session.add(user)
                 db.session.commit()
+                print(f"DEBUG: Usuario {sede_username} creado exitosamente")
             
             # Validar la contraseña compartida
+            print(f"DEBUG: Validando contraseña para usuario {sede_username}")
             if not user.check_password(password):
+                print(f"DEBUG: Contraseña incorrecta para {sede_username}")
                 log_failed_login(sede_username, 'Invalid password')
-                flash('Contraseña incorrecta.', 'danger')
+                flash('Contraseña incorrecta. Usa: OpticasDrMejia2024', 'danger')
                 return redirect(url_for('main.login'))
+            
+            print(f"DEBUG: Contraseña correcta para {sede_username}")
             
             # Almacenar la sede seleccionada en la sesión
             from flask import session
             session['sede_seleccionada'] = sede_id
+            print(f"DEBUG: Sede {sede_id} almacenada en sesión")
             
             # Login exitoso
             login_user(user, remember=remember_me)
+            print(f"DEBUG: Usuario {sede_username} logueado exitosamente")
             
             # Registrar login exitoso
             AuditLog.log_action(
@@ -231,7 +250,8 @@ def login():
                 metadata={'sede_id': sede_id, 'sede_name': sede.name}
             )
             
-            flash(f'Bienvenido a {sede.name} - {sede.city}!', 'success')
+            print(f"DEBUG: Login exitoso para {sede.name} - {sede.city}")
+            flash(f'✅ Bienvenido a {sede.name} - {sede.city}!', 'success')
         
         # Sistema tradicional para admin central y proveedores
         else:
@@ -334,66 +354,292 @@ def index():
         return redirect(url_for('main.list_orders', sede=current_user.sede_id))
     
     if current_user.role in ['admin', 'asistente']:
-        from sqlalchemy import func
+        from sqlalchemy import func, and_, extract
+        from datetime import datetime
         
-        total_orders = WorkOrder.query.count()
+        # Obtener mes y año actual
+        current_month = 12  # Diciembre 2025 como solicitó el usuario
+        current_year = 2025
         
-        # Órdenes en progreso (enviadas, aceptadas, en proceso)
-        orders_in_progress = WorkOrder.query.filter(WorkOrder.status.in_(['enviada', 'aceptada', 'en_proceso'])).count()
+        # Obtener todas las sedes activas
+        sedes = Sede.query.filter_by(is_active=True).order_by(Sede.name).all()
         
-        # Órdenes listas para recoger
-        orders_ready = WorkOrder.query.filter_by(status='devuelta_proveedor').count()
+        # Estadísticas por sede
+        sedes_stats = []
         
-        # Órdenes completas (recibidas en óptica + finalizadas)
-        orders_finished = WorkOrder.query.filter(WorkOrder.status.in_(['recibida_optica', 'finalizada'])).count()
+        for sede in sedes:
+            # Total de órdenes de la sede
+            total_ordenes = WorkOrder.query.filter_by(sede_id=sede.id).count()
+            
+            # Órdenes en proceso
+            en_proceso = WorkOrder.query.filter(
+                and_(
+                    WorkOrder.sede_id == sede.id,
+                    WorkOrder.status.in_(['enviada', 'aceptada', 'en_proceso'])
+                )
+            ).count()
+            
+            # Órdenes completadas
+            completadas = WorkOrder.query.filter(
+                and_(
+                    WorkOrder.sede_id == sede.id,
+                    WorkOrder.status.in_(['recibida_optica', 'finalizada'])
+                )
+            ).count()
+            
+            # Órdenes rechazadas
+            rechazadas = WorkOrder.query.filter_by(sede_id=sede.id, status='rechazada').count()
+            
+            # Total de ventas (sale_price de órdenes pagadas)
+            total_ventas = db.session.query(func.coalesce(func.sum(WorkOrder.sale_price), 0)).filter(
+                and_(
+                    WorkOrder.sede_id == sede.id,
+                    WorkOrder.payment_status == 'pagada',
+                    WorkOrder.sale_price.isnot(None)
+                )
+            ).scalar() or 0
+            
+            # Total de costos (total_amount de órdenes pagadas)
+            total_costos = db.session.query(func.coalesce(func.sum(WorkOrder.total_amount), 0)).filter(
+                and_(
+                    WorkOrder.sede_id == sede.id,
+                    WorkOrder.payment_status == 'pagada',
+                    WorkOrder.total_amount.isnot(None)
+                )
+            ).scalar() or 0
+            
+            # Utilidad (ventas - costos)
+            utilidad = total_ventas - total_costos
+            
+            # Porcentaje de margen
+            margen_pct = round((utilidad / total_ventas * 100) if total_ventas > 0 else 0, 1)
+            
+            # Tasa de éxito (órdenes completadas / total órdenes)
+            tasa_exito = round((completadas / total_ordenes * 100) if total_ordenes > 0 else 0, 1)
+            
+            # Ticket promedio (ventas / órdenes completadas)
+            ticket_promedio = round(total_ventas / completadas if completadas > 0 else 0, 0)
+            
+            # Pendientes de pago (sale_price de órdenes completadas pero pendientes de pago)
+            pendientes_pago = db.session.query(func.coalesce(func.sum(WorkOrder.sale_price), 0)).filter(
+                and_(
+                    WorkOrder.sede_id == sede.id,
+                    WorkOrder.payment_status == 'pendiente',
+                    WorkOrder.status.in_(['recibida_optica', 'finalizada']),
+                    WorkOrder.sale_price.isnot(None)
+                )
+            ).scalar() or 0
+            
+            # Días promedio (aproximado - valor fijo por ahora)
+            dias_promedio = 7
+            
+            sedes_stats.append({
+                'sede': sede,
+                'total_ordenes': total_ordenes,
+                'en_proceso': en_proceso,
+                'completadas': completadas,
+                'rechazadas': rechazadas,
+                'total_ventas': total_ventas,
+                'total_costos': total_costos,
+                'utilidad': utilidad,
+                'margen_pct': margen_pct,
+                'tasa_exito': tasa_exito,
+                'ticket_promedio': ticket_promedio,
+                'pendientes_pago': pendientes_pago,
+                'dias_promedio': dias_promedio
+            })
         
-        # Órdenes rechazadas
-        orders_rejected = WorkOrder.query.filter_by(status='rechazada').count()
-
-        # Gráficos: estado general de órdenes
-        chart_data = {
-            'labels': ['En Progreso', 'Listas para Recoger', 'Completadas', 'Rechazadas'],
-            'data': [orders_in_progress, orders_ready, orders_finished, orders_rejected]
+        # Top 5 por ventas
+        top_ventas = sorted(sedes_stats, key=lambda x: x['total_ventas'], reverse=True)[:5]
+        
+        # Top 5 por órdenes
+        top_ordenes = sorted(sedes_stats, key=lambda x: x['total_ordenes'], reverse=True)[:5]
+        
+        # Totales generales
+        totales = {
+            'total_ordenes': sum(s['total_ordenes'] for s in sedes_stats),
+            'en_proceso': sum(s['en_proceso'] for s in sedes_stats),
+            'completadas': sum(s['completadas'] for s in sedes_stats),
+            'rechazadas': sum(s['rechazadas'] for s in sedes_stats),
+            'total_ventas': sum(s['total_ventas'] for s in sedes_stats),
+            'total_costos': sum(s['total_costos'] for s in sedes_stats),
+            'utilidad': sum(s['utilidad'] for s in sedes_stats),
+            'pendientes_pago': sum(s['pendientes_pago'] for s in sedes_stats)
         }
         
-        return render_template('index.html', title='Panel de Control',
-                                total_orders=total_orders,
-                                orders_in_progress=orders_in_progress,
-                                orders_ready=orders_ready,
-                                orders_finished=orders_finished,
-                                orders_rejected=orders_rejected,
-                                chart_data=chart_data)
+        # Margen promedio general
+        totales['margen_pct'] = round((totales['utilidad'] / totales['total_ventas'] * 100) if totales['total_ventas'] > 0 else 0, 1)
+        
+        # Tasa de éxito general
+        totales['tasa_exito'] = round((totales['completadas'] / totales['total_ordenes'] * 100) if totales['total_ordenes'] > 0 else 0, 1)
+        
+        # Ticket promedio general
+        totales['ticket_promedio'] = round(totales['total_ventas'] / totales['completadas'] if totales['completadas'] > 0 else 0, 0)
+        
+        # Datos para gráficos
+        sedes_chart_data = {
+            'labels': [s['sede'].name for s in sedes_stats],
+            'ordenes': [s['total_ordenes'] for s in sedes_stats],
+            'ventas': [float(s['total_ventas']) for s in sedes_stats]
+        }
+        
+        # Esta es la página principal del dashboard
+        # Redirigir al dashboard administrativo completo
+        return redirect(url_for('main.admin_dashboard'))
 
     elif current_user.role == 'proveedor' and current_user.provider:
-        provider_id = current_user.provider.id
-        orders_pending_response = WorkOrder.query.filter_by(provider_id=provider_id, status='enviada').count()  # Pendientes de aceptar/rechazar
-        orders_accepted = WorkOrder.query.filter_by(provider_id=provider_id, status='aceptada').count()  # Aceptadas pero no iniciadas
-        orders_in_process = WorkOrder.query.filter_by(provider_id=provider_id, status='en_proceso').count()  # En proceso
-        orders_completed = WorkOrder.query.filter_by(provider_id=provider_id, status='devuelta_proveedor').count()  # Terminadas
-        orders_paid = WorkOrder.query.filter_by(provider_id=provider_id, payment_status='pagada').count()
-        orders_pending_payment = WorkOrder.query.filter_by(provider_id=provider_id, payment_status='pendiente').count()
-
-        chart_data = {
-            'labels': ['Pendientes Respuesta', 'Aceptadas', 'En Proceso', 'Terminadas'],
-            'data': [orders_pending_response, orders_accepted, orders_in_process, orders_completed]
-        }
-        payment_chart_data = {
-            'labels': ['Pagadas', 'Pendientes de Pago'],
-            'data': [orders_paid, orders_pending_payment]
-        }
-        return render_template('index.html', title='Panel de Proveedor',
-                                    orders_pending_response=orders_pending_response,
-                                    orders_accepted=orders_accepted,
-                                    orders_in_process=orders_in_process,
-                                    orders_completed=orders_completed,
-                                    orders_paid=orders_paid,
-                                    orders_pending_payment=orders_pending_payment,
-                                    chart_data=chart_data,
-                                    payment_chart_data=payment_chart_data)
+        # Proveedores van directamente a su lista de órdenes
+        return redirect(url_for('main.list_orders'))
     else:
         # Si un usuario proveedor no tiene provider_id asociado, o algún otro caso no manejado.
         flash('Tu cuenta no está completamente configurada. Contacta al administrador.', 'warning')
         return render_template('index.html', title='Inicio')
+
+
+# --- Estadísticas por Sede ---
+@bp.route('/admin/sede-stats')
+@login_required
+@role_required('admin')
+def sede_statistics():
+    """Estadísticas detalladas por sede con Top 5 y métricas"""
+    from sqlalchemy import func, and_, extract
+    from datetime import datetime
+    
+    # Obtener mes y año actual
+    current_month = 12  # Diciembre 2025
+    current_year = 2025
+    
+    # Obtener todas las sedes activas
+    sedes = Sede.query.filter_by(is_active=True).order_by(Sede.name).all()
+    
+    # Estadísticas por sede
+    sedes_stats = []
+    
+    for sede in sedes:
+        # Total de órdenes de la sede
+        total_ordenes = WorkOrder.query.filter_by(sede_id=sede.id).count()
+        
+        # Órdenes en proceso
+        en_proceso = WorkOrder.query.filter(
+            and_(
+                WorkOrder.sede_id == sede.id,
+                WorkOrder.status.in_(['enviada', 'aceptada', 'en_proceso'])
+            )
+        ).count()
+        
+        # Órdenes completadas
+        completadas = WorkOrder.query.filter(
+            and_(
+                WorkOrder.sede_id == sede.id,
+                WorkOrder.status.in_(['recibida_optica', 'finalizada'])
+            )
+        ).count()
+        
+        # Órdenes rechazadas
+        rechazadas = WorkOrder.query.filter_by(sede_id=sede.id, status='rechazada').count()
+        
+        # Total de ventas (sale_price de órdenes pagadas)
+        total_ventas = db.session.query(func.coalesce(func.sum(WorkOrder.sale_price), 0)).filter(
+            and_(
+                WorkOrder.sede_id == sede.id,
+                WorkOrder.payment_status == 'pagada',
+                WorkOrder.sale_price.isnot(None)
+            )
+        ).scalar() or 0
+        
+        # Total de costos (total_amount de órdenes pagadas)
+        total_costos = db.session.query(func.coalesce(func.sum(WorkOrder.total_amount), 0)).filter(
+            and_(
+                WorkOrder.sede_id == sede.id,
+                WorkOrder.payment_status == 'pagada',
+                WorkOrder.total_amount.isnot(None)
+            )
+        ).scalar() or 0
+        
+        # Utilidad (ventas - costos)
+        utilidad = total_ventas - total_costos
+        
+        # Porcentaje de margen
+        margen_pct = round((utilidad / total_ventas * 100) if total_ventas > 0 else 0, 1)
+        
+        # Tasa de éxito (órdenes completadas / total órdenes)
+        tasa_exito = round((completadas / total_ordenes * 100) if total_ordenes > 0 else 0, 1)
+        
+        # Ticket promedio (ventas / órdenes completadas)
+        ticket_promedio = round(total_ventas / completadas if completadas > 0 else 0, 0)
+        
+        # Pendientes de pago (sale_price de órdenes completadas pero pendientes de pago)
+        pendientes_pago = db.session.query(func.coalesce(func.sum(WorkOrder.sale_price), 0)).filter(
+            and_(
+                WorkOrder.sede_id == sede.id,
+                WorkOrder.payment_status == 'pendiente',
+                WorkOrder.status.in_(['recibida_optica', 'finalizada']),
+                WorkOrder.sale_price.isnot(None)
+            )
+        ).scalar() or 0
+        
+        # Días promedio (aproximado - valor fijo por ahora)
+        dias_promedio = 7
+        
+        sedes_stats.append({
+            'sede': sede,
+            'total_ordenes': total_ordenes,
+            'en_proceso': en_proceso,
+            'completadas': completadas,
+            'rechazadas': rechazadas,
+            'total_ventas': total_ventas,
+            'total_costos': total_costos,
+            'utilidad': utilidad,
+            'margen_pct': margen_pct,
+            'tasa_exito': tasa_exito,
+            'ticket_promedio': ticket_promedio,
+            'pendientes_pago': pendientes_pago,
+            'dias_promedio': dias_promedio
+        })
+    
+    # Top 5 por ventas
+    top_ventas = sorted(sedes_stats, key=lambda x: x['total_ventas'], reverse=True)[:5]
+    
+    # Top 5 por órdenes
+    top_ordenes = sorted(sedes_stats, key=lambda x: x['total_ordenes'], reverse=True)[:5]
+    
+    # Totales generales
+    totales = {
+        'total_ordenes': sum(s['total_ordenes'] for s in sedes_stats),
+        'en_proceso': sum(s['en_proceso'] for s in sedes_stats),
+        'completadas': sum(s['completadas'] for s in sedes_stats),
+        'rechazadas': sum(s['rechazadas'] for s in sedes_stats),
+        'total_ventas': sum(s['total_ventas'] for s in sedes_stats),
+        'total_costos': sum(s['total_costos'] for s in sedes_stats),
+        'utilidad': sum(s['utilidad'] for s in sedes_stats),
+        'pendientes_pago': sum(s['pendientes_pago'] for s in sedes_stats)
+    }
+    
+    # Margen promedio general
+    totales['margen_pct'] = round((totales['utilidad'] / totales['total_ventas'] * 100) if totales['total_ventas'] > 0 else 0, 1)
+    
+    # Tasa de éxito general
+    totales['tasa_exito'] = round((totales['completadas'] / totales['total_ordenes'] * 100) if totales['total_ordenes'] > 0 else 0, 1)
+    
+    # Ticket promedio general
+    totales['ticket_promedio'] = round(totales['total_ventas'] / totales['completadas'] if totales['completadas'] > 0 else 0, 0)
+    
+    # Datos para gráficos
+    sedes_chart_data = {
+        'labels': [s['sede'].name for s in sedes_stats],
+        'ordenes': [s['total_ordenes'] for s in sedes_stats],
+        'ventas': [float(s['total_ventas']) for s in sedes_stats]
+    }
+    
+    return render_template('index.html', 
+                           title='Estadísticas por Sede',
+                           sedes_stats=sedes_stats,
+                           top_ventas=top_ventas,
+                           top_ordenes=top_ordenes,
+                           totales=totales,
+                           sedes_chart_data=sedes_chart_data,
+                           current_month=current_month,
+                           current_year=current_year)
 
 
 # --- Dashboard Administrativo que desarrollé ---
@@ -401,160 +647,458 @@ def index():
 @login_required
 @role_required('admin')
 def admin_dashboard():
-    """Dashboard completo para administrador central con estadísticas por sede"""
-    from sqlalchemy import func, and_, extract
-    from datetime import datetime, timedelta
+    """Dashboard administrativo optimizado - CARGA RÁPIDA con lazy loading"""
+    start_time = time.time()
     
-    # Obtengo mes actual
+    # === DATOS BÁSICOS Y RÁPIDOS ===
+    # Solo cargo lo esencial para mostrar la interfaz rápidamente
+    try:
+        # Conteos básicos (consultas muy rápidas)
+        total_sedes = Sede.query.count()
+        total_sedes_active = Sede.query.filter_by(is_active=True).count()
+        total_orders_quick = WorkOrder.query.count()
+        
+        # KPIs básicos del sistema (cache 5 minutos)
+        system_stats = get_system_kpis_cached()
+        
+        end_time = time.time()
+        load_time = round((end_time - start_time) * 1000, 2)  # en ms
+        
+        # Log del tiempo de carga para monitoreo
+        current_app.logger.info(f"Admin dashboard loaded in {load_time}ms")
+        
+        from datetime import datetime
+        current_date = datetime.now()
+        
+        return render_template('admin/dashboard_optimized.html',
+            total_sedes=total_sedes,
+            total_sedes_active=total_sedes_active,
+            total_orders_quick=total_orders_quick,
+            system_stats=system_stats,
+            load_time=load_time,
+            current_month=current_date.month,
+            current_year=current_date.year,
+            # Flag para indicar que se debe cargar el resto por AJAX
+            lazy_load=True
+        )
+    except Exception as e:
+        current_app.logger.error(f"Error loading admin dashboard: {str(e)}")
+        flash('Error al cargar el dashboard. Intente nuevamente.', 'error')
+        from datetime import datetime
+        current_date = datetime.now()
+        
+        return render_template('admin/dashboard_optimized.html', 
+            total_sedes=0, 
+            total_sedes_active=0, 
+            total_orders_quick=0,
+            system_stats={},
+            current_month=current_date.month,
+            current_year=current_date.year,
+            error=True
+        )
+
+@cache.memoize(timeout=300)  # Cache por 5 minutos
+def get_system_kpis_cached():
+    """Obtener KPIs básicos del sistema con cache"""
+    from sqlalchemy import func
+    from datetime import datetime
+    
     current_month = datetime.now().month
     current_year = datetime.now().year
     
-    # Obtengo todas las sedes activas para estadísticas
-    sedes = Sede.query.filter_by(is_active=True).order_by(Sede.name).all()
+    # Consultas simples para KPIs básicos (sin funciones complejas que causan errores)
+    total_orders = WorkOrder.query.count()
     
-    # Obtengo todas las sedes (activas e inactivas) para el conteo total
-    total_sedes_all = Sede.query.count()
-    total_sedes_active = len(sedes)
+    # Calcular revenue total
+    paid_orders = WorkOrder.query.filter(
+        WorkOrder.payment_status == 'pagada',
+        WorkOrder.sale_price.isnot(None)
+    ).all()
+    total_revenue = sum([float(order.sale_price) for order in paid_orders if order.sale_price])
     
-    sede_stats = []
+    # Calcular pagos pendientes
+    pending_orders = WorkOrder.query.filter(
+        WorkOrder.payment_status == 'pendiente',
+        WorkOrder.sale_price.isnot(None)
+    ).all()
+    pending_payments = sum([float(order.sale_price) for order in pending_orders if order.sale_price])
     
-    for sede in sedes:
-        # Estadísticas por sede
+    # Órdenes de este mes (simplificado)
+    from datetime import datetime
+    current_date = datetime.now()
+    orders_this_month = WorkOrder.query.filter(
+        func.extract('month', WorkOrder.created_at) == current_month,
+        func.extract('year', WorkOrder.created_at) == current_date.year
+    ).count()
+    
+    return {
+        'total_orders': total_orders,
+        'total_revenue': total_revenue,
+        'pending_payments': pending_payments,
+        'orders_this_month': orders_this_month
+    }
+
+# === ENDPOINTS API PARA CARGA ASÍNCRONA ===
+
+@bp.route('/api/admin/sede-stats')
+@login_required
+@role_required('admin')
+@cache.cached(timeout=180)  # Cache por 3 minutos
+def api_sede_stats():
+    """API para obtener estadísticas detalladas por sede (carga asíncrona)"""
+    try:
+        start_time = time.time()
         
-        # Órdenes totales de la sede
-        total_orders = WorkOrder.query.filter_by(sede_id=sede.id).count()
+        # Obtener sedes activas
+        sedes = Sede.query.filter_by(is_active=True).order_by(Sede.name).all()
         
-        # Órdenes del mes actual
-        orders_this_month = WorkOrder.query.filter(
-            and_(
-                WorkOrder.sede_id == sede.id,
-                extract('month', WorkOrder.created_at) == current_month,
-                extract('year', WorkOrder.created_at) == current_year
-            )
-        ).count()
+        if not sedes:
+            return jsonify({
+                'success': True,
+                'data': [],
+                'load_time': 0
+            })
         
-        # Órdenes finalizadas (completas)
-        orders_completed = WorkOrder.query.filter(
-            and_(
+        # Procesar resultados usando consultas simples
+        sede_stats = []
+        for sede in sedes:
+            # Consultas básicas por sede
+            total_orders = WorkOrder.query.filter_by(sede_id=sede.id).count()
+            orders_completed = WorkOrder.query.filter(
                 WorkOrder.sede_id == sede.id,
                 WorkOrder.status.in_(['recibida_optica', 'finalizada'])
-            )
-        ).count()
-        
-        # Órdenes finalizadas este mes
-        orders_completed_this_month = WorkOrder.query.filter(
-            and_(
+            ).count()
+            
+            # Calcular ventas pagadas
+            orders_paid = WorkOrder.query.filter(
                 WorkOrder.sede_id == sede.id,
+                WorkOrder.payment_status == 'pagada',
+                WorkOrder.sale_price.isnot(None)
+            ).all()
+            total_sales = sum([order.sale_price for order in orders_paid if order.sale_price])
+            
+            # Calcular pagos pendientes
+            orders_pending = WorkOrder.query.filter(
+                WorkOrder.sede_id == sede.id,
+                WorkOrder.payment_status == 'pendiente',
+                WorkOrder.status.in_(['recibida_optica', 'finalizada']),
+                WorkOrder.sale_price.isnot(None)
+            ).all()
+            pending_payments = sum([order.sale_price for order in orders_pending if order.sale_price])
+            
+            completion_rate = round(
+                (orders_completed / total_orders * 100) 
+                if total_orders > 0 else 0, 1
+            )
+            
+            sede_stats.append({
+                'sede_id': sede.id,
+                'sede_name': sede.name,
+                'sede_city': sede.city,
+                'total_orders': total_orders,
+                'orders_this_month': 0,  # Simplificado por ahora
+                'orders_completed': orders_completed,
+                'total_sales': float(total_sales),
+                'pending_payments': float(pending_payments),
+                'completion_rate': completion_rate
+            })
+        
+        # Ordenar por ventas totales para Top rankings
+        sede_stats.sort(key=lambda x: x['total_sales'], reverse=True)
+        
+        end_time = time.time()
+        load_time = round((end_time - start_time) * 1000, 2)
+        
+        return jsonify({
+            'success': True,
+            'data': sede_stats,
+            'load_time': load_time
+        })
+        
+    except Exception as e:
+        current_app.logger.error(f"Error in api_sede_stats: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Error al cargar estadísticas por sede'
+        }), 500
+
+@bp.route('/api/admin/lens-analytics')
+@login_required
+@role_required('admin')
+@cache.cached(timeout=300)  # Cache por 5 minutos
+def api_lens_analytics():
+    """API para análisis de tipos de lentes (carga asíncrona)"""
+    try:
+        start_time = time.time()
+        
+        # Obtener todas las órdenes con clase de lente
+        orders_with_lens = WorkOrder.query.filter(
+            WorkOrder.lens_class.isnot(None)
+        ).all()
+        
+        if not orders_with_lens:
+            return jsonify({
+                'success': True,
+                'data': [],
+                'load_time': 0
+            })
+        
+        # Procesar datos manualmente para evitar problemas de SQLAlchemy
+        lens_counts = {}
+        lens_sales = {}
+        
+        for order in orders_with_lens:
+            lens_class = order.lens_class
+            
+            # Contar órdenes por tipo
+            lens_counts[lens_class] = lens_counts.get(lens_class, 0) + 1
+            
+            # Sumar ventas por tipo
+            if order.total_amount:
+                lens_sales[lens_class] = lens_sales.get(lens_class, 0) + float(order.total_amount)
+        
+        # Convertir a lista ordenada
+        lens_data = []
+        total_count = sum(lens_counts.values())
+        
+        for lens_class, count in lens_counts.items():
+            percentage = round((count / total_count * 100) if total_count > 0 else 0, 1)
+            
+            lens_data.append({
+                'lens_class': lens_class,
+                'count': count,
+                'count_month': 0,  # Simplificado por ahora
+                'total_sales': float(lens_sales.get(lens_class, 0)),
+                'percentage': percentage
+            })
+        
+        # Ordenar por cantidad
+        lens_data.sort(key=lambda x: x['count'], reverse=True)
+        
+        end_time = time.time()
+        load_time = round((end_time - start_time) * 1000, 2)
+        
+        return jsonify({
+            'success': True,
+            'data': lens_data,
+            'load_time': load_time
+        })
+        
+    except Exception as e:
+        current_app.logger.error(f"Error in api_lens_analytics: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Error al cargar análisis de lentes'
+        }), 500
+
+@bp.route('/api/admin/profit-analysis')
+@login_required
+@role_required('admin')
+@cache.cached(timeout=240)  # Cache por 4 minutos
+def api_profit_analysis():
+    """API para análisis de ganancias (carga asíncrona)"""
+    try:
+        start_time = time.time()
+        
+        # Obtener órdenes pagadas
+        paid_orders = WorkOrder.query.filter(
+            WorkOrder.payment_status == 'pagada',
+            WorkOrder.sale_price.isnot(None),
+            WorkOrder.total_amount.isnot(None)
+        ).all()
+        
+        # Calcular métricas manualmente
+        total_revenue = 0
+        total_costs = 0
+        
+        for order in paid_orders:
+            if order.sale_price:
+                total_revenue += float(order.sale_price)
+            if order.total_amount:
+                total_costs += float(order.total_amount)
+        
+        total_profit = total_revenue - total_costs
+        profit_margin = round((total_profit / total_revenue * 100) if total_revenue > 0 else 0, 2)
+        
+        # Revenue este mes (simplificado)
+        revenue_this_month = 0  # Simplificado por ahora
+        
+        end_time = time.time()
+        load_time = round((end_time - start_time) * 1000, 2)
+        
+        return jsonify({
+            'success': True,
+            'data': {
+                'total_revenue': total_revenue,
+                'total_costs': total_costs,
+                'total_profit': total_profit,
+                'profit_margin': profit_margin,
+                'revenue_this_month': revenue_this_month
+            },
+            'load_time': load_time
+        })
+        
+    except Exception as e:
+        current_app.logger.error(f"Error in api_profit_analysis: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Error al cargar análisis de ganancias'
+        }), 500
+    
+    # === CONSULTA AGREGADA OPTIMIZADA ===
+    # Una sola consulta para obtener todas las estadísticas por sede
+    stats_query = db.session.query(
+        WorkOrder.sede_id,
+        # Total órdenes
+        func.count(WorkOrder.id).label('total_orders'),
+        # Órdenes del mes actual
+        func.sum(case(
+            (and_(
+                extract('month', WorkOrder.created_at) == current_month,
+                extract('year', WorkOrder.created_at) == current_year
+            ), 1),
+            else_=0
+        )).label('orders_this_month'),
+        # Órdenes finalizadas
+        func.sum(case(
+            (WorkOrder.status.in_(['recibida_optica', 'finalizada']), 1),
+            else_=0
+        )).label('orders_completed'),
+        # Órdenes finalizadas este mes
+        func.sum(case(
+            (and_(
                 WorkOrder.status.in_(['recibida_optica', 'finalizada']),
                 extract('month', WorkOrder.created_at) == current_month,
                 extract('year', WorkOrder.created_at) == current_year
-            )
-        ).count()
-        
+            ), 1),
+            else_=0
+        )).label('orders_completed_this_month'),
         # Órdenes en progreso
-        orders_in_progress = WorkOrder.query.filter(
-            and_(
-                WorkOrder.sede_id == sede.id,
-                WorkOrder.status.in_(['enviada', 'aceptada', 'en_proceso'])
-            )
-        ).count()
-        
+        func.sum(case(
+            (WorkOrder.status.in_(['enviada', 'aceptada', 'en_proceso']), 1),
+            else_=0
+        )).label('orders_in_progress'),
         # Órdenes listas para recoger
-        orders_ready = WorkOrder.query.filter(
-            and_(
-                WorkOrder.sede_id == sede.id,
-                WorkOrder.status == 'devuelta_proveedor'
-            )
-        ).count()
-        
-        # Ventas del mes (suma de precios de venta al cliente de órdenes pagadas)
-        sales_this_month = db.session.query(func.sum(WorkOrder.sale_price)).filter(
-            and_(
-                WorkOrder.sede_id == sede.id,
+        func.sum(case(
+            (WorkOrder.status == 'devuelta_proveedor', 1),
+            else_=0
+        )).label('orders_ready'),
+        # Ventas del mes (pagadas)
+        func.sum(case(
+            (and_(
                 WorkOrder.sale_price.isnot(None),
                 WorkOrder.payment_status == 'pagada',
                 extract('month', WorkOrder.created_at) == current_month,
                 extract('year', WorkOrder.created_at) == current_year
-            )
-        ).scalar() or 0
-        
-        # Ventas totales
-        total_sales = db.session.query(func.sum(WorkOrder.sale_price)).filter(
-            and_(
-                WorkOrder.sede_id == sede.id,
+            ), WorkOrder.sale_price),
+            else_=0
+        )).label('sales_this_month'),
+        # Ventas totales (pagadas)
+        func.sum(case(
+            (and_(
                 WorkOrder.sale_price.isnot(None),
                 WorkOrder.payment_status == 'pagada'
-            )
-        ).scalar() or 0
-        
-        # Pagos pendientes (precios de venta pendientes de pago)
-        pending_payments = db.session.query(func.sum(WorkOrder.sale_price)).filter(
-            and_(
-                WorkOrder.sede_id == sede.id,
+            ), WorkOrder.sale_price),
+            else_=0
+        )).label('total_sales'),
+        # Pagos pendientes
+        func.sum(case(
+            (and_(
                 WorkOrder.sale_price.isnot(None),
                 WorkOrder.payment_status == 'pendiente',
                 WorkOrder.status.in_(['recibida_optica', 'finalizada'])
-            )
-        ).scalar() or 0
+            ), WorkOrder.sale_price),
+            else_=0
+        )).label('pending_payments')
+    ).filter(
+        WorkOrder.sede_id.in_(sede_ids)
+    ).group_by(WorkOrder.sede_id).all()
+    
+    # Convertir resultados a diccionario
+    stats_by_sede = {}
+    for stat in stats_query:
+        stats_by_sede[stat.sede_id] = {
+            'total_orders': stat.total_orders or 0,
+            'orders_this_month': int(stat.orders_this_month or 0),
+            'orders_completed': int(stat.orders_completed or 0),
+            'orders_completed_this_month': int(stat.orders_completed_this_month or 0),
+            'orders_in_progress': int(stat.orders_in_progress or 0),
+            'orders_ready': int(stat.orders_ready or 0),
+            'sales_this_month': float(stat.sales_this_month or 0),
+            'total_sales': float(stat.total_sales or 0),
+            'pending_payments': float(stat.pending_payments or 0)
+        }
+    
+    # Consulta agregada para tipos de lentes por sede
+    lens_stats_query = db.session.query(
+        WorkOrder.sede_id,
+        WorkOrder.lens_class,
+        func.count(WorkOrder.id).label('count')
+    ).filter(
+        and_(
+            WorkOrder.sede_id.in_(sede_ids),
+            WorkOrder.lens_class.isnot(None)
+        )
+    ).group_by(WorkOrder.sede_id, WorkOrder.lens_class).all()
+    
+    # Organizar datos de lentes por sede
+    lens_by_sede = {sede_id: {} for sede_id in sede_ids}
+    for lens_stat in lens_stats_query:
+        if lens_stat.sede_id in lens_by_sede:
+            lens_by_sede[lens_stat.sede_id][lens_stat.lens_class] = lens_stat.count
+    
+    # Construir lista de estadísticas por sede
+    sede_stats = []
+    for sede_id, sede in sedes_dict.items():
+        stats = stats_by_sede.get(sede_id, {
+            'total_orders': 0, 'orders_this_month': 0, 'orders_completed': 0,
+            'orders_completed_this_month': 0, 'orders_in_progress': 0,
+            'orders_ready': 0, 'sales_this_month': 0, 'total_sales': 0,
+            'pending_payments': 0
+        })
         
-        # Tasa de finalización (% de órdenes completadas vs total)
+        total_orders = stats['total_orders']
+        orders_completed = stats['orders_completed']
         completion_rate = round((orders_completed / total_orders * 100) if total_orders > 0 else 0, 1)
-        
-        # Promedio de días para completar órdenes (simplificado - basado en created_at)
-        # Nota: Esto es una estimación. Para mayor precisión, el modelo necesita un campo updated_at
-        avg_completion_days = 7  # Valor fijo por ahora, se puede calcular cuando se agregue updated_at
-        
-        # Estadísticas de tipos de lentes por sede
-        lens_types_sede = db.session.query(
-            WorkOrder.lens_class,
-            func.count(WorkOrder.id).label('count')
-        ).filter(
-            and_(
-                WorkOrder.sede_id == sede.id,
-                WorkOrder.lens_class.isnot(None)
-            )
-        ).group_by(WorkOrder.lens_class).all()
-        
-        lens_breakdown = {}
-        for lens_type in lens_types_sede:
-            lens_breakdown[lens_type.lens_class] = lens_type.count
         
         sede_stats.append({
             'sede': sede,
             'total_orders': total_orders,
-            'orders_this_month': orders_this_month,
+            'orders_this_month': stats['orders_this_month'],
             'orders_completed': orders_completed,
-            'orders_completed_this_month': orders_completed_this_month,
-            'orders_in_progress': orders_in_progress,
-            'orders_ready': orders_ready,
-            'sales_this_month': sales_this_month,
-            'total_sales': total_sales,
-            'pending_payments': pending_payments,
+            'orders_completed_this_month': stats['orders_completed_this_month'],
+            'orders_in_progress': stats['orders_in_progress'],
+            'orders_ready': stats['orders_ready'],
+            'sales_this_month': stats['sales_this_month'],
+            'total_sales': stats['total_sales'],
+            'pending_payments': stats['pending_payments'],
             'completion_rate': completion_rate,
-            'avg_completion_days': avg_completion_days,
-            'lens_breakdown': lens_breakdown
+            'avg_completion_days': 7,  # Valor fijo por ahora
+            'lens_breakdown': lens_by_sede.get(sede_id, {})
         })
     
-    # Estadísticas de tipos de lentes más vendidos
+    # Estadísticas de tipos de lentes más vendidos (una sola consulta)
     lens_stats = db.session.query(
         WorkOrder.lens_class,
         func.count(WorkOrder.id).label('count'),
-        func.sum(WorkOrder.total_amount).label('total_sales')
+        func.sum(WorkOrder.total_amount).label('total_sales'),
+        # También calcular los del mes actual
+        func.sum(case(
+            (and_(
+                extract('month', WorkOrder.created_at) == current_month,
+                extract('year', WorkOrder.created_at) == current_year
+            ), 1),
+            else_=0
+        )).label('count_month'),
+        func.sum(case(
+            (and_(
+                extract('month', WorkOrder.created_at) == current_month,
+                extract('year', WorkOrder.created_at) == current_year
+            ), WorkOrder.total_amount),
+            else_=0
+        )).label('total_sales_month')
     ).filter(
         WorkOrder.lens_class.isnot(None)
-    ).group_by(WorkOrder.lens_class).all()
-    
-    # Estadísticas de tipos de lentes este mes
-    lens_stats_month = db.session.query(
-        WorkOrder.lens_class,
-        func.count(WorkOrder.id).label('count'),
-        func.sum(WorkOrder.total_amount).label('total_sales')
-    ).filter(
-        and_(
-            WorkOrder.lens_class.isnot(None),
-            extract('month', WorkOrder.created_at) == current_month,
-            extract('year', WorkOrder.created_at) == current_year
-        )
     ).group_by(WorkOrder.lens_class).all()
     
     # Procesar estadísticas de lentes
@@ -566,17 +1110,16 @@ def admin_dashboard():
             'count': lens_stat.count,
             'total_sales': lens_stat.total_sales or 0
         }
+        if lens_stat.count_month > 0:
+            lens_data_month[lens_stat.lens_class] = {
+                'count': int(lens_stat.count_month),
+                'total_sales': float(lens_stat.total_sales_month or 0)
+            }
     
-    for lens_stat in lens_stats_month:
-        lens_data_month[lens_stat.lens_class] = {
-            'count': lens_stat.count,
-            'total_sales': lens_stat.total_sales or 0
-        }
-    
-    # Estadísticas generales del sistema
+    # Estadísticas generales del sistema (calculadas de sede_stats)
     system_stats = {
-        'total_sedes': total_sedes_all,  # Total de sedes (activas + inactivas)
-        'total_sedes_active': total_sedes_active,  # Solo sedes activas
+        'total_sedes': total_sedes_all,
+        'total_sedes_active': total_sedes_active,
         'total_orders_system': sum([s['total_orders'] for s in sede_stats]),
         'total_sales_system': sum([s['total_sales'] for s in sede_stats]),
         'total_pending_payments': sum([s['pending_payments'] for s in sede_stats]),
@@ -584,46 +1127,43 @@ def admin_dashboard():
         'sales_this_month_system': sum([s['sales_this_month'] for s in sede_stats])
     }
     
-    # Cálculo de ganancias (sale_price - total_amount)
-    # Ganancias totales del sistema
-    total_revenue = db.session.query(func.sum(WorkOrder.sale_price)).filter(
-        and_(
-            WorkOrder.sale_price.isnot(None),
-            WorkOrder.payment_status == 'pagada'
-        )
-    ).scalar() or 0
+    # Consulta optimizada para ganancias
+    profit_query = db.session.query(
+        func.sum(case(
+            (WorkOrder.payment_status == 'pagada', WorkOrder.sale_price),
+            else_=0
+        )).label('total_revenue'),
+        func.sum(case(
+            (WorkOrder.payment_status == 'pagada', WorkOrder.total_amount),
+            else_=0
+        )).label('total_costs'),
+        func.sum(case(
+            (and_(
+                WorkOrder.payment_status == 'pagada',
+                extract('month', WorkOrder.created_at) == current_month,
+                extract('year', WorkOrder.created_at) == current_year
+            ), WorkOrder.sale_price),
+            else_=0
+        )).label('revenue_this_month'),
+        func.sum(case(
+            (and_(
+                WorkOrder.payment_status == 'pagada',
+                extract('month', WorkOrder.created_at) == current_month,
+                extract('year', WorkOrder.created_at) == current_year
+            ), WorkOrder.total_amount),
+            else_=0
+        )).label('costs_this_month')
+    ).filter(
+        WorkOrder.sale_price.isnot(None)
+    ).first()
     
-    total_costs = db.session.query(func.sum(WorkOrder.total_amount)).filter(
-        and_(
-            WorkOrder.sale_price.isnot(None),
-            WorkOrder.payment_status == 'pagada'
-        )
-    ).scalar() or 0
-    
+    total_revenue = float(profit_query.total_revenue or 0)
+    total_costs = float(profit_query.total_costs or 0)
     total_profit = total_revenue - total_costs
-    
-    # Ganancias del mes actual
-    revenue_this_month = db.session.query(func.sum(WorkOrder.sale_price)).filter(
-        and_(
-            WorkOrder.sale_price.isnot(None),
-            WorkOrder.payment_status == 'pagada',
-            extract('month', WorkOrder.created_at) == current_month,
-            extract('year', WorkOrder.created_at) == current_year
-        )
-    ).scalar() or 0
-    
-    costs_this_month = db.session.query(func.sum(WorkOrder.total_amount)).filter(
-        and_(
-            WorkOrder.sale_price.isnot(None),
-            WorkOrder.payment_status == 'pagada',
-            extract('month', WorkOrder.created_at) == current_month,
-            extract('year', WorkOrder.created_at) == current_year
-        )
-    ).scalar() or 0
-    
+    revenue_this_month = float(profit_query.revenue_this_month or 0)
+    costs_this_month = float(profit_query.costs_this_month or 0)
     profit_this_month = revenue_this_month - costs_this_month
     
-    # Margen de ganancia (porcentaje)
     profit_margin = round((total_profit / total_revenue * 100) if total_revenue > 0 else 0, 1)
     profit_margin_month = round((profit_this_month / revenue_this_month * 100) if revenue_this_month > 0 else 0, 1)
     
@@ -639,17 +1179,19 @@ def admin_dashboard():
     }
     
     # Top 5 sedes por ventas del mes
-    top_sedes_month = sorted(sede_stats, key=lambda x: x['sales_this_month'], reverse=True)[:5]
+    top_sedes_sales = sorted(sede_stats, key=lambda x: x['sales_this_month'], reverse=True)[:5]
+    top_sedes_sales = [{'name': s['sede'].name, 'city': s['sede'].city, 'sales': s['sales_this_month'], 'orders': s['orders_this_month']} for s in top_sedes_sales]
     
     # Top 5 sedes por órdenes del mes
     top_sedes_orders = sorted(sede_stats, key=lambda x: x['orders_this_month'], reverse=True)[:5]
+    top_sedes_orders = [{'name': s['sede'].name, 'city': s['sede'].city, 'orders': s['orders_this_month']} for s in top_sedes_orders]
     
     return render_template('admin/dashboard.html', 
                             title='Dashboard Administrativo',
                             sede_stats=sede_stats,
                             system_stats=system_stats,
                             profit_stats=profit_stats,
-                            top_sedes_month=top_sedes_month,
+                            top_sedes_sales=top_sedes_sales,
                             top_sedes_orders=top_sedes_orders,
                             lens_data=lens_data,
                             lens_data_month=lens_data_month,
@@ -1301,19 +1843,23 @@ def create_order():
         is_sede_order = current_user.role == 'admin_sede'
         needs_admin_review = is_sede_order  # Siempre True para sedes
         
+        # Si provider_id es 0, establecerlo como None
+        provider_id_value = form.provider_id.data if form.provider_id.data and form.provider_id.data != 0 else None
+        
         order = WorkOrder(
             order_number=order_number,
             client_name=form.client_name.data,
             client_cc=form.client_cc.data,
             client_phone=form.client_phone.data,
             receipt_number=form.receipt_number.data,
-            orden_laboratorio=form.orden_laboratorio.data,
+            orden_laboratorio=form.orden_laboratorio.data if form.orden_laboratorio.data else None,
             empresa_convenio=form.empresa_convenio.data,
             ciudad_municipio=form.ciudad_municipio.data,
-            lens_type=form.lens_type.data,
+            lens_type=form.lens_type.data if form.lens_type.data else None,
+            lens_type_asesor=form.lens_type_asesor.data,
             sede_id=form.sede_id.data,
-            provider_id=form.provider_id.data,
-            lens_class=form.lens_class.data,
+            provider_id=provider_id_value,
+            lens_class=form.lens_class.data if form.lens_class.data else None,
             frame_type=form.frame_type.data,
             # Fórmula con campos de texto libre
             formula_od=form.formula_od.data,
@@ -2740,8 +3286,14 @@ def complete_lens_specs(order_id):
     
     form = AdminCompleteLensForm(obj=order)
     
+    # Poblar el dropdown de proveedores
+    from backend.app.models import Provider
+    form.provider_id.choices = [(p.id, p.razon_social or p.name) for p in Provider.query.order_by(Provider.razon_social).all()]
+    
     if form.validate_on_submit():
-        # Actualizar especificaciones de lentes
+        # Actualizar campos administrativos
+        order.orden_laboratorio = form.orden_laboratorio.data
+        order.provider_id = form.provider_id.data
         order.lens_class = form.lens_class.data
         order.lens_type = form.lens_type.data
         

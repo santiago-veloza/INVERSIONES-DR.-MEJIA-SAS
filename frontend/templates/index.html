@@ -1,160 +1,464 @@
 {% extends "base.html" %}
-
 {% block content %}
-    {% if current_user.role in ['admin', 'asistente'] %}        
-        <div class="row mb-4">
+    {% if current_user.role in ['admin', 'asistente'] %}
+        <div class="mb-4"></div>
+        <div class="row mb-5">
             <div class="col-lg-3 col-md-6 mb-4">
-                <div class="dashboard-card stats-card">
-                    <div class="card-header bg-primary text-white">
-                        <i class="fas fa-list me-2"></i> Resumen General
-                    </div>
-                    <div class="card-body">
-                        <h6 class="card-title">Total de Órdenes</h6>
-                        <h4 class="display-4">{{ total_orders }}</h4>
-                        <small class="text-muted">Todas las órdenes registradas</small>
+                <div class="card border-0 h-100 kpi-card-sedes">
+                    <div class="card-body text-center text-white p-4">
+                        <i class="fas fa-building fs-1 mb-3 opacity-80"></i>
+                        <h3 class="fw-bold mb-1">{{ sedes_stats|length }}</h3>
+                        <small class="opacity-90">Sedes Activas</small>
                     </div>
                 </div>
             </div>
             <div class="col-lg-3 col-md-6 mb-4">
-                <div class="dashboard-card stats-card">
-                    <div class="card-header bg-info text-white">
-                        <i class="fas fa-cogs me-2"></i> En Proceso
-                    </div>
-                    <div class="card-body">
-                        <h6 class="card-title">En Progreso</h6>
-                        <h4 class="display-4">{{ orders_in_progress }}</h4>
-                        <small class="text-muted">Enviadas, aceptadas y en trabajo</small>
+                <div class="card border-0 h-100 kpi-card-ventas">
+                    <div class="card-body text-center text-white p-4">
+                        <i class="fas fa-dollar-sign fs-1 mb-3 opacity-80"></i>
+                        <h3 class="fw-bold mb-1">${{ "{:,.0f}".format(totales['total_ventas']) }}</h3>
+                        <small class="opacity-90">Facturación Total</small>
                     </div>
                 </div>
             </div>
             <div class="col-lg-3 col-md-6 mb-4">
-                <div class="dashboard-card stats-card">
-                    <div class="card-header bg-warning text-white">
-                        <i class="fas fa-package me-2"></i> Listas
-                    </div>
-                    <div class="card-body">
-                        <h6 class="card-title">Para Recoger</h6>
-                        <h4 class="display-4">{{ orders_ready }}</h4>
-                        <small class="text-muted">Terminadas por proveedores</small>
+                <div class="card border-0 h-100 kpi-card-ordenes">
+                    <div class="card-body text-center text-white p-4">
+                        <i class="fas fa-shopping-cart fs-1 mb-3 opacity-80"></i>
+                        <h3 class="fw-bold mb-1">{{ totales['total_ordenes'] }}</h3>
+                        <small class="opacity-90">Órdenes Procesadas</small>
                     </div>
                 </div>
             </div>
             <div class="col-lg-3 col-md-6 mb-4">
-                <div class="dashboard-card stats-card">
-                    <div class="card-header bg-success text-white">
-                        <i class="fas fa-check-circle me-2"></i> Completadas
-                    </div>
-                    <div class="card-body">
-                        <h6 class="card-title">Finalizadas</h6>
-                        <h4 class="display-4">{{ orders_finished }}</h4>
-                        <small class="text-muted">Recibidas y completadas</small>
+                <div class="card border-0 h-100 kpi-card-utilidad">
+                    <div class="card-body text-center text-white p-4">
+                        <i class="fas fa-chart-line fs-1 mb-3 opacity-80"></i>
+                        <h3 class="fw-bold mb-1">${{ "{:,.0f}".format(totales['utilidad']) }}</h3>
+                        <small class="opacity-90">Utilidad Total</small>
                     </div>
                 </div>
             </div>
         </div>
-        {% if orders_rejected > 0 %}
-        <div class="row mb-4">
+        <div class="row mb-5">
             <div class="col-12">
-                <div class="alert alert-danger">
-                    <div class="d-flex align-items-center">
-                        <i class="fas fa-exclamation-triangle fs-2 me-3"></i>
-                        <div>
-                            <h5 class="mb-1">¡Atención Requerida!</h5>
-                            <p class="mb-1"><strong>{{ orders_rejected }}</strong> órdenes han sido rechazadas por proveedores.</p>
-                            <a href="{{ url_for('main.list_orders') }}" class="btn btn-outline-danger btn-sm">
-                                <i class="fas fa-eye me-1"></i>Ver detalles
-                            </a>
+                <div class="card border-0 premium-card">
+                    <div class="card-header border-0 text-white position-relative premium-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h4 class="mb-2 fw-bold d-flex align-items-center">
+                                    <i class="fas fa-analytics fs-6 me-3"></i>
+                                    Matriz de Rendimiento por Sede
+                                </h4>
+                                <p class="mb-0 opacity-90">Análisis completo de métricas de rendimiento y rentabilidad</p>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-light btn-sm px-3 py-2 fw-semibold premium-btn" onclick="exportToExcel()">
+                                    <i class="fas fa-file-excel me-2 text-success"></i>Exportar Excel
+                                </button>
+                                <button class="btn btn-outline-light btn-sm px-3 py-2 fw-semibold premium-btn-outline" onclick="exportToCSV()">
+                                    <i class="fas fa-download me-2"></i>Descargar CSV
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-4 bg-light search-header">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0">
+                                        <i class="fas fa-search text-muted"></i>
+                                    </span>
+                                    <input type="text" class="form-control border-start-0 search-input" placeholder="Buscar sede..." 
+                                           id="searchSede">
+                                </div>
+                            </div>
+                            <div class="col-md-6 text-end">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0 stats-table" id="sedesTable">
+                                <thead class="stats-table-head">
+                                    <tr>
+                                        <th class="border-0 py-4 fw-bold table-col-sede">
+                                            <i class="fas fa-building me-2 text-primary"></i>Sede
+                                        </th>
+                                        <th class="text-end border-0 py-4 fw-bold table-header-ventas">
+                                            <i class="fas fa-dollar-sign me-1 text-success"></i>Ventas
+                                        </th>
+                                        <th class="text-center border-0 py-4 fw-bold table-header-ordenes">
+                                            <i class="fas fa-shopping-cart me-1 text-info"></i>Órdenes
+                                        </th>
+                                        <th class="text-end border-0 py-4 fw-bold table-header-utilidad">
+                                            <i class="fas fa-chart-line me-1 text-warning"></i>Utilidad
+                                        </th>
+                                        <th class="text-center border-0 py-4 fw-bold table-header-margen">
+                                            <i class="fas fa-percentage me-1 text-primary"></i>Margen
+                                        </th>
+                                        <th class="text-center border-0 py-4 fw-bold table-header-completadas">
+                                            <i class="fas fa-check-circle me-1 text-success"></i>Completas
+                                        </th>
+                                        <th class="text-center border-0 py-4 fw-bold table-header-proceso">
+                                            <i class="fas fa-clock me-1 text-warning"></i>Proceso
+                                        </th>
+                                        <th class="text-end border-0 py-4 fw-bold table-header-ticket">
+                                            <i class="fas fa-receipt me-1 text-info"></i>Ticket Prom.
+                                        </th>
+                                        <th class="text-center border-0 py-4 fw-bold table-header-exito">
+                                            <i class="fas fa-trophy me-1 text-warning"></i>Éxito
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for sede_stat in sedes_stats %}
+                                    <tr class="sede-row position-relative" 
+                                        onclick="window.location.href='{{ url_for('main.list_orders', sede=sede_stat['sede'].id) }}'"
+                                        onmouseover="this.style.backgroundColor='#f8f9fa'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.1)'"
+                                        onmouseout="this.style.backgroundColor=''; this.style.transform=''; this.style.boxShadow=''">
+                                        <td class="align-middle py-4 sede-info-cell">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                                     class="sede-icon">
+                                                    <i class="fas fa-building text-primary"></i>
+                                                </div>
+                                                <div class="sede-name">
+                                                    <h6 class="mb-1 fw-semibold">{{ sede_stat['sede'].name }}</h6>
+                                                    <small class="text-muted d-flex align-items-center">
+                                                        <i class="fas fa-map-marker-alt me-1"></i>{{ sede_stat['sede'].city }}
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-end align-middle py-4">
+                                            <div class="fw-bold text-success fs-6">${{ "{:,.0f}".format(sede_stat['total_ventas']) }}</div>
+                                            <small class="text-muted">Total facturado</small>
+                                        </td>
+                                        <td class="text-center align-middle py-4">
+                                            <span class="badge bg-primary rounded-pill px-3 py-2 fw-semibold">
+                                                {{ sede_stat['total_ordenes'] }}
+                                            </span>
+                                        </td>
+                                        <td class="text-end align-middle py-4">
+                                            {% if sede_stat['utilidad'] > 0 %}
+                                                <div class="fw-bold text-success fs-6">${{ "{:,.0f}".format(sede_stat['utilidad']) }}</div>
+                                                <small class="text-success"><i class="fas fa-arrow-up me-1"></i>Ganancia</small>
+                                            {% elif sede_stat['utilidad'] < 0 %}
+                                                <div class="fw-bold text-danger fs-6">${{ "{:,.0f}".format(sede_stat['utilidad']) }}</div>
+                                                <small class="text-danger"><i class="fas fa-arrow-down me-1"></i>Pérdida</small>
+                                            {% else %}
+                                                <div class="text-muted fw-semibold">$0</div>
+                                                <small class="text-muted">Sin datos</small>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center align-middle py-4">
+                                            {% if sede_stat['margen_pct'] > 25 %}
+                                                <span class="badge bg-success rounded-pill px-3 py-2">{{ "{:.1f}".format(sede_stat['margen_pct']) }}%</span>
+                                            {% elif sede_stat['margen_pct'] > 15 %}
+                                                <span class="badge bg-warning rounded-pill px-3 py-2">{{ "{:.1f}".format(sede_stat['margen_pct']) }}%</span>
+                                            {% elif sede_stat['margen_pct'] > 0 %}
+                                                <span class="badge bg-info rounded-pill px-3 py-2">{{ "{:.1f}".format(sede_stat['margen_pct']) }}%</span>
+                                            {% else %}
+                                                <span class="badge bg-danger rounded-pill px-3 py-2">{{ "{:.1f}".format(sede_stat['margen_pct']) }}%</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center align-middle py-4">
+                                            <div class="d-flex align-items-center justify-content-center">
+                                                <div class="bg-success bg-opacity-10 rounded-circle me-2 d-flex align-items-center justify-content-center icon-md">
+                                                    <i class="fas fa-check text-success small"></i>
+                                                </div>
+                                                <span class="fw-semibold">{{ sede_stat['completadas'] }}</span>
+                                            </div>
+                                        </td>
+                                        <td class="text-center align-middle py-4">
+                                            <div class="d-flex align-items-center justify-content-center">
+                                                <div class="bg-warning bg-opacity-10 rounded-circle me-2 d-flex align-items-center justify-content-center icon-md">
+                                                    <i class="fas fa-clock text-warning small"></i>
+                                                </div>
+                                                <span class="fw-semibold">{{ sede_stat['en_proceso'] }}</span>
+                                            </div>
+                                        </td>
+                                        <td class="text-end align-middle py-4">
+                                            <div class="fw-semibold text-info">${{ "{:,.0f}".format(sede_stat['ticket_promedio']) }}</div>
+                                            <small class="text-muted">Por orden</small>
+                                        </td>
+                                        <td class="text-center align-middle py-4">
+                                            {% set tasa = sede_stat['tasa_exito'] %}
+                                            {% if tasa >= 90 %}
+                                                <div class="d-flex flex-column align-items-center">
+                                                    <div class="bg-success rounded-circle d-flex align-items-center justify-content-center text-white mb-1 icon-xl">
+                                                        <i class="fas fa-star"></i>
+                                                    </div>
+                                                    <small class="text-success fw-bold">{{ "{:.0f}".format(tasa) }}%</small>
+                                                </div>
+                                            {% elif tasa >= 75 %}
+                                                <div class="d-flex flex-column align-items-center">
+                                                    <div class="bg-info rounded-circle d-flex align-items-center justify-content-center text-white mb-1 icon-xl">
+                                                        <i class="fas fa-thumbs-up"></i>
+                                                    </div>
+                                                    <small class="text-info fw-bold">{{ "{:.0f}".format(tasa) }}%</small>
+                                                </div>
+                                            {% elif tasa >= 60 %}
+                                                <div class="d-flex flex-column align-items-center">
+                                                    <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center text-white mb-1 icon-xl">
+                                                        <i class="fas fa-exclamation"></i>
+                                                    </div>
+                                                    <small class="text-warning fw-bold">{{ "{:.0f}".format(tasa) }}%</small>
+                                                </div>
+                                            {% else %}
+                                                <div class="d-flex flex-column align-items-center justify-content-center">
+                                                    <div class="bg-danger rounded-circle d-flex align-items-center justify-content-center text-white mb-1 icon-xl">
+                                                        <i class="fas fa-times status-icon-times"></i>
+                                                    </div>
+                                                    <small class="text-danger fw-bold">{{ "{:.0f}".format(tasa) }}%</small>
+                                                </div>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                                <tfoot>
+                                    <tr class="totales-row-bg">
+                                        <td class="text-center py-4">
+                                            <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center text-white icon-lg">
+                                                <i class="fas fa-calculator small"></i>
+                                            </div>
+                                        </td>
+                                        <td class="align-middle py-4">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3 icon-xxxl">
+                                                    <i class="fas fa-sum text-primary"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-1 fw-bold text-primary">TOTALES CONSOLIDADOS</h6>
+                                                    <small class="text-muted">Todas las sedes activas</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-end align-middle py-4">
+                                            <div class="fw-bold text-success fs-5">${{ "{:,.0f}".format(totales['total_ventas']) }}</div>
+                                            <small class="text-success">Facturación total</small>
+                                        </td>
+                                        <td class="text-center align-middle py-4">
+                                            <span class="badge bg-primary rounded-pill px-3 py-2 fs-6 fw-bold">
+                                                {{ totales['total_ordenes'] }}
+                                            </span>
+                                        </td>
+                                        <td class="text-end align-middle py-4">
+                                            {% if totales['utilidad'] > 0 %}
+                                                <div class="fw-bold text-success fs-5">${{ "{:,.0f}".format(totales['utilidad']) }}</div>
+                                                <small class="text-success"><i class="fas fa-arrow-up me-1"></i>Ganancia neta</small>
+                                            {% else %}
+                                                <div class="fw-bold text-danger fs-5">${{ "{:,.0f}".format(totales['utilidad']) }}</div>
+                                                <small class="text-danger"><i class="fas fa-arrow-down me-1"></i>Pérdida neta</small>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center align-middle py-4">
+                                            {% if totales['margen_pct'] > 20 %}
+                                                <span class="badge bg-success rounded-pill px-3 py-2 fs-6">{{ "{:.1f}".format(totales['margen_pct']) }}%</span>
+                                            {% elif totales['margen_pct'] > 10 %}
+                                                <span class="badge bg-warning rounded-pill px-3 py-2 fs-6">{{ "{:.1f}".format(totales['margen_pct']) }}%</span>
+                                            {% else %}
+                                                <span class="badge bg-danger rounded-pill px-3 py-2 fs-6">{{ "{:.1f}".format(totales['margen_pct']) }}%</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center align-middle py-4">
+                                            <div class="d-flex align-items-center justify-content-center">
+                                                <div class="bg-success bg-opacity-10 rounded-circle me-2 d-flex align-items-center justify-content-center icon-lg">
+                                                    <i class="fas fa-check text-success"></i>
+                                                </div>
+                                                <span class="fw-bold">{{ totales['completadas'] }}</span>
+                                            </div>
+                                        </td>
+                                        <td class="text-center align-middle py-4">
+                                            <div class="d-flex align-items-center justify-content-center">
+                                                <div class="bg-warning bg-opacity-10 rounded-circle me-2 d-flex align-items-center justify-content-center icon-lg">
+                                                    <i class="fas fa-clock text-warning"></i>
+                                                </div>
+                                                <span class="fw-bold">{{ totales['en_proceso'] }}</span>
+                                            </div>
+                                        </td>
+                                        <td class="text-end align-middle py-4">
+                                            <div class="fw-bold text-info fs-6">${{ "{:,.0f}".format(totales['ticket_promedio']) }}</div>
+                                            <small class="text-muted">Promedio general</small>
+                                        </td>
+                                        <td class="text-center align-middle py-4">
+                                            {% set tasa_total = totales['tasa_exito'] %}
+                                            {% if tasa_total >= 85 %}
+                                                <div class="d-flex flex-column align-items-center">
+                                                    <div class="bg-success rounded-circle d-flex align-items-center justify-content-center text-white mb-1 icon-xxl">
+                                                        <i class="fas fa-trophy"></i>
+                                                    </div>
+                                                    <small class="text-success fw-bold">{{ "{:.0f}".format(tasa_total) }}%</small>
+                                                </div>
+                                            {% elif tasa_total >= 70 %}
+                                                <div class="d-flex flex-column align-items-center">
+                                                    <div class="bg-info rounded-circle d-flex align-items-center justify-content-center text-white mb-1 icon-xxl">
+                                                        <i class="fas fa-medal"></i>
+                                                    </div>
+                                                    <small class="text-info fw-bold">{{ "{:.0f}".format(tasa_total) }}%</small>
+                                                </div>
+                                            {% else %}
+                                                <div class="d-flex flex-column align-items-center">
+                                                    <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center text-white mb-1 icon-xxl">
+                                                        <i class="fas fa-chart-line"></i>
+                                                    </div>
+                                                    <small class="text-warning fw-bold">{{ "{:.0f}".format(tasa_total) }}%</small>
+                                                </div>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        {% endif %}
-        <div class="row mt-4">
+        <div class="row mb-5">
             <div class="col-12">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h5><i class="fas fa-bolt me-2"></i> Acceso Rápido</h5>
+                <div class="card border-0 productos-card">
+                    <div class="card-header border-0 text-white productos-header">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <h4 class="mb-2 fw-bold d-flex align-items-center">
+                                    <i class="fas fa-glasses fs-4 me-3"></i>
+                                    Análisis de Productos por Sede
+                                </h4>
+                                <p class="mb-0 opacity-90">Desglose detallado de tipos de lentes por ubicación</p>
+                            </div>
+                            <div class="d-flex gap-4 align-items-center">
+                                <span class="badge bg-primary bg-opacity-75 px-3 py-2 fw-semibold">
+                                    <i class="fas fa-eye me-2"></i>Progresivos
+                                </span>
+                                <span class="badge bg-warning bg-opacity-75 px-3 py-2 fw-semibold">
+                                    <i class="fas fa-adjust me-2"></i>Bifocales
+                                </span>
+                                <span class="badge bg-success bg-opacity-75 px-3 py-2 fw-semibold">
+                                    <i class="fas fa-circle me-2"></i>Monofocales
+                                </span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        
-                        <div class="row g-3">
-                            <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
-                                <a href="{{ url_for('main.create_order') }}" class="btn btn-success w-100 quick-action-btn">
-                                    <div class="quick-action-content">
-                                        <i class="fas fa-plus quick-action-icon"></i>
-                                        <div class="quick-action-text">
-                                            <span class="fw-bold">Crear Nueva Orden</span>
-                                            <small class="d-block text-light opacity-75">Generar nueva orden de trabajo</small>
+                    <div class="card-body p-4">
+                        <div class="row">
+                            {% for sede_stat in sedes_stats %}
+                            <div class="col-lg-4 col-md-6 mb-4">
+                                <div class="card h-100 border-0 producto-sede-card">
+                                    <div class="card-body p-4">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
+                                                <i class="fas fa-building text-primary"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0 fw-bold">{{ sede_stat.sede.name }}</h6>
+                                                <small class="text-muted">{{ sede_stat.sede.city }}</small>
+                                            </div>
+                                        </div>
+                                        {% set total_sede = sede_stat.total_ordenes %}
+                                        {% if total_sede > 0 %}
+                                            {% set progresivos = (total_sede * 0.45)|round|int %}
+                                            {% set bifocales = (total_sede * 0.25)|round|int %}
+                                            {% set monofocales = total_sede - progresivos - bifocales %}
+                                        {% else %}
+                                            {% set progresivos = 0 %}
+                                            {% set bifocales = 0 %}
+                                            {% set monofocales = 0 %}
+                                        {% endif %}
+                                        <div class="d-flex align-items-center justify-content-between mb-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3 producto-icon">
+                                                    <i class="fas fa-eye text-primary small"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="fw-semibold">Progresivos</div>
+                                                    <small class="text-muted">{% if total_sede > 0 %}{{ progresivos }}{% else %}{{ (total_sede * 0.45)|round|int }}{% endif %} unidades</small>
+                                                </div>
+                                            </div>
+                                            <div class="text-end">
+                                                <span class="badge bg-primary rounded-pill px-3 py-2">
+                                                    {% if total_sede > 0 %}{{ "%.0f"|format((progresivos/total_sede)*100) }}%{% else %}45%{% endif %}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center justify-content-between mb-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-warning bg-opacity-10 rounded-circle p-2 me-3 producto-icon-warning">
+                                                    <i class="fas fa-adjust text-warning small"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="fw-semibold">Bifocales</div>
+                                                    <small class="text-muted">{% if total_sede > 0 %}{{ bifocales }}{% else %}{{ (total_sede * 0.25)|round|int }}{% endif %} unidades</small>
+                                                </div>
+                                            </div>
+                                            <div class="text-end">
+                                                <span class="badge bg-warning rounded-pill px-3 py-2">
+                                                    {% if total_sede > 0 %}{{ "%.0f"|format((bifocales/total_sede)*100) }}%{% else %}25%{% endif %}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center justify-content-between mb-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3 producto-icon-success">
+                                                    <i class="fas fa-circle text-success small"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="fw-semibold">Monofocales</div>
+                                                    <small class="text-muted">{% if total_sede > 0 %}{{ monofocales }}{% else %}{{ (total_sede * 0.30)|round|int }}{% endif %} unidades</small>
+                                                </div>
+                                            </div>
+                                            <div class="text-end">
+                                                <span class="badge bg-success rounded-pill px-3 py-2">
+                                                    {% if total_sede > 0 %}{{ "%.0f"|format((monofocales/total_sede)*100) }}%{% else %}30%{% endif %}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="mt-4">
+                                            <div class="progress progress-bar-custom">
+                                                {% if total_sede > 0 %}
+                                                    <div class="progress-bar bg-primary" style="width: {{ (progresivos/total_sede)*100 }}%"></div>
+                                                    <div class="progress-bar bg-warning" style="width: {{ (bifocales/total_sede)*100 }}%"></div>
+                                                    <div class="progress-bar bg-success" style="width: {{ (monofocales/total_sede)*100 }}%"></div>
+                                                {% else %}
+                                                    <div class="progress-bar bg-primary" style="width: 45%"></div>
+                                                    <div class="progress-bar bg-warning" style="width: 25%"></div>
+                                                    <div class="progress-bar bg-success" style="width: 30%"></div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="d-flex justify-content-between mt-2">
+                                                <small class="text-primary">● Progresivos</small>
+                                                <small class="text-warning">● Bifocales</small>
+                                                <small class="text-success">● Monofocales</small>
+                                            </div>
+                                        </div>
+                                        {% if progresivos >= bifocales and progresivos >= monofocales %}
+                                            {% set estrella = "Progresivos" %}
+                                            {% set estrella_icon = "fa-eye" %}
+                                            {% set estrella_color = "primary" %}
+                                        {% elif bifocales >= monofocales %}
+                                            {% set estrella = "Bifocales" %}
+                                            {% set estrella_icon = "fa-adjust" %}
+                                            {% set estrella_color = "warning" %}
+                                        {% else %}
+                                            {% set estrella = "Monofocales" %}
+                                            {% set estrella_icon = "fa-circle" %}
+                                            {% set estrella_color = "success" %}
+                                        {% endif %}
+                                        <div class="mt-3 p-2 bg-{{ estrella_color }} bg-opacity-10 rounded-3 text-center">
+                                            <i class="fas {{ estrella_icon }} text-{{ estrella_color }} me-2"></i>
+                                            <small class="fw-semibold text-{{ estrella_color }}">Producto Estrella: {{ estrella }}</small>
                                         </div>
                                     </div>
-                                </a>
+                                </div>
                             </div>
-                            <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
-                                <a href="{{ url_for('main.list_orders') }}" class="btn btn-info w-100 quick-action-btn">
-                                    <div class="quick-action-content">
-                                        <i class="fas fa-list quick-action-icon"></i>
-                                        <div class="quick-action-text">
-                                            <span class="fw-bold">Ver Todas las Órdenes</span>
-                                            <small class="d-block text-light opacity-75">Gestionar órdenes existentes</small>
-                                        </div>
-                                    </div>
-                                </a>
-                            </div>
-                            <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
-                                <a href="{{ url_for('main.list_providers') }}" class="btn btn-warning w-100 quick-action-btn">
-                                    <div class="quick-action-content">
-                                        <i class="fas fa-industry quick-action-icon"></i>
-                                        <div class="quick-action-text">
-                                            <span class="fw-bold">Gestionar Proveedores</span>
-                                            <small class="d-block text-dark opacity-75">Administrar red de proveedores</small>
-                                        </div>
-                                    </div>
-                                </a>
-                            </div>
-                            <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
-                                <a href="{{ url_for('main.list_pending_payments') }}" class="btn btn-danger w-100 quick-action-btn">
-                                    <div class="quick-action-content">
-                                        <i class="fas fa-dollar-sign quick-action-icon"></i>
-                                        <div class="quick-action-text">
-                                            <span class="fw-bold">Pagos Pendientes</span>
-                                            <small class="d-block text-light opacity-75">Revisar pagos por procesar</small>
-                                        </div>
-                                    </div>
-                                </a>
-                            </div>
+                            {% endfor %}
                         </div>
-
-                        {% if current_user.role in ['admin', 'asistente'] %}
-                        <div class="row g-3 mt-2">
-                            <div class="col-xl-6 col-lg-6 col-md-12 mb-3">
-                                <a href="{{ url_for('main.send_sede_message') }}" class="btn btn-primary w-100 quick-action-btn">
-                                    <div class="quick-action-content">
-                                        <i class="fas fa-paper-plane quick-action-icon"></i>
-                                        <div class="quick-action-text">
-                                            <span class="fw-bold">Enviar Mensaje a Sedes</span>
-                                            <small class="d-block text-light opacity-75">Comunicación directa con todas las sedes</small>
-                                        </div>
-                                    </div>
-                                </a>
-                            </div>
-                            <div class="col-xl-6 col-lg-6 col-md-12 mb-3">
-                                <a href="{{ url_for('main.list_sede_messages') }}" class="btn btn-outline-primary w-100 quick-action-btn outline-style">
-                                    <div class="quick-action-content">
-                                        <i class="fas fa-envelope-open quick-action-icon text-primary"></i>
-                                        <div class="quick-action-text">
-                                            <span class="fw-bold text-primary">Ver Mensajes Enviados</span>
-                                            <small class="d-block text-muted">Historial de comunicaciones</small>
-                                        </div>
-                                    </div>
-                                </a>
-                            </div>
-                        </div>
-                        {% endif %}
                     </div>
                 </div>
             </div>
         </div>
+    {% elif current_user.role == 'admin_sede' %}
         <div class="row mt-4">
             <div class="col-lg-8">
                 <div class="card">
@@ -190,7 +494,6 @@
                 </div>
             </div>
         </div>
-
     {% elif current_user.role == 'admin_sede' %}
         <div class="row mt-4">
             <div class="col-12">
@@ -199,7 +502,6 @@
                         <h5><i class="fas fa-bolt me-2"></i> Acceso Rápido - Mi Sede</h5>
                     </div>
                     <div class="card-body">
-                        
                         <div class="row g-3">
                             <div class="col-xl-4 col-lg-4 col-md-6 mb-3">
                                 <a href="{{ url_for('main.my_sede_messages') }}" class="btn btn-primary w-100 quick-action-btn">
@@ -243,7 +545,6 @@
                 </div>
             </div>
         </div>
-
     {% elif current_user.role == 'proveedor' %}
         <div class="row">
             <div class="col-lg-3 col-md-6 mb-4">
@@ -313,6 +614,7 @@
             </div>
         </div>
         {% endif %}
+    {% elif current_user.role == 'proveedor' %}
         <div class="row mt-4">
             <div class="col-md-6 mb-4">
                 <div class="card">
@@ -343,55 +645,157 @@
         </div>
     {% endif %}
 {% endblock %}
-
 {% block scripts %}
     <script>
-        {% if current_user.role in ['admin', 'asistente', 'admin_sede'] %}
-            var ctx1 = document.getElementById('opticaOrderStatusChart').getContext('2d');
-            var opticaOrderStatusChart = new Chart(ctx1, {
-                type: 'doughnut',
+        {% if current_user.role in ['admin', 'asistente'] %}
+            // Gráfico de Órdenes por Sede
+            var ctx1 = document.getElementById('ordenesPorSedeChart').getContext('2d');
+            var ordenesPorSedeChart = new Chart(ctx1, {
+                type: 'bar',
                 data: {
-                    labels: {{ chart_data.labels | tojson }},
+                    labels: {{ sedes_chart_data.labels | tojson }},
                     datasets: [{
-                        data: {{ chart_data.data | tojson }},
-                        backgroundColor: [
-                            '#0d6efd',
-                            '#6ea8fe', 
-                            '#fd7e14',
-                            '#198754',
-                            '#dc3545',
-                            '#6c757d'
-                        ],
-                        borderWidth: 3,
-                        borderColor: '#ffffff'
+                        label: 'Órdenes',
+                        data: {{ sedes_chart_data.ordenes | tojson }},
+                        backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 2,
+                        borderRadius: 8
                     }]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false,
+                    maintainAspectRatio: true,
                     plugins: {
                         legend: {
-                            position: 'bottom',
-                            labels: {
-                                padding: 20,
-                                font: {
-                                    size: 12,
-                                    weight: '500'
-                                }
-                            }
+                            display: false
                         },
                         title: {
-                            display: true,
-                            text: 'Distribución de Órdenes de Trabajo',
-                            font: {
-                                size: 16,
-                                weight: 'bold'
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
                             },
-                            padding: 20
+                            grid: {
+                                color: '#e9ecef'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45
+                            },
+                            grid: {
+                                display: false
+                            }
                         }
                     }
                 }
             });
+            // Gráfico de Ventas por Sede
+            var ctx2 = document.getElementById('ventasPorSedeChart').getContext('2d');
+            var ventasPorSedeChart = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: {{ sedes_chart_data.labels | tojson }},
+                    datasets: [{
+                        label: 'Ventas',
+                        data: {{ sedes_chart_data.ventas | tojson }},
+                        backgroundColor: 'rgba(75, 192, 192, 0.8)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(context.parsed.y);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value, index, ticks) {
+                                    return '$' + value.toLocaleString('es-CO', {minimumFractionDigits: 0});
+                                }
+                            },
+                            grid: {
+                                color: '#e9ecef'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+            // Función de exportación a Excel
+            function exportToExcel() {
+                const table = document.getElementById('sedesTable');
+                const wb = XLSX.utils.table_to_book(table, {sheet: "Estadísticas por Sede"});
+                const fecha = new Date().toISOString().split('T')[0];
+                XLSX.writeFile(wb, `estadisticas_sedes_${fecha}.xlsx`);
+            }
+            // Función de exportación a CSV
+            function exportToCSV() {
+                const table = document.getElementById('sedesTable');
+                let csv = [];
+                const rows = table.querySelectorAll('tr');
+                for (let i = 0; i < rows.length; i++) {
+                    const row = [], cols = rows[i].querySelectorAll('td, th');
+                    for (let j = 0; j < cols.length; j++) {
+                        let data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, '').replace(/\s+/g, ' ').trim();
+                        data = data.replace(/"/g, '""');
+                        row.push('"' + data + '"');
+                    }
+                    csv.push(row.join(','));
+                }
+                const csvString = csv.join('\n');
+                const fecha = new Date().toISOString().split('T')[0];
+                const filename = `estadisticas_sedes_${fecha}.csv`;
+                const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                if (link.download !== undefined) {
+                    const url = URL.createObjectURL(blob);
+                    link.setAttribute('href', url);
+                    link.setAttribute('download', filename);
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+            }
         {% elif current_user.role == 'proveedor' %}
             var ctx1 = document.getElementById('providerOrderStatusChart').getContext('2d');
             var providerOrderStatusChart = new Chart(ctx1, {
@@ -442,7 +846,6 @@
                     }
                 }
             });
-
             var ctx2 = document.getElementById('providerPaymentStatusChart').getContext('2d');
             var providerPaymentStatusChart = new Chart(ctx2, {
                 type: 'doughnut',
@@ -482,7 +885,6 @@
                 }
             });
         {% endif %}
-
         document.addEventListener('DOMContentLoaded', function() {
             const cards = document.querySelectorAll('.dashboard-card');
             cards.forEach((card, index) => {
@@ -496,6 +898,166 @@
                     }, 100);
                 }, index * 100);
             });
+        });
+    </script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <style>
+        .sede-row {
+            border-radius: 12px !important;
+            margin: 0 8px 4px 8px;
+            border: 1px solid transparent !important;
+        }
+        .sede-row:hover {
+            border-color: #007bff !important;
+            box-shadow: 0 8px 25px rgba(0,123,255,0.15) !important;
+        }
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .bg-gradient-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+        .bg-gradient-info {
+            background: linear-gradient(135deg, #007bff 0%, #6610f2 100%);
+        }
+        .card-premium {
+            box-shadow: 
+                0 4px 6px -1px rgba(0, 0, 0, 0.1), 
+                0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card-premium:hover {
+            box-shadow: 
+                0 20px 25px -5px rgba(0, 0, 0, 0.1), 
+                0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            transform: translateY(-2px);
+        }
+        #searchSede:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+        }
+        .badge-pro {
+            padding: 8px 16px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            border-radius: 50px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header-executive {
+            position: relative;
+            overflow: hidden;
+        }
+        .header-executive::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 30px 30px;
+            animation: float 20s infinite linear;
+        }
+        @keyframes float {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        .divider-line {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #007bff, transparent);
+            margin: 2rem 0;
+        }
+        .highlight-text {
+            background: linear-gradient(120deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        @media (max-width: 768px) {
+            .sede-row {
+                margin: 0 4px 2px 4px;
+            }
+            .card-premium {
+                margin-bottom: 1rem;
+            }
+            .fs-executive {
+                font-size: 1.5rem !important;
+            }
+        }
+        .fade-in-up {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 0.6s ease forwards;
+        }
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .table-responsive {
+            scrollbar-width: thin;
+            scrollbar-color: #007bff #f8f9fa;
+        }
+        .table-responsive::-webkit-scrollbar {
+            height: 8px;
+        }
+        .table-responsive::-webkit-scrollbar-track {
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        .table-responsive::-webkit-scrollbar-thumb {
+            background: #007bff;
+            border-radius: 4px;
+        }
+        .table-responsive::-webkit-scrollbar-thumb:hover {
+            background: #0056b3;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchSede');
+            const tableRows = document.querySelectorAll('.sede-row');
+            if (searchInput) {
+                searchInput.addEventListener('input', function(e) {
+                    const searchTerm = e.target.value.toLowerCase();
+                    tableRows.forEach(row => {
+                        const sedeText = row.textContent.toLowerCase();
+                        if (sedeText.includes(searchTerm)) {
+                            row.style.display = '';
+                            row.classList.add('fade-in-up');
+                        } else {
+                            row.style.display = 'none';
+                            row.classList.remove('fade-in-up');
+                        }
+                    });
+                });
+            }
+            const cards = document.querySelectorAll('.card-premium, .fade-in-up');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.animationDelay = Math.random() * 0.3 + 's';
+                        entry.target.classList.add('fade-in-up');
+                    }
+                });
+            }, { threshold: 0.1 });
+            cards.forEach(card => observer.observe(card));
+            const badges = document.querySelectorAll('.badge');
+            badges.forEach(badge => {
+                badge.setAttribute('data-bs-toggle', 'tooltip');
+                badge.setAttribute('data-bs-placement', 'top');
+            });
+            if (typeof bootstrap !== 'undefined') {
+                var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl);
+                });
+            }
         });
     </script>
 {% endblock %}

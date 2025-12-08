@@ -139,7 +139,7 @@ class WorkOrderForm(FlaskForm):
     
     # Implementé sede y proveedor
     sede_id = SelectField('Sede Solicitante', coerce=int, validators=[DataRequired()])
-    provider_id = SelectField('Proveedor', coerce=int, validators=[DataRequired()])
+    provider_id = SelectField('Proveedor', coerce=int, validators=[Optional()])
     
 
     
@@ -150,7 +150,8 @@ class WorkOrderForm(FlaskForm):
         ('Bifocal', 'Bifocal'), 
         ('Monofocal', 'Monofocal')
     ], validators=[Optional()])
-    lens_type = StringField('Tipo de Lente y Filtros', validators=[Optional(), Length(max=128)])
+    lens_type = StringField('Tipo de Lente (Admon)', validators=[Optional(), Length(max=128)])
+    lens_type_asesor = StringField('Tipo de Lente (Asesor)', validators=[Optional(), Length(max=128)])
     frame_type = StringField('Tipo de Montura', validators=[Optional(), Length(max=128)])
     
     # Implementé fórmula con campos de texto libre
@@ -195,10 +196,10 @@ class WorkOrderForm(FlaskForm):
                     sedes_list.append((s.id, s.name))
             self.sede_id.choices = [(0, '--- Seleccionar Sede Solicitante ---')] + sedes_list
         
-        # Todos los usuarios pueden ver todos los proveedores que implementé
-        self.provider_id.choices = [(p.id, f"{p.razon_social} ({p.nit})") for p in Provider.query.order_by(Provider.razon_social).all()]
-        # Agrego una opción vacía si es necesario
-        self.provider_id.choices.insert(0, (0, 'Seleccionar Proveedor'))
+        # Proveedores - incluir opción vacía para sedes
+        from backend.app.models import Provider
+        providers_list = [(p.id, f"{p.razon_social} ({p.nit})") for p in Provider.query.order_by(Provider.razon_social).all()]
+        self.provider_id.choices = [(0, '--- Será asignado por administración ---')] + providers_list
 
 
 class WorkOrderStatusForm(FlaskForm):
@@ -224,14 +225,20 @@ class WorkOrderStatusForm(FlaskForm):
 
 
 class AdminCompleteLensForm(FlaskForm):
-    """Formulario para que el admin complete los campos de lentes que la sede no puede llenar"""
-    lens_class = SelectField('Clase de Lentes', choices=[
+    """Formulario para que el admin complete los campos que la sede no puede llenar"""
+    orden_laboratorio = StringField('Orden de Laboratorio', 
+                                   validators=[Optional(), Length(max=64)])
+    provider_id = SelectField('Proveedor', coerce=int, 
+                            validators=[DataRequired(message='Debe seleccionar un proveedor')])
+    lens_type_asesor = StringField('Tipo de Lente (Asesor)', 
+                                   render_kw={'readonly': True})
+    lens_class = SelectField('Clase de Lentes (Admon)', choices=[
         ('', 'Seleccionar...'),
         ('Progresivo', 'Progresivo'),
         ('Bifocal', 'Bifocal'), 
         ('Monofocal', 'Monofocal')
     ], validators=[DataRequired(message='Debe seleccionar la clase de lentes')])
-    lens_type = StringField('Tipo de Lente y Filtros', 
+    lens_type = StringField('Tipo de Lente (Admon)', 
                            validators=[DataRequired(message='Debe especificar el tipo de lente y filtros'), 
                                      Length(max=128)])
     submit = SubmitField('Completar y Enviar al Proveedor')

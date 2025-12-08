@@ -1,10 +1,8 @@
 {% extends "base.html" %}
-
 {% block content %}
 <div class="container-fluid mt-4">
     <div class="row">
         <div class="col-md-10 mx-auto">
-            
             <div class="card mb-4 border-info">
                 <div class="card-header bg-info text-white">
                     <h4 class="mb-0">
@@ -30,17 +28,44 @@
                             <p><strong>Creada por:</strong> <span class="text-dark bg-primary bg-opacity-10 p-2 rounded d-inline-block fw-bold">{{ order.created_by.username }}</span></p>
                         </div>
                     </div>
-                    
                     <hr>
                     <div class="alert alert-warning">
                         <i class="fas fa-exclamation-triangle me-2"></i>
-                        <strong>Importante:</strong> Complete los siguientes campos para que la orden pueda ser enviada al proveedor.
+                        <strong>Importante:</strong> Complete los siguientes campos administrativos para que la orden pueda ser enviada al proveedor.
                     </div>
-                    
                     <form method="POST">
                         {{ form.hidden_tag() }}
-                        
+                        <h6 class="fw-bold text-primary mb-3">Campos Administrativos</h6>
                         <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.orden_laboratorio.label(class="form-label fw-bold") }}
+                                {{ form.orden_laboratorio(class="form-control form-control-lg", placeholder="Número de orden de laboratorio") }}
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Número asignado por el laboratorio/proveedor
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.provider_id.label(class="form-label fw-bold") }}
+                                {{ form.provider_id(class="form-select form-select-lg") }}
+                                {% for error in form.provider_id.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <hr>
+                        <h6 class="fw-bold text-primary mb-3">Especificaciones de Lentes</h6>
+                        <div class="row">
+                            {% if order.lens_type_asesor %}
+                            <div class="col-md-12 mb-3">
+                                {{ form.lens_type_asesor.label(class="form-label fw-bold text-info") }}
+                                {{ form.lens_type_asesor(class="form-control form-control-lg bg-light") }}
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Este es el tipo de lente indicado por el asesor de la sede
+                                </div>
+                            </div>
+                            {% endif %}
                             <div class="col-md-6 mb-3">
                                 {{ form.lens_class.label(class="form-label fw-bold") }}
                                 {{ form.lens_class(class="form-select form-select-lg") }}
@@ -51,7 +76,6 @@
                                 <div class="text-danger small">{{ error }}</div>
                                 {% endfor %}
                             </div>
-                            
                             <div class="col-md-6 mb-3">
                                 {{ form.lens_type.label(class="form-label fw-bold") }}
                                 {{ form.lens_type(class="form-control form-control-lg", placeholder="Ej: Transitions, Antirreflejo, Blue Light...") }}
@@ -63,7 +87,6 @@
                                 {% endfor %}
                             </div>
                         </div>
-                    
                     {% if order.formula_od or order.formula_oi %}
                     <hr>
                     <h6 class="fw-bold text-primary">Fórmula Óptica:</h6>
@@ -98,18 +121,15 @@
                     </div>
                     {% endif %}
                     {% endif %}
-                    
                     {% if order.frame_type %}
                     <hr>
                     <p><strong>Tipo de Montura:</strong> <span class="text-dark bg-primary bg-opacity-10 p-2 rounded d-inline-block fw-bold">{{ order.frame_type }}</span></p>
                     {% endif %}
-                    
                     {% if order.observations %}
                     <hr>
                     <p><strong>Observaciones:</strong></p>
                     <p class="text-dark bg-primary bg-opacity-10 p-2 rounded fw-bold">{{ order.observations|replace('\n', '<br>')|safe }}</p>
                     {% endif %}
-                    
                     <hr>
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <a href="{{ url_for('main.list_pending_review_orders') }}" class="btn btn-secondary me-md-2">
@@ -120,7 +140,6 @@
                         </a>
                         {{ form.submit(class="btn btn-success btn-lg") }}
                     </div>
-                    
                     <div class="alert alert-success mt-3">
                         <h6><i class="fas fa-check-circle me-2"></i>Después de completar las especificaciones:</h6>
                         <ul class="mb-0">
@@ -133,7 +152,6 @@
                     </form>
                 </div>
             </div>
-
             <div class="alert alert-info mt-4">
                 <h6><i class="fas fa-info-circle me-2"></i>Guía para Clasificación de Lentes</h6>
                 <div class="row">
@@ -164,7 +182,6 @@
         </div>
     </div>
 </div>
-
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Resaltar campos obligatorios

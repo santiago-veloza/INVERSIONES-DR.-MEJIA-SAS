@@ -1,10 +1,8 @@
 {% extends "base.html" %}
-
 {% block content %}
 <div class="container-fluid mt-4">
     <div class="row">
         <div class="col-md-8 mx-auto">
-            
             <div class="card mb-4 border-success">
                 <div class="card-header bg-success text-white">
                     <h4 class="mb-0">
@@ -28,7 +26,6 @@
                             </p>
                         </div>
                     </div>
-                    
                     {% if order.formula_details or order.comments %}
                     <hr>
                     <div class="row">
@@ -48,7 +45,6 @@
                     {% endif %}
                 </div>
             </div>
-
             <div class="card border-primary">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">
@@ -59,11 +55,10 @@
                 <div class="card-body">
                     <form method="POST">
                         {{ form.hidden_tag() }}
-                        
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 {{ form.total_amount.label(class="form-label fw-bold text-success") }}
-                                {{ form.total_amount(class="form-control form-control-lg", placeholder="0") }}
+                                {{ form.total_amount(class="form-control form-control-lg", placeholder="0", id="total_amount") }}
                                 {% if form.total_amount.description %}
                                 <div class="form-text">{{ form.total_amount.description }}</div>
                                 {% endif %}
@@ -71,7 +66,6 @@
                                 <div class="text-danger small">{{ error }}</div>
                                 {% endfor %}
                             </div>
-                            
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold text-warning">
                                     <i class="fas fa-clock me-1"></i>
@@ -97,7 +91,6 @@
                                 </div>
                             </div>
                         </div>
-                        
                         <div class="mb-3">
                             {{ form.provider_comments.label(class="form-label fw-bold") }}
                             {{ form.provider_comments(class="form-control", rows="4", placeholder="Información adicional sobre el trabajo, materiales, o condiciones especiales...") }}
@@ -108,7 +101,6 @@
                             <div class="text-danger small">{{ error }}</div>
                             {% endfor %}
                         </div>
-                        
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                             <a href="{{ url_for('main.view_order', order_id=order.id) }}" class="btn btn-secondary me-md-2">
                                 <i class="fas fa-arrow-left me-1"></i>Volver a la orden
@@ -118,7 +110,6 @@
                             </a>
                             {{ form.submit(class="btn btn-success btn-lg") }}
                         </div>
-                        
                         <div class="alert alert-success mt-3">
                             <h6><i class="fas fa-check-circle me-2"></i>Después de aceptar la orden podrá:</h6>
                             <ul class="mb-0">
@@ -131,7 +122,6 @@
                     </form>
                 </div>
             </div>
-
             <div class="alert alert-info mt-4">
                 <h6><i class="fas fa-info-circle me-2"></i>¿Cómo funciona el nuevo sistema de entregas?</h6>
                 <ul class="mb-0">
@@ -143,7 +133,6 @@
                     <li><strong>Si no puede:</strong> Use el botón "Rechazar orden" para declinar el trabajo</li>
                 </ul>
             </div>
-            
             <div class="alert alert-warning mt-3">
                 <h6><i class="fas fa-exclamation-triangle me-2"></i>Compromiso de Entrega</h6>
                 <p class="mb-0">
@@ -154,39 +143,21 @@
         </div>
     </div>
 </div>
-
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const montoField = document.getElementById('total_amount');
     if (montoField) {
-        montoField.addEventListener('blur', function() {
-            if (this.value) {
-                const valor = parseFloat(this.value);
-                if (!isNaN(valor)) {
-                    this.value = valor;
-                }
-            }
-        });
-        
-        montoField.addEventListener('focus', function() {
-            this.select(); // Seleccionar todo el texto al enfocar
-        });
-        
         // Cambiar tipo de input a text para permitir formateo
         montoField.type = 'text';
-        
         // Formatear con separadores de miles mientras se escribe
         montoField.addEventListener('input', function(e) {
             // Obtener la posición del cursor
             let cursorPosition = e.target.selectionStart;
             let value = e.target.value;
-            
             // Contar puntos antes del cursor
             let dotsBefore = (value.substring(0, cursorPosition).match(/\./g) || []).length;
-            
             // Remover todos los puntos y caracteres no numéricos
             let cleanValue = value.replace(/[^\d]/g, '');
-            
             if (cleanValue) {
                 // Formatear con puntos de miles
                 let formatted = '';
@@ -199,12 +170,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     formatted = cleanValue[i] + formatted;
                     counter++;
                 }
-                
                 e.target.value = formatted;
-                
                 // Contar puntos después del formato
                 let dotsAfter = (formatted.substring(0, cursorPosition).match(/\./g) || []).length;
-                
                 // Ajustar posición del cursor
                 let newPosition = cursorPosition + (dotsAfter - dotsBefore);
                 e.target.setSelectionRange(newPosition, newPosition);
@@ -212,7 +180,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 e.target.value = '';
             }
         });
-        
         // Al enviar el formulario, quitar el formato para enviar solo números
         const form = montoField.closest('form');
         if (form) {
@@ -224,7 +191,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     }
-
     // Mostrar información adicional sobre el plazo de 7 días
     const alertBox = document.querySelector('.alert-warning');
     if (alertBox) {

@@ -1,393 +1,407 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <div class="form-order-container">
-    <div class="container-lg px-3">
-        
-        <div class="row mb-1">
-            <div class="col-12">
-                <div class="card border-0 shadow-sm gradient-primary">
-                    <div class="card-body text-white p-1">
-                        <h5 class="mb-0 fw-bold" style="font-size: 1.1rem;">
-                            <i class="fas fa-clipboard-list me-2"></i>
-                            {% if order %}
-                                Editar Orden N° {{ order.order_number }}
-                            {% else %}
-                                Crear Nueva Orden de Trabajo
+<div class="container-fluid px-2 container-order">
+    <div class="row mb-2">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm order-header-card">
+                <div class="card-body text-white py-2">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-clipboard-list me-2"></i>
+                        {% if order %}
+                            Editar Orden N° {{ order.order_number }}
+                        {% else %}
+                            Crear Nueva Orden de Trabajo
+                        {% endif %}
+                    </h5>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form action="" method="post" novalidate>
+        {{ form.hidden_tag() }}
+
+        <div class="accordion-form">
+
+            <!-- SECCIÓN 1 -->
+            <div class="acc-item">
+                <button type="button" class="acc-header">
+                    <i class="fas fa-info-circle me-2"></i>INFORMACIÓN INICIAL
+                    <i class="fas fa-chevron-down ms-auto"></i>
+                </button>
+                <div class="acc-body">
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label slim-label">Orden de Venta</label>
+                            {{ form.receipt_number(class="form-control form-control-sm mb-3", placeholder="Número de orden de venta") }}
+                            {% if form.receipt_number.errors %}
+                                <div class="text-danger small mb-2">{{ form.receipt_number.errors[0] }}</div>
                             {% endif %}
-                        </h5>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label slim-label">Orden de Laboratorio</label>
+                            {% if current_user.role in ['admin','asistente'] %}
+                                {{ form.orden_laboratorio(class="form-control form-control-sm mb-3", placeholder="Número de laboratorio") }}
+                                {% if form.orden_laboratorio.errors %}
+                                    <div class="text-danger small mb-2">{{ form.orden_laboratorio.errors[0] }}</div>
+                                {% endif %}
+                            {% else %}
+                                <input type="text" class="form-control form-control-sm mb-3 bg-light" 
+                                       value="Será asignado por administración" disabled>
+                            {% endif %}
+                        </div>
                     </div>
+
+                    <label class="form-label slim-label">Ciudad / Municipio</label>
+                    {{ form.ciudad_municipio(class="form-control form-control-sm mb-3", placeholder="Ingrese ciudad o municipio") }}
+                    {% if form.ciudad_municipio.errors %}
+                        <div class="text-danger small mb-2">{{ form.ciudad_municipio.errors[0] }}</div>
+                    {% endif %}
+
+                    <label class="form-label slim-label">Sede</label>
+                    {{ form.sede_id(class="form-select form-select-sm mb-3") }}
+                    {% if form.sede_id.errors %}
+                        <div class="text-danger small mb-2">{{ form.sede_id.errors[0] }}</div>
+                    {% endif %}
+
+                    <label class="form-label slim-label">Empresa / Convenio</label>
+                    {{ form.empresa_convenio(class="form-control form-control-sm mb-3", placeholder="Ingrese empresa o convenio") }}
+                    {% if form.empresa_convenio.errors %}
+                        <div class="text-danger small mb-2">{{ form.empresa_convenio.errors[0] }}</div>
+                    {% endif %}
+
+                    <label class="form-label slim-label">Proveedor</label>
+                    {% if current_user.role in ['admin','asistente'] %}
+                        {{ form.provider_id(class="form-select form-select-sm mb-3") }}
+                        {% if form.provider_id.errors %}
+                            <div class="text-danger small mb-2">{{ form.provider_id.errors[0] }}</div>
+                        {% endif %}
+                    {% else %}
+                        <select class="form-select form-select-sm mb-3 bg-light" disabled>
+                            <option>Será asignado por administración</option>
+                        </select>
+                    {% endif %}
+
+                </div>
+            </div>
+
+            <!-- SECCIÓN 2: DATOS DEL PACIENTE -->
+            <div class="acc-item">
+                <button type="button" class="acc-header">
+                    <i class="fas fa-user me-2"></i>DATOS DEL PACIENTE
+                    <i class="fas fa-chevron-down ms-auto"></i>
+                </button>
+                <div class="acc-body">
+
+                    <label class="form-label slim-label">Nombre del Paciente</label>
+                    {{ form.client_name(class="form-control form-control-sm mb-3", placeholder="Nombre completo del paciente") }}
+                    {% if form.client_name.errors %}
+                        <div class="text-danger small mb-2">{{ form.client_name.errors[0] }}</div>
+                    {% endif %}
+
+                    <label class="form-label slim-label">Documento</label>
+                    {{ form.client_cc(class="form-control form-control-sm mb-3", placeholder="Número de documento") }}
+                    {% if form.client_cc.errors %}
+                        <div class="text-danger small mb-2">{{ form.client_cc.errors[0] }}</div>
+                    {% endif %}
+
+                    <label class="form-label slim-label">Teléfono</label>
+                    {{ form.client_phone(class="form-control form-control-sm mb-3", placeholder="Número de contacto") }}
+                    {% if form.client_phone.errors %}
+                        <div class="text-danger small mb-2">{{ form.client_phone.errors[0] }}</div>
+                    {% endif %}
+
+                </div>
+            </div>
+
+            <!-- SECCIÓN 3: ESPECIFICACIONES DE LENTES -->
+            <div class="acc-item">
+                <button type="button" class="acc-header">
+                    <i class="fas fa-glasses me-2"></i>ESPECIFICACIONES DE LENTES
+                    <i class="fas fa-chevron-down ms-auto"></i>
+                </button>
+                <div class="acc-body">
+
+                    <label class="form-label slim-label">Tipo de Lente (Asesor)</label>
+                    {{ form.lens_type_asesor(class="form-control form-control-sm mb-3", placeholder="Tipo de lente indicado por asesor") }}
+                    {% if form.lens_type_asesor.errors %}
+                        <div class="text-danger small mb-2">{{ form.lens_type_asesor.errors[0] }}</div>
+                    {% endif %}
+
+                    {% if current_user.role in ['admin','asistente'] %}
+                        {# Admin puede editar estos campos #}
+                        <label class="form-label slim-label">Clase de Lente (Admon)</label>
+                        {{ form.lens_class(class="form-select form-select-sm mb-3") }}
+                        {% if form.lens_class.errors %}
+                            <div class="text-danger small mb-2">{{ form.lens_class.errors[0] }}</div>
+                        {% endif %}
+
+                        <label class="form-label slim-label">Tipo de Lente (Admon)</label>
+                        {{ form.lens_type(class="form-control form-control-sm mb-3", placeholder="Tipo y filtros confirmados por administración") }}
+                        {% if form.lens_type.errors %}
+                            <div class="text-danger small mb-2">{{ form.lens_type.errors[0] }}</div>
+                        {% endif %}
+
+                    {% else %}
+                        {# Las sedes ven los campos pero deshabilitados #}
+                        <label class="form-label slim-label">Clase de Lente (Admon)</label>
+                        <select class="form-select form-select-sm mb-3 bg-light" disabled>
+                            <option>Será completado por administración</option>
+                        </select>
+
+                        <label class="form-label slim-label">Tipo de Lente (Admon)</label>
+                        <input type="text" class="form-control form-control-sm mb-3 bg-light" 
+                               value="Será completado por administración" disabled>
+                    {% endif %}
+
+                    <label class="form-label slim-label">Información Adicional</label>
+                    {{ form.formula_details(class="form-control form-control-sm mb-3", rows="2", placeholder="Detalles adicionales de la fórmula") }}
+                    {% if form.formula_details.errors %}
+                        <div class="text-danger small mb-2">{{ form.formula_details.errors[0] }}</div>
+                    {% endif %}
+
+                </div>
+            </div>
+
+            <!-- SECCIÓN 4: FÓRMULA ÓPTICA -->
+            <div class="acc-item">
+                <button type="button" class="acc-header">
+                    <i class="fas fa-eye me-2"></i>FÓRMULA ÓPTICA
+                    <i class="fas fa-chevron-down ms-auto"></i>
+                </button>
+                <div class="acc-body">
+
+                    <label class="form-label slim-label">OD – Ojo Derecho</label>
+                    {{ form.formula_od(class="form-control form-control-sm mb-3", rows="2", placeholder="Fórmula ojo derecho") }}
+                    {% if form.formula_od.errors %}
+                        <div class="text-danger small mb-2">{{ form.formula_od.errors[0] }}</div>
+                    {% endif %}
+
+                    <label class="form-label slim-label">OI – Ojo Izquierdo</label>
+                    {{ form.formula_oi(class="form-control form-control-sm mb-3", rows="2", placeholder="Fórmula ojo izquierdo") }}
+                    {% if form.formula_oi.errors %}
+                        <div class="text-danger small mb-2">{{ form.formula_oi.errors[0] }}</div>
+                    {% endif %}
+
+                    <label class="form-label slim-label">ADD (Adición)</label>
+                    {{ form.formula_add(class="form-control form-control-sm mb-3", placeholder="Adición para cerca") }}
+                    {% if form.formula_add.errors %}
+                        <div class="text-danger small mb-2">{{ form.formula_add.errors[0] }}</div>
+                    {% endif %}
+
+                    <label class="form-label slim-label">DP y ALT</label>
+                    {{ form.formula_dp_alt(class="form-control form-control-sm mb-3", placeholder="Distancia pupilar y altura") }}
+                    {% if form.formula_dp_alt.errors %}
+                        <div class="text-danger small mb-2">{{ form.formula_dp_alt.errors[0] }}</div>
+                    {% endif %}
+
+                    <label class="form-label slim-label">Tipo de Montura</label>
+                    {{ form.frame_type(class="form-control form-control-sm mb-3", placeholder="Especifique tipo de montura") }}
+                    {% if form.frame_type.errors %}
+                        <div class="text-danger small mb-2">{{ form.frame_type.errors[0] }}</div>
+                    {% endif %}
+
+                    <label class="form-label slim-label">Precio de Venta</label>
+                    {{ form.sale_price(class="form-control form-control-sm mb-3", placeholder="0", id="sale_price") }}
+                    {% if form.sale_price.errors %}
+                        <div class="text-danger small mb-2">{{ form.sale_price.errors[0] }}</div>
+                    {% endif %}
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="row mt-3 mb-4">
+            <div class="col-12">
+                <div class="d-flex gap-2 justify-content-end">
+                    <a href="{{ url_for('main.list_orders') }}" class="btn btn-secondary btn-sm">
+                        <i class="fas fa-times me-1"></i>Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="fas fa-save me-1"></i>
+                        {% if order %}Actualizar{% else %}Crear{% endif %} Orden
+                    </button>
                 </div>
             </div>
         </div>
 
-        <form action="" method="post" novalidate>
-            {{ form.hidden_tag() }}
-            
-            <div class="row justify-content-center">
-                <div class="col-12" style="display: flex; flex-direction: column; gap: 0.5rem;">
-                    
-                    <!-- Fila 1: ORDEN VENTA y ORDEN LABORATORIO -->
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="card mb-0 shadow-sm border-1">
-                                <div class="card-body p-1">
-                                    <label class="form-label fw-bold text-center d-block mb-1" style="background: white; color: #333; padding: 0.3rem; border-radius: 0.25rem; font-size: 0.8rem;">ORDEN VENTA</label>
-                                    {{ form.receipt_number(class="form-control text-center", placeholder="Número de orden de venta") }}
-                                    {% if form.receipt_number.errors %}
-                                        <div class="invalid-feedback d-block mt-1">
-                                            <i class="fas fa-exclamation-triangle me-1"></i>{{ form.receipt_number.errors[0] }}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="card mb-0 shadow-sm border-1">
-                                <div class="card-body p-1">
-                                    <label class="form-label fw-bold text-center d-block mb-1" style="background: white; color: #333; padding: 0.3rem; border-radius: 0.25rem; font-size: 0.8rem;">ORDEN LABORATORIO</label>
-                                    {{ form.orden_laboratorio(class="form-control text-center", placeholder="Número de laboratorio") }}
-                                    {% if form.orden_laboratorio.errors %}
-                                        <div class="invalid-feedback d-block mt-1">
-                                            <i class="fas fa-exclamation-triangle me-1"></i>{{ form.orden_laboratorio.errors[0] }}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Fila 2: CIUDAD/MUNICIPIO -->
-                    <div class="card mb-0 shadow-sm border-1">
-                        <div class="card-body p-1">
-                            <div class="row align-items-center">
-                                <div class="col-md-3">
-                                    <label class="form-label fw-bold mb-0">CIUDAD/MUNICIPIO</label>
-                                </div>
-                                <div class="col-md-9">
-                                    {{ form.ciudad_municipio(class="form-control", placeholder="Ingrese ciudad o municipio") }}
-                                    {% if form.ciudad_municipio.errors %}
-                                        <div class="invalid-feedback d-block mt-1">
-                                            <i class="fas fa-exclamation-triangle me-1"></i>{{ form.ciudad_municipio.errors[0] }}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Fila 3: SEDE -->
-                    <div class="card mb-0 shadow-sm border-1">
-                        <div class="card-body p-1">
-                            <div class="row align-items-center">
-                                <div class="col-md-3">
-                                    <label class="form-label fw-bold mb-0">SEDE</label>
-                                </div>
-                                <div class="col-md-9">
-                                    {{ form.sede_id(class="form-select" + (" is-invalid" if form.sede_id.errors else "")) }}
-                                    {% if form.sede_id.errors %}
-                                        <div class="invalid-feedback mt-1">
-                                            <i class="fas fa-exclamation-triangle me-1"></i>{{ form.sede_id.errors[0] }}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Fila 4: EMPRESA/CONVENIO/SEGURO -->
-                    <div class="card mb-0 shadow-sm border-1">
-                        <div class="card-body p-1">
-                            <div class="row align-items-center">
-                                <div class="col-md-3">
-                                    <label class="form-label fw-bold mb-0">EMPRESA/CONVENIO/SEGURO</label>
-                                </div>
-                                <div class="col-md-9">
-                                    {{ form.empresa_convenio(class="form-control", placeholder="Ingrese empresa, convenio o seguro del paciente") }}
-                                    {% if form.empresa_convenio.errors %}
-                                        <div class="invalid-feedback d-block mt-1">
-                                            <i class="fas fa-exclamation-triangle me-1"></i>{{ form.empresa_convenio.errors[0] }}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Fila 5: PROVEEDOR -->
-                    <div class="card mb-0 shadow-sm border-1">
-                        <div class="card-body p-1">
-                            <div class="row align-items-center">
-                                <div class="col-md-3">
-                                    <label class="form-label fw-bold mb-0">PROVEEDOR</label>
-                                </div>
-                                <div class="col-md-9">
-                                    {{ form.provider_id(class="form-select" + (" is-invalid" if form.provider_id.errors else "")) }}
-                                    {% if form.provider_id.errors %}
-                                        <div class="invalid-feedback mt-1">
-                                            <i class="fas fa-exclamation-triangle me-1"></i>{{ form.provider_id.errors[0] }}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Fila 6: NOMBRE DEL PACIENTE -->
-                    <div class="card mb-0 shadow-sm border-1">
-                        <div class="card-body p-1">
-                            <div class="row align-items-center">
-                                <div class="col-md-3">
-                                    <label class="form-label fw-bold mb-0">NOMBRE DEL PACIENTE</label>
-                                </div>
-                                <div class="col-md-9">
-                                    {{ form.client_name(class="form-control" + (" is-invalid" if form.client_name.errors else ""), placeholder="Nombre completo del paciente") }}
-                                    {% if form.client_name.errors %}
-                                        <div class="invalid-feedback mt-1">
-                                            <i class="fas fa-exclamation-triangle me-1"></i>{{ form.client_name.errors[0] }}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Fila 7: CC DEL PACIENTE -->
-                    <div class="card mb-0 shadow-sm border-1">
-                        <div class="card-body p-1">
-                            <div class="row align-items-center">
-                                <div class="col-md-3">
-                                    <label class="form-label fw-bold mb-0">CC DEL PACIENTE</label>
-                                </div>
-                                <div class="col-md-9">
-                                    {{ form.client_cc(class="form-control" + (" is-invalid" if form.client_cc.errors else ""), placeholder="Número de cédula") }}
-                                    {% if form.client_cc.errors %}
-                                        <div class="invalid-feedback mt-1">
-                                            <i class="fas fa-exclamation-triangle me-1"></i>{{ form.client_cc.errors[0] }}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Fila 8: TELÉFONO PACIENTE -->
-                    <div class="card mb-0 shadow-sm border-1">
-                        <div class="card-body p-1">
-                            <div class="row align-items-center">
-                                <div class="col-md-3">
-                                    <label class="form-label fw-bold mb-0">TELÉFONO PACIENTE</label>
-                                </div>
-                                <div class="col-md-9">
-                                    {{ form.client_phone(class="form-control", placeholder="Teléfono de contacto del paciente") }}
-                                    {% for error in form.client_phone.errors %}
-                                        <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Información de Lentes -->
-                    {% if current_user.role in ['admin', 'asistente'] %}
-                    <!-- CLASE DE LENTES -->
-                    <div class="card mb-0 shadow-sm border-1">
-                        <div class="card-body p-1">
-                            <div class="row align-items-center">
-                                <div class="col-md-3">
-                                    <label class="form-label fw-bold mb-0">CLASE DE LENTES</label>
-                                </div>
-                                <div class="col-md-9">
-                                    {{ form.lens_class(class="form-select") }}
-                                    {% if form.lens_class.errors %}
-                                        <div class="invalid-feedback d-block mt-1">
-                                            <i class="fas fa-exclamation-triangle me-1"></i>{{ form.lens_class.errors[0] }}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- TIPO DE LENTE Y FILTROS -->
-                    <div class="card mb-0 shadow-sm border-1">
-                        <div class="card-body p-1">
-                            <div class="row align-items-center">
-                                <div class="col-md-3">
-                                    <label class="form-label fw-bold mb-0">TIPO DE LENTE Y FILTROS</label>
-                                </div>
-                                <div class="col-md-9">
-                                    {{ form.lens_type(class="form-control" + (" is-invalid" if form.lens_type.errors else ""), placeholder="Especifique tipo y filtros") }}
-                                    {% if form.lens_type.errors %}
-                                        <div class="invalid-feedback mt-1">
-                                            <i class="fas fa-exclamation-triangle me-1"></i>{{ form.lens_type.errors[0] }}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% else %}
-                    <!-- Mensaje informativo para admin_sede -->
-                    <div class="alert alert-info mb-1 border-1 shadow-sm py-1">
-                        <div class="d-flex align-items-start">
-                            <i class="fas fa-info-circle me-2 mt-1"></i>
-                            <div>
-                                <strong>Especificaciones de Lentes:</strong>
-                                Serán completadas por el administrador central.
-                            </div>
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    <!-- Fórmula Óptica -->
-                    <!-- OD (OJO DERECHO) -->
-                    <div class="card mb-0 shadow-sm border-1">
-                        <div class="card-body p-1">
-                            <div class="row align-items-center">
-                                <div class="col-md-3">
-                                    <label class="form-label fw-bold mb-0">OD (OJO DERECHO)</label>
-                                </div>
-                                <div class="col-md-9">
-                                    {{ form.formula_od(class="form-control", rows="2", placeholder="Fórmula ojo derecho") }}
-                                    {% for error in form.formula_od.errors %}
-                                        <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- OI (OJO IZQUIERDO) -->
-                    <div class="card mb-0 shadow-sm border-1">
-                        <div class="card-body p-1">
-                            <div class="row align-items-center">
-                                <div class="col-md-3">
-                                    <label class="form-label fw-bold mb-0">OI (OJO IZQUIERDO)</label>
-                                </div>
-                                <div class="col-md-9">
-                                    {{ form.formula_oi(class="form-control", rows="2", placeholder="Fórmula ojo izquierdo") }}
-                                    {% for error in form.formula_oi.errors %}
-                                        <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- ADD (ADICIÓN) -->
-                    <div class="card mb-0 shadow-sm border-1">
-                        <div class="card-body p-1">
-                            <div class="row align-items-center">
-                                <div class="col-md-3">
-                                    <label class="form-label fw-bold mb-0">ADD (ADICIÓN)</label>
-                                </div>
-                                <div class="col-md-9">
-                                    {{ form.formula_add(class="form-control", placeholder="Adición") }}
-                                    {% for error in form.formula_add.errors %}
-                                        <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- DP Y ALT -->
-                    <div class="card mb-0 shadow-sm border-1">
-                        <div class="card-body p-1">
-                            <div class="row align-items-center">
-                                <div class="col-md-3">
-                                    <label class="form-label fw-bold mb-0">DP Y ALT</label>
-                                </div>
-                                <div class="col-md-9">
-                                    {{ form.formula_dp_alt(class="form-control", placeholder="Distancia pupilar y altura") }}
-                                    {% for error in form.formula_dp_alt.errors %}
-                                        <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- INFORMACIÓN ADICIONAL -->
-                    <div class="card mb-0 shadow-sm border-1">
-                        <div class="card-body p-1">
-                            <div class="row align-items-center">
-                                <div class="col-md-3">
-                                    <label class="form-label fw-bold mb-0">INFORMACIÓN ADICIONAL</label>
-                                </div>
-                                <div class="col-md-9">
-                                    {{ form.formula_details(class="form-control", rows="2", placeholder="Detalles adicionales, observaciones especiales...") }}
-                                    {% for error in form.formula_details.errors %}
-                                        <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- TIPO DE MONTURA -->
-                    <div class="card mb-0 shadow-sm border-1">
-                        <div class="card-body p-1">
-                            <div class="row align-items-center">
-                                <div class="col-md-3">
-                                    <label class="form-label fw-bold mb-0">TIPO DE MONTURA</label>
-                                </div>
-                                <div class="col-md-9">
-                                    {{ form.frame_type(class="form-control", placeholder="Especifique el tipo de montura") }}
-                                    {% for error in form.frame_type.errors %}
-                                        <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- PRECIO DE VENTA AL CLIENTE -->
-                    <div class="card mb-0 shadow-sm border-1">
-                        <div class="card-body p-1">
-                            <div class="row align-items-center">
-                                <div class="col-md-3">
-                                    <label class="form-label fw-bold mb-0">PRECIO DE VENTA AL CLIENTE</label>
-                                </div>
-                                <div class="col-md-9">
-                                    {{ form.sale_price(class="form-control", placeholder="Ingrese el precio de venta al cliente", type="number", step="0.01") }}
-                                    {% for error in form.sale_price.errors %}
-                                        <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Botones de acción -->
-                    <div class="card mb-0 shadow-sm border-0">
-                        <div class="card-body text-center p-3">
-                            <div class="row justify-content-center">
-                                <div class="col-md-8 col-lg-6">
-                                    {{ form.submit(class="btn btn-primary btn-lg w-100 mb-2 py-1 btn-form-submit") }}
-                                    <a href="{{ url_for('main.list_orders') }}" class="btn btn-outline-secondary btn-lg w-100 py-1 btn-form-cancel">
-                                        <i class="fas fa-times me-2"></i>Cancelar
-                                    </a>
-                                </div>
-                            </div>
-                            
-                            <div class="alert alert-info mt-1 mb-0 border-0 shadow-sm gradient-info-light py-1">
-                                <div class="d-flex align-items-center">
-                                    <i class="fas fa-info-circle me-2"></i>
-                                    <div>
-                                        <small><strong>Nota:</strong> El proveedor establecerá el precio al aceptar la orden.</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </form>
-    </div>
+    </form>
 </div>
+
+<script>
+// Acordeón funcional
+document.addEventListener('DOMContentLoaded', function() {
+    const headers = document.querySelectorAll('.acc-header');
+    
+    // Abrir la primera sección por defecto
+    if (headers.length > 0) {
+        headers[0].classList.add('active');
+        headers[0].nextElementSibling.style.maxHeight = headers[0].nextElementSibling.scrollHeight + 'px';
+    }
+    
+    headers.forEach(header => {
+        header.addEventListener('click', function() {
+            const body = this.nextElementSibling;
+            const isActive = this.classList.contains('active');
+            
+            // Cerrar todos
+            headers.forEach(h => {
+                h.classList.remove('active');
+                h.nextElementSibling.style.maxHeight = null;
+            });
+            
+            // Abrir el clickeado si no estaba activo
+            if (!isActive) {
+                this.classList.add('active');
+                body.style.maxHeight = body.scrollHeight + 'px';
+            }
+        });
+    });
+
+    // Formatear precio de venta
+    const salePriceInput = document.getElementById('sale_price');
+    
+    if (salePriceInput) {
+        salePriceInput.type = 'text';
+        
+        salePriceInput.addEventListener('input', function(e) {
+            let cursorPosition = e.target.selectionStart;
+            let value = e.target.value;
+            let dotsBefore = (value.substring(0, cursorPosition).match(/\./g) || []).length;
+            let cleanValue = value.replace(/[^\d]/g, '');
+            
+            if (cleanValue) {
+                let formatted = '';
+                let counter = 0;
+                for (let i = cleanValue.length - 1; i >= 0; i--) {
+                    if (counter === 3) {
+                        formatted = '.' + formatted;
+                        counter = 0;
+                    }
+                    formatted = cleanValue[i] + formatted;
+                    counter++;
+                }
+                
+                e.target.value = formatted;
+                let dotsAfter = (formatted.substring(0, cursorPosition).match(/\./g) || []).length;
+                let newPosition = cursorPosition + (dotsAfter - dotsBefore);
+                e.target.setSelectionRange(newPosition, newPosition);
+            } else {
+                e.target.value = '';
+            }
+        });
+        
+        salePriceInput.closest('form').addEventListener('submit', function() {
+            if (salePriceInput.value) {
+                salePriceInput.value = salePriceInput.value.replace(/\./g, '');
+            }
+        });
+    }
+});
+</script>
+
+<style>
+
+    <!-- SECCIÓN 1 -->
+    <div class="acc-item">
+        <button class="acc-header">INFORMACIÓN INICIAL</button>
+        <div class="acc-body">
+
+            <label class="form-label slim-label">Orden de Venta</label>
+            {{ form.receipt_number(class="form-control form-control-sm mb-3") }}
+
+            <label class="form-label slim-label">Orden de Laboratorio</label>
+            {{ form.orden_laboratorio(class="form-control form-control-sm mb-3") }}
+
+            <label class="form-label slim-label">Ciudad / Municipio</label>
+            {{ form.ciudad_municipio(class="form-control form-control-sm mb-3") }}
+
+            <label class="form-label slim-label">Sede</label>
+            {{ form.sede_id(class="form-select form-select-sm mb-3") }}
+
+            <label class="form-label slim-label">Empresa / Convenio</label>
+            {{ form.empresa_convenio(class="form-control form-control-sm mb-3") }}
+
+            <label class="form-label slim-label">Proveedor</label>
+            {{ form.provider_id(class="form-select form-select-sm mb-3") }}
+
+        </div>
+    </div>
+
+    <!-- SECCIÓN 2 -->
+    <div class="acc-item">
+        <button class="acc-header">DATOS DEL PACIENTE</button>
+        <div class="acc-body">
+
+            <label class="form-label slim-label">Nombre del Paciente</label>
+            {{ form.client_name(class="form-control form-control-sm mb-3") }}
+
+            <label class="form-label slim-label">Documento</label>
+            {{ form.client_cc(class="form-control form-control-sm mb-3") }}
+
+            <label class="form-label slim-label">Teléfono</label>
+            {{ form.client_phone(class="form-control form-control-sm mb-3") }}
+
+        </div>
+    </div>
+
+    <!-- SECCIÓN 3 -->
+    <div class="acc-item">
+        <button class="acc-header">FÓRMULA ÓPTICA</button>
+        <div class="acc-body">
+
+            <label class="form-label slim-label">OD – Ojo Derecho</label>
+            {{ form.formula_od(class="form-control form-control-sm mb-3", rows="2") }}
+
+            <label class="form-label slim-label">OI – Ojo Izquierdo</label>
+            {{ form.formula_oi(class="form-control form-control-sm mb-3", rows="2") }}
+
+            <label class="form-label slim-label">ADD (Adición)</label>
+            {{ form.formula_add(class="form-control form-control-sm mb-3") }}
+
+            <label class="form-label slim-label">DP y ALT</label>
+            {{ form.formula_dp_alt(class="form-control form-control-sm mb-3") }}
+
+        </div>
+    </div>
+
+    <!-- SECCIÓN 4 -->
+    <div class="acc-item">
+        <button class="acc-header">ESPECIFICACIONES DE LENTES</button>
+        <div class="acc-body">
+
+            {% if current_user.role in ['admin','asistente'] %}
+
+                <label class="form-label slim-label">Clase de Lente</label>
+                {{ form.lens_class(class="form-select form-select-sm mb-3") }}
+
+                <label class="form-label slim-label">Tipo de Lente y Filtros</label>
+                {{ form.lens_type(class="form-control form-control-sm mb-3") }}
+
+            {% else %}
+                <div class="alert alert-info small py-1 mb-3">
+                    Estas opciones serán completadas por el administrador central.
+                </div>
+            {% endif %}
+
+            <label class="form-label slim-label">Información Adicional</label>
+            {{ form.formula_details(class="form-control form-control-sm mb-3", rows="2") }}
+
+            <label class="form-label slim-label">Tipo de Montura</label>
+            {{ form.frame_type(class="form-control form-control-sm mb-3") }}
+
+            <label class="form-label slim-label">Precio de Venta</label>
+            {{ form.sale_price(class="form-control form-control-sm mb-3") }}
+
+        </div>
+    </div>
+
+</div>
+
 
 <script>
 // Formatear campos de precio con separadores de miles mientras se escribe
@@ -445,4 +459,97 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+
+<style>
+/* Estilos para acordeón compacto */
+.accordion-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.acc-item {
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    overflow: hidden;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.acc-header {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: none;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #495057;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.acc-header:hover {
+    background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+}
+
+.acc-header.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.acc-header i.fa-chevron-down {
+    transition: transform 0.3s ease;
+}
+
+.acc-header.active i.fa-chevron-down {
+    transform: rotate(180deg);
+}
+
+.acc-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    padding: 0 1rem;
+}
+
+.acc-body > *:first-child {
+    margin-top: 1rem;
+}
+
+.acc-body > *:last-child {
+    margin-bottom: 1rem;
+}
+
+.slim-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.3rem;
+}
+
+.form-control-sm, .form-select-sm {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.6rem;
+}
+
+/* Botones compactos */
+.btn-sm {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+}
+
+/* Mejorar visualización de errores */
+.text-danger.small {
+    font-size: 0.75rem;
+    margin-top: -0.5rem;
+}
+
+/* Alert compacto */
+.alert {
+    font-size: 0.8rem;
+}
+</style>
 {% endblock %}

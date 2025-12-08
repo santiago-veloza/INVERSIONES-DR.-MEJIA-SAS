@@ -3,6 +3,7 @@ from backend.config import Config
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
+from flask_caching import Cache
 import os
 
 # Extensiones que implementé
@@ -12,6 +13,7 @@ login_manager.login_view = 'main.login'
 login_manager.login_message = 'Por favor, inicie sesión para acceder a esta página.'
 login_manager.login_message_category = 'info'
 csrf = CSRFProtect()
+cache = Cache()
 
 bp = Blueprint('main', __name__)
 
@@ -31,6 +33,12 @@ def create_app(config_class=Config):
     login_manager.init_app(app)
     # Deshabilito CSRF temporalmente para evitar problemas de tokens
     # csrf.init_app(app)
+    
+    # Configurar cache para mejorar rendimiento
+    cache.init_app(app, config={
+        'CACHE_TYPE': 'simple',
+        'CACHE_DEFAULT_TIMEOUT': 300  # 5 minutos de cache
+    })
 
     # Creo la carpeta de uploads si no existe
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
@@ -213,9 +221,21 @@ def create_app(config_class=Config):
     #         return redirect(url_for('main.login'))
     #     return e
 
-    # Las tablas ya están creadas en Supabase
-    # with app.app_context():
-    #     db.create_all()
+    # Crear índices de rendimiento para optimizar consultas del dashboard
+    with app.app_context():
+        try:
+            # Crear índices si no existen (mejora rendimiento del dashboard)
+            db.session.execute(db.text("CREATE INDEX IF NOT EXISTS idx_workorder_sede_id ON work_order(sede_id)"))
+            db.session.execute(db.text("CREATE INDEX IF NOT EXISTS idx_workorder_status ON work_order(status)"))
+            db.session.execute(db.text("CREATE INDEX IF NOT EXISTS idx_workorder_payment_status ON work_order(payment_status)"))
+            db.session.execute(db.text("CREATE INDEX IF NOT EXISTS idx_workorder_created_at ON work_order(created_at)"))
+            db.session.execute(db.text("CREATE INDEX IF NOT EXISTS idx_workorder_sede_created ON work_order(sede_id, created_at)"))
+            db.session.execute(db.text("CREATE INDEX IF NOT EXISTS idx_workorder_sede_payment ON work_order(sede_id, payment_status)"))
+            db.session.execute(db.text("CREATE INDEX IF NOT EXISTS idx_workorder_lens_class ON work_order(lens_class)"))
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            print(f"Info: Índices ya existentes o no se pudieron crear: {e}")
 
     return app
 

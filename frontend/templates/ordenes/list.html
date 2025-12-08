@@ -15,8 +15,6 @@
         </a>
         {% endif %}
     </div>
-    
-    <!-- Filtros de búsqueda -->
     <div class="card mb-3 shadow-sm">
         <div class="card-body">
             <h6 class="mb-3"><i class="fas fa-filter me-2"></i>Filtros de Búsqueda</h6>
@@ -26,7 +24,7 @@
                     <input type="text" id="filterReceiptNumber" class="form-control" placeholder="Ej: RV-001">
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label">Buscar por N° Orden Laboratorio</label>
+                    <label class="form-label">Buscar por Consecutivo Laboratorio</label>
                     <input type="text" id="filterLabOrder" class="form-control" placeholder="Ej: OT-0424">
                 </div>
                 <div class="col-md-4">
@@ -41,37 +39,67 @@
             </div>
         </div>
     </div>
-    
+    <div class="card mb-3 shadow-sm">
+        <div class="card-body py-3">
+            <span class="fw-bold d-block mb-2"><i class="fas fa-info-circle me-1"></i>Código de Colores:</span>
+            {% if current_user.role == 'admin_sede' %}
+                <div class="d-flex flex-wrap align-items-center gap-3">
+                    <span class="badge text-dark fs-6 px-3 py-2" style="background-color: #e57373;">Pendiente Completar Admin</span>
+                    <span class="badge text-dark fs-6 px-3 py-2" style="background-color: #4fc3f7;">Aceptada por Proveedor</span>
+                    <span class="badge text-dark fs-6 px-3 py-2" style="background-color: #ffca28;">En Proceso</span>
+                    <span class="badge text-dark fs-6 px-3 py-2" style="background-color: #ff7043;">Devuelta del Proveedor</span>
+                    <span class="badge text-dark fs-6 px-3 py-2" style="background-color: #43a047; color: white;">Recibida en Óptica</span>
+                    <span class="badge text-dark fs-6 px-3 py-2" style="background-color: #f8f9fa;">Próximo a Iniciar Trabajo</span>
+                </div>
+            {% elif current_user.role == 'proveedor' %}
+                <div class="d-flex flex-wrap align-items-center gap-3">
+                    <span class="badge text-dark fs-6 px-3 py-2" style="background-color: #f5c2c7;">Nueva Orden (Requiere Atención)</span>
+                    <span class="badge text-dark fs-6 px-3 py-2" style="background-color: #ffca28;">En Proceso</span>
+                    <span class="badge text-dark fs-6 px-3 py-2" style="background-color: #43a047; color: white;">Devuelta a Óptica</span>
+                    <span class="badge text-dark fs-6 px-3 py-2" style="background-color: #f8f9fa;">Iniciar Trabajo</span>
+                </div>
+            {% else %}
+                <div class="d-flex flex-wrap align-items-center gap-3">
+                    <span class="badge text-dark fs-6 px-3 py-2" style="background-color: #e57373;">Pendiente Completar / Nueva Orden</span>
+                    <span class="badge text-dark fs-6 px-3 py-2" style="background-color: #4fc3f7;">Aceptada por Proveedor</span>
+                    <span class="badge text-dark fs-6 px-3 py-2" style="background-color: #ffca28;">En Proceso</span>
+                    <span class="badge text-dark fs-6 px-3 py-2" style="background-color: #ff7043;">Devuelta del Proveedor</span>
+                    <span class="badge text-dark fs-6 px-3 py-2" style="background-color: #43a047; color: white;">Recibida en Óptica / Completada</span>
+                </div>
+            {% endif %}
+        </div>
+    </div>
     {% if orders %}
         <div class="table-scroll-wrapper" style="overflow-x: auto;">
             <div class="table-responsive">
-                <table class="table table-striped table-hover table-ordenes" style="white-space: nowrap;">
+                <table class="table table-hover table-ordenes" style="white-space: nowrap;">
                     <thead>
                         <tr>
-                            <th style="min-width: 120px;">N° Orden</th>
-                            <th style="min-width: 160px;">Recibo de Venta</th>
-                            <th style="min-width: 130px;">Orden Lab</th>
-                            <th style="min-width: 180px;">Cliente</th>
-                            <th style="min-width: 150px;">Sede</th>
+                            <th style="min-width: 120px;">Consecutivo</th>
+                            <th style="min-width: 120px;">Fecha<br>Creación</th>
+                            <th style="min-width: 180px;">Paciente</th>
+                            <th style="min-width: 180px;">N° Factura Venta</th>
+                            <th style="min-width: 140px;">N° de orden<br>Laboratorio</th>
                             <th style="min-width: 180px;">Proveedor</th>
-                            <th style="min-width: 150px;">Clase de Lente</th>
-                            <th style="min-width: 150px;">Tipo de Lente</th>
-                            <th style="min-width: 140px;">Estado</th>
-                            <th style="min-width: 160px;">Tiempo Entrega</th>
-                            <th style="min-width: 140px;">Estado Pago</th>
-                            {% if current_user.role == 'admin' %}
-                            <th style="min-width: 130px;">Vr Venta</th>
-                            <th style="min-width: 130px;">Vr Costo</th>
-                            <th style="min-width: 130px;">Vr Utilidad</th>
+                            <th style="min-width: 150px;">Sede</th>
+                            {% if current_user.role != 'proveedor' %}
+                            <th style="min-width: 180px;">Tipo de Lente<br><small>(Asesor)</small></th>
                             {% endif %}
-                            <th style="min-width: 130px;">Creado Por</th>
-                            <th style="min-width: 150px;">Fecha Creación</th>
+                            <th style="min-width: 180px;">Clase de Lente<br><small>(Admon)</small></th>
+                            <th style="min-width: 180px;">Tipo de Lente<br><small>(Admon)</small></th>
+                            <th style="min-width: 140px;">Estado</th>
+                            {% if current_user.role == 'admin' %}
+                            <th style="min-width: 130px;">Precio Venta</th>
+                            <th style="min-width: 130px;">Precio Costo</th>
+                            <th style="min-width: 130px;">Utilidad</th>
+                            {% endif %}
+                            <th style="min-width: 160px;">Tiempo Entrega</th>
                             <th style="min-width: 180px;">Acciones</th>
                         </tr>
                     </thead>
                 <tbody>
                     {% for order in orders %}
-                    <tr class="clickable-row {% if order.pending_admin_review %}table-danger{% elif order.status == 'recibida_optica' %}table-success{% elif current_user.role == 'proveedor' and order.status == 'enviada' %}table-danger{% elif (current_user.role == 'admin_sede' or current_user.role == 'proveedor') and order.status == 'en_proceso' %}table-warning{% elif current_user.role == 'proveedor' and order.status == 'devuelta_proveedor' %}table-success{% elif current_user.role == 'admin_sede' and order.status == 'devuelta_proveedor' %}table-orange{% endif %}" 
+                    <tr class="clickable-row {% if order.pending_admin_review %}table-danger{% elif order.status == 'recibida_optica' %}table-success{% elif current_user.role == 'proveedor' and order.status == 'enviada' %}table-danger{% elif current_user.role == 'admin_sede' and order.status == 'aceptada' %}table-info{% elif (current_user.role == 'admin_sede' or current_user.role == 'proveedor') and order.status == 'en_proceso' %}table-warning{% elif current_user.role == 'proveedor' and order.status == 'devuelta_proveedor' %}table-success{% elif current_user.role == 'admin_sede' and order.status == 'devuelta_proveedor' %}table-orange{% endif %}" 
                         data-order-id="{{ order.id }}" 
                         {% if order.pending_admin_review %}
                         data-pending-review="true"
@@ -84,6 +112,13 @@
                                 </span>
                             {% endif %}
                         </td>
+                        <td>{{ order.created_at.strftime('%d/%m/%Y') }}</td>
+                        <td>
+                            {{ order.client_name }}
+                            {% if order.client_cc %}
+                                <br><small class="text-muted">CC: {{ order.client_cc }}</small>
+                            {% endif %}
+                        </td>
                         <td>
                             {{ order.receipt_number or 'N/A' }}
                         </td>
@@ -91,13 +126,14 @@
                             {% if order.orden_laboratorio %}
                                 {{ order.orden_laboratorio }}
                             {% else %}
-                                <span class="text-muted small">-</span>
+                                <span class="badge text-white" style="background-color: #c82333;">Pendiente</span>
                             {% endif %}
                         </td>
                         <td>
-                            {{ order.client_name }}
-                            {% if order.client_cc %}
-                                <br><small class="text-muted">CC: {{ order.client_cc }}</small>
+                            {% if order.provider %}
+                                {{ order.provider.razon_social or order.provider.name }}
+                            {% else %}
+                                <span class="badge text-white" style="background-color: #c82333;">Pendiente</span>
                             {% endif %}
                         </td>
                         <td>
@@ -108,19 +144,27 @@
                                 <span class="text-muted">Sin sede</span>
                             {% endif %}
                         </td>
-                        <td>{{ order.provider.razon_social or order.provider.name }}</td>
+                        {% if current_user.role != 'proveedor' %}
                         <td>
-                            {% if order.pending_admin_review %}
-                                <span class="badge bg-danger">⚠️ Pendiente Admin</span>
+                            {% if order.lens_type_asesor %}
+                                {{ order.lens_type_asesor }}
                             {% else %}
-                                {{ order.lens_class or 'N/A' }}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        {% endif %}
+                        <td>
+                            {% if order.lens_class %}
+                                {{ order.lens_class }}
+                            {% else %}
+                                <span class="badge text-white" style="background-color: #c82333;">Pendiente</span>
                             {% endif %}
                         </td>
                         <td>
-                            {% if order.pending_admin_review %}
-                                <span class="badge bg-danger">⚠️ Pendiente Admin</span>
+                            {% if order.lens_type %}
+                                {{ order.lens_type }}
                             {% else %}
-                                {{ order.lens_type or 'N/A' }}
+                                <span class="badge text-white" style="background-color: #c82333;">Pendiente</span>
                             {% endif %}
                         </td>
                         <td>
@@ -171,6 +215,30 @@
                                 {% endif %}
                             {% endif %}
                         </td>
+                        {% if current_user.role == 'admin' %}
+                        <td>
+                            {% if order.sale_price %}
+                                ${{ order.sale_price|format_currency }}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>${{ order.total_amount|format_currency }}</td>
+                        <td>
+                            {% if order.sale_price and order.total_amount %}
+                                {% set utilidad = order.sale_price - order.total_amount %}
+                                {% if utilidad > 0 %}
+                                    <span class="text-dark fw-bold">${{ utilidad|format_currency }}</span>
+                                {% elif utilidad < 0 %}
+                                    <span class="text-danger">${{ utilidad|format_currency }}</span>
+                                {% else %}
+                                    <span class="text-muted">$0,00</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        {% endif %}
                         <td>
                             {% if order.status in ['devuelta_proveedor', 'recibida_optica', 'finalizada'] %}
                                 <span class="badge bg-success" title="Entregada a tiempo">
@@ -212,66 +280,20 @@
                             {% endif %}
                         </td>
                         <td>
-                            {% if order.payment_status == 'pagada' %}
-                                <span class="badge bg-success">{{ order.payment_status.replace('_', ' ').title() }}</span>
-                            {% elif order.payment_status == 'parcialmente_pagada' %}
-                                <span class="badge bg-warning text-dark">{{ order.payment_status.replace('_', ' ').title() }}</span>
-                            {% else %}
-                                <span class="badge bg-danger">{{ order.payment_status.replace('_', ' ').title() }}</span>
-                            {% endif %}
-                        </td>
-                        {% if current_user.role == 'admin' %}
-                        <td>
-                            {% if order.sale_price %}
-                                ${{ order.sale_price|format_currency }}
-                            {% else %}
-                                <span class="text-muted">-</span>
-                            {% endif %}
-                        </td>
-                        <td>${{ order.total_amount|format_currency }}</td>
-                        <td>
-                            {% if order.sale_price and order.total_amount %}
-                                {% set utilidad = order.sale_price - order.total_amount %}
-                                {% if utilidad > 0 %}
-                                    <span class="text-dark fw-bold">${{ utilidad|format_currency }}</span>
-                                {% elif utilidad < 0 %}
-                                    <span class="text-danger">${{ utilidad|format_currency }}</span>
-                                {% else %}
-                                    <span class="text-muted">$0,00</span>
+                            <div class="d-flex flex-wrap gap-1">
+                                <a href="{{ url_for('main.view_order', order_id=order.id) }}" class="btn btn-sm btn-primary" title="Ver Detalle"><i class="fas fa-eye"></i></a>
+                                {% if current_user.role in ['admin', 'asistente'] or (current_user.role == 'admin_sede' and current_user.sede_id == order.sede_id) %}
+                                    {% if order.status == 'rechazada' %}
+                                        <a href="{{ url_for('main.resubmit_order', order_id=order.id) }}" class="btn btn-sm btn-success" title="Reenviar con Ajustes"><i class="bi bi-arrow-repeat"></i></a>
+                                    {% endif %}
+                                    <a href="{{ url_for('main.edit_order', order_id=order.id) }}" class="btn btn-sm btn-info" title="Editar"><i class="fas fa-edit"></i></a>
                                 {% endif %}
-                            {% else %}
-                                <span class="text-muted">-</span>
-                            {% endif %}
-                        </td>
-                        {% endif %}
-                        <td>
-                            {% if order.created_by %}
-                                {{ order.created_by.username }}
-                            {% else %}
-                                <span class="text-muted">-</span>
-                            {% endif %}
-                        </td>
-                        <td>{{ order.created_at.strftime('%d/%m/%Y') }}</td>
-                        <td>
-                            <a href="{{ url_for('main.view_order', order_id=order.id) }}" class="btn btn-sm btn-primary me-1" title="Ver Detalle"><i class="fas fa-eye"></i></a>
-                            {% if current_user.role in ['admin', 'asistente'] or (current_user.role == 'admin_sede' and current_user.sede_id == order.sede_id) %}
-                                {% if order.status == 'rechazada' %}
-                                    <a href="{{ url_for('main.resubmit_order', order_id=order.id) }}" class="btn btn-sm btn-success me-1" title="Reenviar con Ajustes"><i class="bi bi-arrow-repeat"></i></a>
+                                {% if current_user.role in ['admin', 'asistente'] or (current_user.role == 'proveedor' and current_user.provider and order.provider_id == current_user.provider.id) %}
+                                    {% if current_user.role != 'admin_sede' %}
+                                        <a href="{{ url_for('main.update_order_status', order_id=order.id) }}" class="btn btn-sm btn-warning" title="Actualizar Estado"><i class="fas fa-sync-alt"></i></a>
+                                    {% endif %}
                                 {% endif %}
-                                <a href="{{ url_for('main.edit_order', order_id=order.id) }}" class="btn btn-sm btn-info me-1" title="Editar"><i class="fas fa-edit"></i></a>
-                            {% endif %}
-                            {% if order.status == 'devuelta_proveedor' and (current_user.role in ['admin', 'asistente'] or (current_user.role == 'admin_sede' and current_user.sede_id == order.sede_id)) %}
-                                <form action="{{ url_for('main.mark_order_collected', order_id=order.id) }}" method="POST" class="form-inline-display me-1">
-                                    <button type="submit" class="btn btn-sm btn-success" title="Marcar como Recogida" onclick="return confirm('¿Confirma que ha recogido esta orden?');">
-                                        <i class="fas fa-hand-holding-box"></i>
-                                    </button>
-                                </form>
-                            {% endif %}
-                            {% if current_user.role in ['admin', 'asistente'] or (current_user.role == 'proveedor' and current_user.provider and order.provider_id == current_user.provider.id) %}
-                                {% if current_user.role != 'admin_sede' %}
-                                    <a href="{{ url_for('main.update_order_status', order_id=order.id) }}" class="btn btn-sm btn-warning" title="Actualizar Estado"><i class="fas fa-sync-alt"></i></a>
-                                {% endif %}
-                            {% endif %}
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -282,20 +304,15 @@
     {% else %}
         <p>No hay órdenes de trabajo registradas.</p>
     {% endif %}
-
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-
     document.querySelectorAll('.clickable-row').forEach(row => {
         row.addEventListener('click', function(e) {
-
             if (e.target.closest('.btn') || e.target.closest('form')) {
                 return;
             }
-            
             const orderId = this.getAttribute('data-order-id');
             const isPendingReview = this.getAttribute('data-pending-review');
-            
             // Si está pendiente de revisión admin Y el usuario es admin, ir a completar
             {% if current_user.role == 'admin' %}
             if (isPendingReview === 'true') {
@@ -308,14 +325,12 @@ document.addEventListener('DOMContentLoaded', function() {
             window.location.href = '/order/' + orderId;
             {% endif %}
         });
-
         row.addEventListener('mouseenter', function() {
             const isPendingReview = this.getAttribute('data-pending-review');
             if (isPendingReview !== 'true') {
                 this.style.backgroundColor = '#f8f9fa';
             }
         });
-        
         row.addEventListener('mouseleave', function() {
             const isPendingReview = this.getAttribute('data-pending-review');
             if (isPendingReview !== 'true') {
@@ -323,27 +338,22 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-    
     // Función de filtrado
     function filterTable() {
         const receiptNumberFilter = document.getElementById('filterReceiptNumber').value.toLowerCase().trim();
         const labOrderFilter = document.getElementById('filterLabOrder').value.toLowerCase().trim();
         const clientNameFilter = document.getElementById('filterClientName').value.toLowerCase().trim();
-        
         const rows = document.querySelectorAll('.table-ordenes tbody tr');
         let visibleCount = 0;
-        
         rows.forEach(row => {
-            // Obtener el texto completo de cada celda
-            const receiptNumber = row.cells[1].textContent.toLowerCase().trim();
-            const labOrder = row.cells[2].textContent.toLowerCase().trim();
-            const clientName = row.cells[3].textContent.toLowerCase().trim();
-            
+            // Obtener el texto completo de cada celda (ajustado a las nuevas posiciones)
+            const receiptNumber = row.cells[3].textContent.toLowerCase().trim(); // N° Orden Venta (columna 4)
+            const labOrder = row.cells[4].textContent.toLowerCase().trim(); // N° Laboratorio (columna 5)
+            const clientName = row.cells[2].textContent.toLowerCase().trim(); // Paciente (columna 3)
             // Verificar coincidencias (si el filtro está vacío, siempre coincide)
             const matchesReceiptNumber = !receiptNumberFilter || receiptNumber.includes(receiptNumberFilter);
             const matchesLabOrder = !labOrderFilter || labOrder.includes(labOrderFilter);
             const matchesClientName = !clientNameFilter || clientName.includes(clientNameFilter);
-            
             // Mostrar u ocultar la fila
             if (matchesReceiptNumber && matchesLabOrder && matchesClientName) {
                 row.style.display = '';
@@ -352,21 +362,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 row.style.display = 'none';
             }
         });
-        
         console.log(`Filas visibles: ${visibleCount} de ${rows.length}`);
     }
-    
     // Agregar event listeners a los filtros
     document.getElementById('filterReceiptNumber').addEventListener('input', filterTable);
     document.getElementById('filterLabOrder').addEventListener('input', filterTable);
     document.getElementById('filterClientName').addEventListener('input', filterTable);
 });
-
 function clearFilters() {
     document.getElementById('filterReceiptNumber').value = '';
     document.getElementById('filterLabOrder').value = '';
     document.getElementById('filterClientName').value = '';
-    
     const rows = document.querySelectorAll('.table-ordenes tbody tr');
     rows.forEach(row => {
         row.style.display = '';

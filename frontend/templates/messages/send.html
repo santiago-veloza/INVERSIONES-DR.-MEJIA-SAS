@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-
 {% block content %}
     <div class="container-fluid">
         <div class="row">
@@ -15,7 +14,6 @@
                     <div class="card-body">
                         <form method="POST">
                             {{ form.hidden_tag() }}
-                            
                             <div class="row">
                                 <div class="col-md-8 mb-3">
                                     {{ form.title.label(class="form-label") }}
@@ -40,7 +38,6 @@
                                     {% endif %}
                                 </div>
                             </div>
-                            
                             <div class="row">
                                 <div class="col-md-8 mb-3">
                                     {{ form.sede_id.label(class="form-label") }}
@@ -72,7 +69,6 @@
                                     </div>
                                 </div>
                             </div>
-                            
                             <div class="mb-4">
                                 {{ form.message.label(class="form-label") }}
                                 {{ form.message(class="form-control", rows="8", placeholder="Escribe tu mensaje aquí...", id="message") }}
@@ -87,7 +83,6 @@
                                     Mínimo 10 caracteres, máximo 1000 caracteres
                                 </div>
                             </div>
-                            
                             <div class="d-flex justify-content-between">
                                 <a href="{{ url_for('main.list_sede_messages') }}" class="btn btn-secondary">
                                     <i class="fas fa-arrow-left"></i> Volver a Mensajes
@@ -120,7 +115,6 @@
         </div>
     </div>
 {% endblock %}
-
 {% block scripts %}
 <script>
 function previewMessage() {
@@ -130,20 +124,16 @@ function previewMessage() {
     const selectedPriority = priority.options[priority.selectedIndex].text;
     const sede = document.getElementById('sede_id');
     const selectedSede = sede.options[sede.selectedIndex].text;
-    
     if (!title || !message) {
         alert('Por favor completa el título y el mensaje para ver la vista previa');
         return;
     }
-    
     const priorityColors = {
         'Normal': 'info',
         'Alta': 'warning', 
         'Urgente': 'danger'
     };
-    
     const priorityColor = priorityColors[selectedPriority.split(' ')[1]] || 'info';
-    
     const previewHTML = `
         <div class="card">
             <div class="card-header bg-${priorityColor} text-white">
@@ -163,12 +153,10 @@ function previewMessage() {
             </div>
         </div>
     `;
-    
     document.getElementById('previewContent').innerHTML = previewHTML;
     document.getElementById('previewPanel').classList.remove('d-none');
     document.getElementById('previewPanel').scrollIntoView({ behavior: 'smooth' });
 }
-
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.preview-btn').forEach(function(button) {
         button.addEventListener('click', function() {

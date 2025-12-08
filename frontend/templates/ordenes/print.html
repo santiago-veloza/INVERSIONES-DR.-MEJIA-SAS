@@ -148,13 +148,13 @@
         </button>
         
         <div class="header-section">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <img src="https://res.cloudinary.com/dwdnfpr8i/image/upload/v1764174072/opticas_dr_mejia-removebg-preview_hwf35n.png" alt="Ópticas Dr. Mejía" style="height: 80px;">
-                <div style="font-size: 18px; font-weight: bold; color: #2874d4;">
+            <div class="print-header-flex">
+                <img src="https://res.cloudinary.com/dwdnfpr8i/image/upload/v1764174072/opticas_dr_mejia-removebg-preview_hwf35n.png" alt="Ópticas Dr. Mejía" class="print-logo">
+                <div class="print-title">
                     FÓRMULA DE OPTOMETRÍA
                 </div>
-                <div style="text-align: right;">
-                    <div style="font-size: 12px; color: #666;">
+                <div class="print-date">
+                    <div class="print-date-text">
                         Fecha: {{ order.created_at.strftime('%d/%m/%Y %H:%M') }}
                     </div>
                 </div>
@@ -207,18 +207,30 @@
         </div>
         
         <!-- Información de Lentes -->
-        {% if order.lens_class or order.lens_type %}
+        {% if order.lens_type_asesor or order.lens_class or order.lens_type %}
         <div class="section-title">INFORMACIÓN DE LENTES</div>
+        
+        {% if order.lens_type_asesor %}
         <div class="info-row">
             <div class="info-field">
-                <div class="field-label">Clase de Lentes</div>
+                <div class="field-label">Tipo de Lente (Asesor)</div>
+                <div class="field-value">{{ order.lens_type_asesor }}</div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if order.lens_class or order.lens_type %}
+        <div class="info-row">
+            <div class="info-field">
+                <div class="field-label">Clase de Lente (Admon)</div>
                 <div class="field-value">{{ order.lens_class.title() if order.lens_class else 'No especificado' }}</div>
             </div>
             <div class="info-field">
-                <div class="field-label">Tipo de Lente y Filtros</div>
+                <div class="field-label">Tipo de Lente (Admon)</div>
                 <div class="field-value">{{ order.lens_type or 'No especificado' }}</div>
             </div>
         </div>
+        {% endif %}
         {% endif %}
         
         <!-- Fórmula Óptica -->
@@ -227,11 +239,11 @@
             <div class="info-row">
                 <div class="info-field">
                     <div class="field-label">OD (Ojo Derecho)</div>
-                    <div class="field-value" style="white-space: pre-wrap;">{{ order.formula_od or 'No especificado' }}</div>
+                    <div class="field-value print-field-value-wrapped">{{ order.formula_od or 'No especificado' }}</div>
                 </div>
                 <div class="info-field">
                     <div class="field-label">OI (Ojo Izquierdo)</div>
-                    <div class="field-value" style="white-space: pre-wrap;">{{ order.formula_oi or 'No especificado' }}</div>
+                    <div class="field-value print-field-value-wrapped">{{ order.formula_oi or 'No especificado' }}</div>
                 </div>
             </div>
             <div class="info-row">
@@ -263,7 +275,7 @@
         <div class="info-row">
             <div class="info-field">
                 <div class="field-label">Precio de Venta</div>
-                <div class="field-value" style="font-weight: bold; color: #2874d4;">${{ "{:,.0f}".format(order.sale_price) }}</div>
+                <div class="field-value print-field-value-bold">${{ "{:,.0f}".format(order.sale_price) }}</div>
             </div>
         </div>
         {% endif %}
@@ -272,7 +284,7 @@
         <div class="info-row">
             <div class="info-field full-width">
                 <div class="field-label">Información Adicional</div>
-                <div class="field-value" style="white-space: pre-wrap;">{{ order.formula_details }}</div>
+                <div class="field-value print-field-value-wrapped">{{ order.formula_details }}</div>
             </div>
         </div>
         {% endif %}

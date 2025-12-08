@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-
 {% block content %}
 <div class="container-fluid mt-4">
     <div class="row">
@@ -18,19 +17,18 @@
                         <i class="fas fa-info-circle me-2"></i>
                         <strong>{{ orders|length }}</strong> orden{% if orders|length != 1 %}es{% endif %} pendiente{% if orders|length != 1 %}s{% endif %} de completar
                     </div>
-                    
                     <div class="table-responsive">
                         <table class="table table-hover table-striped">
                             <thead class="table-dark">
                                 <tr>
-                                    <th style="min-width: 120px;">N° Orden</th>
-                                    <th style="min-width: 150px;">Recibo de Venta</th>
-                                    <th style="min-width: 180px;">Cliente</th>
-                                    <th style="min-width: 150px;">Sede</th>
-                                    <th style="min-width: 120px;">Fecha Creación</th>
-                                    <th style="min-width: 180px;">Proveedor</th>
-                                    <th style="min-width: 150px;">Estado</th>
-                                    <th style="min-width: 180px;">Acciones</th>
+                                    <th class="col-order-number">Consecutivo</th>
+                                    <th class="col-receipt-number">Recibo de Venta</th>
+                                    <th class="col-client-name">Cliente</th>
+                                    <th class="col-sede-name">Sede</th>
+                                    <th class="col-creation-date">Fecha Creación</th>
+                                    <th class="col-provider-name">Proveedor</th>
+                                    <th class="col-status">Estado</th>
+                                    <th class="col-actions">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -83,7 +81,6 @@
                     {% endif %}
                 </div>
             </div>
-            
             <div class="alert alert-info mt-4">
                 <h6><i class="fas fa-info-circle me-2"></i>¿Cómo funciona el sistema de aprobación?</h6>
                 <ol class="mb-0">

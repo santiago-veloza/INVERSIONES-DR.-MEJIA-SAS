@@ -355,25 +355,30 @@
                                         <label for="user_type" class="form-label">
                                             <i class="fas fa-user-tag me-2"></i>Tipo de Usuario
                                         </label>
-                                        <select name="user_type" id="user_type" class="form-select" required>
-                                            <option value="">Seleccionar tipo de usuario</option>
+                                        <select name="user_type" id="user_type" class="form-select">
+                                            <option value="">-- Selecciona el tipo de usuario --</option>
                                             <option value="sede">Sede</option>
                                             <option value="central">Administración Central</option>
                                             <option value="proveedor">Proveedor</option>
                                         </select>
                                     </div>
                                     
-                                    <div class="mb-3" id="sede_selection" style="display: none;">
+                                    <div class="mb-3 d-none" id="sede_selection">
                                         <label for="sede_id" class="form-label">
-                                            <i class="fas fa-building me-2"></i>Sede
+                                            <i class="fas fa-building me-2"></i>Seleccionar Sede
                                         </label>
                                         <select name="sede_id" id="sede_id" class="form-select">
-                                            <option value="0">Seleccionar Sede</option>
+                                            <option value="0">-- Selecciona tu sede --</option>
                                             {% for sede in sedes %}
-                                            <option value="{{ sede.id }}" data-dept="{{ sede.department or '' }}">{{ sede.name }} - {{ sede.city }}</option>
+                                                <option value="{{ sede.id }}">
+                                                    {{ sede.name }} - {{ sede.city }}
+                                                </option>
                                             {% endfor %}
                                         </select>
-                                        <small class="text-muted">Selecciona la sede desde la cual vas a trabajar</small>
+                                        <small class="text-muted">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Selecciona la sede desde la cual vas a trabajar
+                                        </small>
                                     </div>
                                     
                                     <div class="mb-3" id="username_field">
@@ -434,32 +439,89 @@
             const sedeSelection = document.getElementById('sede_selection');
             const usernameField = document.getElementById('username_field');
             const usernameInput = document.getElementById('username');
+            const sedeSelect = document.getElementById('sede_id');
+            const passwordField = document.getElementById('password');
             
             function toggleFields() {
                 if (userTypeSelect.value === 'sede') {
-                    // Mostrar selector de sede, ocultar campo de usuario
-                    sedeSelection.style.display = 'block';
-                    sedeSelection.querySelector('select').required = true;
-                    usernameField.style.display = 'none';
+                    sedeSelection.classList.remove('d-none');
+                    sedeSelect.required = true;
+                    usernameField.classList.add('d-none');
                     usernameInput.required = false;
                     usernameInput.value = '';
+                    
+                    passwordField.placeholder = 'Ingresa la contraseña';
                 } else if (userTypeSelect.value === 'central' || userTypeSelect.value === 'proveedor') {
-                    // Mostrar campo de usuario, ocultar selector de sede
-                    sedeSelection.style.display = 'none';
-                    sedeSelection.querySelector('select').required = false;
-                    sedeSelection.querySelector('select').value = '0';
-                    usernameField.style.display = 'block';
+                    sedeSelection.classList.add('d-none');
+                    sedeSelect.required = false;
+                    sedeSelect.value = '0';
+                    usernameField.classList.remove('d-none');
                     usernameInput.required = true;
+                    
+                    if (userTypeSelect.value === 'central') {
+                        passwordField.placeholder = 'Contraseña de administrador';
+                        usernameInput.placeholder = 'Usuario administrador';
+                    } else {
+                        passwordField.placeholder = 'Contraseña de proveedor';
+                        usernameInput.placeholder = 'Usuario proveedor';
+                    }
                 } else {
-                    // Ocultar ambos si no hay selección
-                    sedeSelection.style.display = 'none';
-                    sedeSelection.querySelector('select').required = false;
-                    usernameField.style.display = 'none';
+                    sedeSelection.classList.add('d-none');
+                    sedeSelect.required = false;
+                    usernameField.classList.add('d-none');
                     usernameInput.required = false;
+                    passwordField.placeholder = 'Ingresa tu contraseña';
                 }
             }
             
             userTypeSelect.addEventListener('change', toggleFields);
+            
+            sedeSelect.addEventListener('change', function() {
+                if (this.value && this.value !== '0') {
+                    const selectedOption = this.options[this.selectedIndex];
+                    const sedeText = selectedOption.text;
+                    console.log('Sede seleccionada:', sedeText, 'ID:', this.value);
+                }
+            });
+            
+            const form = document.querySelector('form');
+            form.addEventListener('submit', function(e) {
+                console.log('Formulario enviado');
+                console.log('Tipo de usuario:', userTypeSelect.value);
+                
+                if (userTypeSelect.value === 'sede') {
+                    console.log('Sede seleccionada ID:', sedeSelect.value);
+                    console.log('Sede seleccionada texto:', sedeSelect.options[sedeSelect.selectedIndex]?.text);
+                    
+                    if (!sedeSelect.value || sedeSelect.value === '0') {
+                        e.preventDefault();
+                        alert('Por favor selecciona una sede válida de la lista');
+                        sedeSelect.focus();
+                        return false;
+                    }
+                    
+                    if (!passwordField.value.trim()) {
+                        e.preventDefault();
+                        alert('Por favor ingresa la contraseña de la sede');
+                        passwordField.focus();
+                        return false;
+                    }
+                    
+
+                    
+                    console.log('✓ Validaciones pasadas, enviando login para sede ID:', sedeSelect.value);
+                } else if (userTypeSelect.value === 'central' || userTypeSelect.value === 'proveedor') {
+                    if (!usernameInput.value.trim()) {
+                        e.preventDefault();
+                        alert('Por favor ingresa tu nombre de usuario');
+                        usernameInput.focus();
+                        return false;
+                    }
+                }
+                
+                console.log('✓ Formulario validado correctamente');
+            });
+            
             toggleFields(); 
         });
     </script>

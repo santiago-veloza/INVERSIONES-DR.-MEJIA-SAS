@@ -50,9 +50,10 @@ body {
 }
 
 body.sidebar-layout {
-    padding-top: var(--topbar-height);
+    padding-top: var(--topbar-height) !important;
     padding-left: var(--sidebar-width);
     transition: padding-left 0.3s ease;
+    margin-top: 0 !important;
 }
 
 body.sidebar-collapsed {
@@ -64,15 +65,19 @@ body.sidebar-collapsed {
 ========================================== */
 
 .topbar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: var(--topbar-height);
-    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-    z-index: 1030;
-    border-bottom: 1px solid var(--gray-200);
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    height: var(--topbar-height) !important;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%) !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08) !important;
+    z-index: 1050 !important;
+    border-bottom: 1px solid var(--gray-200) !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 .topbar-container {
@@ -205,14 +210,14 @@ body.sidebar-collapsed {
 ========================================== */
 
 .sidebar {
-    position: fixed;
-    top: var(--topbar-height);
+    position: fixed !important;
+    top: var(--topbar-height) !important;
     left: 0;
     bottom: 0;
     width: var(--sidebar-width);
     background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%);
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-    z-index: 1020;
+    z-index: 1040 !important;
     overflow-y: auto;
     overflow-x: hidden;
     transition: var(--transition);
@@ -4069,6 +4074,29 @@ tr.table-danger td,
     font-weight: 700 !important;
 }
 
+/* Color azul para órdenes aceptadas por proveedor */
+.table-info,
+tr.table-info,
+.table > tbody > tr.table-info {
+    background-color: #4fc3f7 !important;
+    color: #000 !important;
+    font-weight: 700 !important;
+}
+
+.table-info:hover,
+tr.table-info:hover,
+.table > tbody > tr.table-info:hover {
+    background-color: #29b6f6 !important;
+}
+
+.table-info td,
+tr.table-info td,
+.table > tbody > tr.table-info > td {
+    background-color: transparent !important;
+    color: #000 !important;
+    font-weight: 700 !important;
+}
+
 /* Color naranja para órdenes listas para recoger en sede */
 tr.table-orange {
     background-color: #ff7043 !important;
@@ -4081,8 +4109,559 @@ tr.table-orange:hover {
     color: #000 !important;
 }
 
+/* ==========================================
+   PROTECCIÓN NAVBAR FIJO
+========================================== */
+
+/* Protección contra overrides del topbar */
+.topbar, nav.topbar {
+    position: fixed !important;
+    top: 0 !important;
+    z-index: 1050 !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    transform: none !important;
+}
+
+/* Prevenir que otros elementos cubran el topbar */
+.container, .container-fluid, .row, .col, [class*="col-"] {
+    z-index: auto !important;
+}
+
+.modal {
+    z-index: 1055 !important;
+}
+
+.modal-backdrop {
+    z-index: 1054 !important;
+}
+
+/* Asegurar que el contenido principal respete el topbar */
+.main-content, .content, #content, main {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+/* ==========================================
+   CLASES ESPECÍFICAS PARA INDEX.HTML
+========================================== */
+
+/* KPIs Cards */
+.kpi-card-sedes {
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    border-radius: 15px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.kpi-card-ventas {
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    border-radius: 15px;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
+
+.kpi-card-ordenes {
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    border-radius: 15px;
+    background: linear-gradient(135deg, #007bff 0%, #6610f2 100%);
+}
+
+.kpi-card-utilidad {
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    border-radius: 15px;
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+}
+
+/* Tabla de estadísticas */
+.stats-table-card {
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    border-radius: 20px;
+}
+
+.stats-table-header {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    border-radius: 20px 20px 0 0;
+    padding: 2rem;
+}
+
+.export-button {
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.filter-input {
+    border-radius: 10px;
+}
+
+.search-header {
+    border-bottom: 1px solid #e9ecef;
+}
+
+.search-input {
+    border-radius: 0 8px 8px 0;
+}
+
+.stats-table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.stats-table-head {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.stats-table-head th {
+    font-size: 0.85rem;
+}
+
+.table-col-number {
+    width: 60px;
+}
+
+.table-col-sede {
+    min-width: 350px;
+    width: 380px;
+}
+
+.table-col-ventas {
+    width: 120px;
+}
+
+.table-col-ordenes {
+    width: 90px;
+}
+
+.table-col-utilidad {
+    width: 120px;
+}
+
+.table-col-margen {
+    width: 90px;
+}
+
+.table-col-completadas {
+    width: 100px;
+}
+
+.table-col-proceso {
+    width: 100px;
+}
+
+.table-col-ticket {
+    width: 110px;
+}
+
+.table-col-exito {
+    width: 80px;
+}
+
+/* Filas de la tabla */
+.sede-row {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.row-number {
+    width: 32px;
+    height: 32px;
+    font-size: 0.85rem;
+}
+
+.sede-info-cell {
+    min-width: 350px;
+}
+
+.sede-icon {
+    width: 45px;
+    height: 45px;
+    flex-shrink: 0;
+}
+
+.sede-name {
+    flex: 1;
+    min-width: 0;
+    line-height: 1.2;
+    word-wrap: break-word;
+    white-space: normal;
+}
+
+.status-icon-sm {
+    width: 28px;
+    height: 28px;
+}
+
+.status-icon-md {
+    width: 35px;
+    height: 35px;
+}
+
+.status-icon-times {
+    font-size: 14px;
+}
+
+/* Totales */
+.totales-row {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-top: 3px solid #007bff;
+}
+
+.totales-icon-sm {
+    width: 30px;
+    height: 30px;
+}
+
+.totales-icon-md {
+    width: 40px;
+    height: 40px;
+}
+
+/* Análisis de productos */
+.productos-card {
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    border-radius: 20px;
+}
+
+.productos-header {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+    border-radius: 20px 20px 0 0;
+    padding: 2rem;
+}
+
+.producto-sede-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    border-radius: 15px;
+}
+
+.producto-icon {
+    width: 35px;
+    height: 35px;
+}
+
+.progress-bar-custom {
+    height: 8px;
+    border-radius: 10px;
+}
+
+/* ==========================================
+   CLASES GLOBALES PARA TODOS LOS HTML
+========================================== */
+
+/* Notificaciones */
+.notification-fixed {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    max-width: 400px;
+}
+
+/* Pestañas */
+.tab-link-dark {
+    color: #000 !important;
+}
+
+/* Filas clickeables */
+.clickable-row {
+    cursor: pointer;
+}
+
+.clickable-payment-row {
+    cursor: pointer;
+}
+
+/* Texto pequeño */
+.text-xs {
+    font-size: 0.75rem;
+}
+
+.text-sm {
+    font-size: 0.85rem;
+}
+
+/* Iconos de diferentes tamaños */
+.icon-lg {
+    font-size: 1.5rem;
+}
+
+.icon-xl {
+    font-size: 1.25rem;
+}
+
+.icon-xxs {
+    font-size: 0.6rem;
+}
+
+/* Estados de sede */
+.sede-card-clickable {
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* Modal personalizado */
+.modal-custom {
+    max-width: 600px;
+}
+
+.modal-body-scrollable {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+/* Círculos de estado para órdenes */
+.status-circle-lg {
+    width: 80px;
+    height: 80px;
+}
+
+/* Formularios inline */
+.form-inline {
+    display: inline;
+}
+
+/* Headers de tabla mejorados */
+.table-header-ventas { width: 120px; font-size: 0.85rem; }
+.table-header-ordenes { width: 90px; font-size: 0.85rem; }
+.table-header-utilidad { width: 120px; font-size: 0.85rem; }
+.table-header-margen { width: 90px; font-size: 0.85rem; }
+.table-header-completadas { width: 100px; font-size: 0.85rem; }
+.table-header-proceso { width: 100px; font-size: 0.85rem; }
+.table-header-ticket { width: 110px; font-size: 0.85rem; }
+.table-header-exito { width: 80px; font-size: 0.85rem; }
+
+/* Fila de totales específica */
+.totales-row-bg {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-top: 3px solid #007bff;
+}
+
+/* Iconos de productos restantes */
+.producto-icon-warning {
+    width: 35px;
+    height: 35px;
+}
+
+.producto-icon-success {
+    width: 35px;
+    height: 35px;
+}
+
 tr.table-orange td {
     background-color: transparent !important;
     color: #000 !important;
     font-weight: 700 !important;
+}
+
+/* Text size utilities */
+.text-sm {
+    font-size: 0.85rem !important;
+}
+
+/* Icon size utilities */
+.icon-md {
+    width: 28px !important;
+    height: 28px !important;
+}
+
+.icon-lg {
+    width: 30px !important;
+    height: 30px !important;
+}
+
+.icon-xl {
+    width: 35px !important;
+    height: 35px !important;
+}
+
+.icon-xxl {
+    width: 40px !important;
+    height: 40px !important;
+}
+
+.icon-xxxl {
+    width: 45px !important;
+    height: 45px !important;
+}
+
+/* Premium Card Styles */
+.premium-card {
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1) !important;
+    border-radius: 20px !important;
+}
+
+.premium-header {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%) !important;
+    border-radius: 20px 20px 0 0 !important;
+    padding: 2rem !important;
+}
+
+.premium-btn {
+    border-radius: 10px !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+}
+
+.premium-btn-outline {
+    border-radius: 10px !important;
+}
+
+/* Dashboard Cards */
+.dashboard-card {
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08) !important;
+    border-radius: 12px !important;
+}
+
+.dashboard-card-gradient-purple {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+.dashboard-card-gradient-green {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+}
+
+.dashboard-card-gradient-blue {
+    background: linear-gradient(135deg, #007bff 0%, #6610f2 100%) !important;
+}
+
+.dashboard-card-gradient-red {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%) !important;
+}
+
+.dashboard-card-rounded {
+    border-radius: 15px !important;
+}
+
+.dashboard-header-green {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+    border-radius: 15px 15px 0 0 !important;
+    padding: 1.5rem !important;
+}
+
+.dashboard-header-blue {
+    background: linear-gradient(135deg, #007bff 0%, #6610f2 100%) !important;
+    border-radius: 15px 15px 0 0 !important;
+    padding: 1.5rem !important;
+}
+
+.dashboard-header-purple {
+    background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%) !important;
+    border-radius: 15px 15px 0 0 !important;
+    padding: 1.5rem !important;
+}
+
+.dashboard-header-teal {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
+    border-radius: 15px 15px 0 0 !important;
+    padding: 1.5rem !important;
+}
+
+/* Position Badges for Rankings */
+.position-badge-crown {
+    width: 40px !important;
+    height: 40px !important;
+    background: #ffc107 !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: white !important;
+    font-weight: bold !important;
+}
+
+.position-badge-bronze {
+    width: 40px !important;
+    height: 40px !important;
+    background: linear-gradient(135deg, #cd7f32, #daa520) !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: white !important;
+    font-weight: bold !important;
+}
+
+.position-badge-purple {
+    width: 40px !important;
+    height: 40px !important;
+    background: #6f42c1 !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: white !important;
+    font-weight: bold !important;
+}
+
+/* Table styling for dashboard */
+.table-header-dashboard {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
+}
+
+.table-header-no-border {
+    border: none !important;
+}
+
+/* Order forms styling */
+.container-order {
+    max-width: 900px !important;
+}
+
+.order-header-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+.order-status-card {
+    background: linear-gradient(135deg, #ffc107 0%, #ff8f00 100%) !important;
+}
+
+/* Table column minimum widths */
+.col-order-number { min-width: 120px !important; }
+.col-receipt-number { min-width: 150px !important; }
+.col-client-name { min-width: 180px !important; }
+.col-sede-name { min-width: 150px !important; }
+.col-creation-date { min-width: 120px !important; }
+.col-provider-name { min-width: 180px !important; }
+.col-status { min-width: 150px !important; }
+.col-actions { min-width: 180px !important; }
+
+/* Print template styling */
+.print-header-flex {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+}
+
+.print-logo {
+    height: 80px !important;
+}
+
+.print-title {
+    font-size: 18px !important;
+    font-weight: bold !important;
+    color: #2874d4 !important;
+}
+
+.print-date {
+    text-align: right !important;
+}
+
+.print-date-text {
+    font-size: 12px !important;
+    color: #666 !important;
+}
+
+.print-field-value-bold {
+    font-weight: bold !important;
+    color: #2874d4 !important;
+}
+
+.print-field-value-wrapped {
+    white-space: pre-wrap !important;
+}
+
+/* Border utilities */
+.border-left-primary {
+    border-left: 2px solid #2874d4 !important;
 }

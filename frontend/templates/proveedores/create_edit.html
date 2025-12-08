@@ -65,7 +65,6 @@
                     <span class="text-danger">{{ error }}</span>
                 {% endfor %}
             </div>
-            
             {% if not provider_id %}
             <hr class="my-4">
             <h5 class="mb-3"><i class="fas fa-user"></i> Datos de Acceso al Sistema</h5>
@@ -113,7 +112,6 @@
                 </div>
             </div>
             {% endif %}
-            
             <hr class="my-4">
             {{ form.submit(class="btn btn-primary") }}
             <a href="{{ url_for('main.list_providers') }}" class="btn btn-secondary">Cancelar</a>

@@ -1,10 +1,8 @@
 {% extends "base.html" %}
-
 {% block content %}
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
-            
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2><i class="fas fa-shield-alt text-primary"></i> Dashboard de Seguridad</h2>
                 <div class="btn-group">
@@ -17,7 +15,6 @@
                     </button>
                 </div>
             </div>
-
             {% if security_stats.critical_24h > 0 or security_stats.suspicious_24h > 5 %}
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 <i class="fas fa-exclamation-triangle"></i>
@@ -26,7 +23,6 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
             {% endif %}
-
             <div class="row mb-4">
                 <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
                     <div class="card {% if security_stats.critical_24h > 0 %}bg-danger text-white{% else %}bg-success text-white{% endif %}">
@@ -37,7 +33,6 @@
                         </div>
                     </div>
                 </div>
-                
                 <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
                     <div class="card {% if security_stats.failed_logins_24h > 10 %}bg-warning{% elif security_stats.failed_logins_24h > 0 %}bg-info{% else %}bg-success{% endif %} text-white">
                         <div class="card-body text-center">
@@ -47,7 +42,6 @@
                         </div>
                     </div>
                 </div>
-                
                 <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
                     <div class="card {% if security_stats.suspicious_24h > 5 %}bg-warning{% elif security_stats.suspicious_24h > 0 %}bg-info{% else %}bg-success{% endif %} text-white">
                         <div class="card-body text-center">
@@ -57,7 +51,6 @@
                         </div>
                     </div>
                 </div>
-                
                 <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
                     <div class="card {% if security_stats.unauthorized_24h > 0 %}bg-danger text-white{% else %}bg-success text-white{% endif %}">
                         <div class="card-body text-center">
@@ -67,7 +60,6 @@
                         </div>
                     </div>
                 </div>
-                
                 <div class="col-lg-4 col-md-8 col-sm-12 mb-3">
                     <div class="card {% if security_stats.attention_required > 0 %}bg-warning{% else %}bg-secondary{% endif %} text-white">
                         <div class="card-body text-center">
@@ -86,9 +78,7 @@
                     </div>
                 </div>
             </div>
-
             <div class="row">
-                
                 <div class="col-lg-6 mb-4">
                     <div class="card">
                         <div class="card-header bg-warning text-dark">
@@ -143,7 +133,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="col-lg-6 mb-4">
                     <div class="card">
                         <div class="card-header bg-info text-white">
@@ -196,7 +185,6 @@
                     </div>
                 </div>
             </div>
-
             {% if recent_critical %}
             <div class="row">
                 <div class="col-12">
@@ -259,29 +247,21 @@
                 </div>
             </div>
             {% endif %}
-
         </div>
     </div>
 </div>
-
 <script>
 function viewIPDetails(ip) {
-
     window.open(`{{ url_for('main.view_audit_logs') }}?ip=${ip}`, '_blank');
 }
-
 function blockIP(ip) {
     if (confirm(`¿Está seguro de que quiere bloquear la IP ${ip}?`)) {
         alert('Funcionalidad de bloqueo de IP pendiente de implementación en firewall.');
-
     }
 }
-
 function exportSecurityReport() {
-
     window.open('{{ url_for("main.view_audit_logs") }}?severity=CRITICAL&export=security_report', '_blank');
 }
-
 {% if security_stats.critical_24h > 0 or security_stats.attention_required > 0 %}
 let refreshTimer;
 function startAutoRefresh() {
@@ -293,17 +273,14 @@ function startAutoRefresh() {
         }
     }, 60000);
 }
-
 document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
         clearTimeout(refreshTimer);
         startAutoRefresh();
     }
 });
-
 startAutoRefresh();
 {% endif %}
-
 {% if security_stats.critical_24h > 0 %}
 if (Notification.permission === "granted") {
     new Notification("⚠️ Eventos de Seguridad Críticos", {

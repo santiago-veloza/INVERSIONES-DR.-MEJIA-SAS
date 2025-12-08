@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
     <h1 class="mb-4">Crear Administrador de Sede</h1>
-    
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card">
@@ -24,10 +23,8 @@
                             <strong>Restricciones:</strong> No podrá gestionar proveedores, otros usuarios o sedes.
                         </small>
                     </div>
-
                     <form action="" method="post" novalidate>
                         {{ form.hidden_tag() }}
-                        
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
@@ -48,7 +45,6 @@
                                 </div>
                             </div>
                         </div>
-                        
                         <div class="mb-3">
                             {{ form.sede_id.label(class="form-label") }}
                             {{ form.sede_id(class="form-select") }}
@@ -57,7 +53,6 @@
                             {% endfor %}
                             <small class="text-muted">El administrador tendrá acceso solo a esta sede</small>
                         </div>
-                        
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
@@ -79,7 +74,6 @@
                                 </div>
                             </div>
                         </div>
-                        
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                             <a href="{{ url_for('main.admin_users') }}" class="btn btn-secondary me-md-2">Cancelar</a>
                             {{ form.submit(class="btn btn-success") }}

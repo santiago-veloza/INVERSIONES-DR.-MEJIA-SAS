@@ -1,10 +1,8 @@
 {% extends "base.html" %}
-
 {% block content %}
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
-            
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2><i class="fas fa-shield-alt"></i> Logs de Auditoría y Seguridad</h2>
                 <div class="btn-group">
@@ -16,7 +14,6 @@
                     </button>
                 </div>
             </div>
-
             <div class="row mb-4">
                 <div class="col-md-2">
                     <div class="card bg-primary text-white">
@@ -59,7 +56,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="card mb-4">
                 <div class="card-header">
                     <h5><i class="fas fa-filter"></i> Filtros de Búsqueda</h5>
@@ -121,7 +117,6 @@
                     </form>
                 </div>
             </div>
-
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5><i class="fas fa-list"></i> Registros de Auditoría</h5>
@@ -231,7 +226,6 @@
                         </table>
                     </div>
                 </div>
-
                 {% if logs.pages > 1 %}
                 <div class="card-footer">
                     <nav aria-label="Paginación de logs">
@@ -243,7 +237,6 @@
                                 </a>
                             </li>
                             {% endif %}
-                            
                             {% for page_num in logs.iter_pages() %}
                             {% if page_num %}
                                 {% if page_num != logs.page %}
@@ -263,7 +256,6 @@
                             </li>
                             {% endif %}
                             {% endfor %}
-                            
                             {% if logs.has_next %}
                             <li class="page-item">
                                 <a class="page-link" href="{{ url_for('main.view_audit_logs', page=logs.next_num, **request.args) }}">
@@ -279,7 +271,6 @@
         </div>
     </div>
 </div>
-
 <script>
 function markAsReviewed(logId) {
     if (confirm('¿Marcar este log como revisado?')) {
@@ -302,16 +293,12 @@ function markAsReviewed(logId) {
         });
     }
 }
-
 function exportLogs() {
-
     const params = new URLSearchParams(window.location.search);
     params.append('export', 'csv');
-
     const exportUrl = window.location.pathname + '?' + params.toString();
     window.open(exportUrl, '_blank');
 }
-
 if ({{ stats.critical_recent }} > 0 || {{ stats.attention_required }} > 0) {
     setTimeout(() => {
         location.reload();

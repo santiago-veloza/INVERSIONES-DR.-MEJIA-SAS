@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-
 {% block content %}
     <div class="container-fluid">
         <div class="d-flex justify-content-between align-items-center mb-4">
@@ -10,7 +9,6 @@
                 {% endif %}
             </h1>
         </div>
-
         {% if messages %}
             {% set urgent_messages = messages|selectattr('priority', 'equalto', 'urgente')|list %}
             {% if urgent_messages %}
@@ -21,7 +19,6 @@
                 <p>Tienes {{ urgent_messages|length }} mensaje(s) urgente(s) que requieren atención inmediata.</p>
             </div>
             {% endif %}
-
             <div class="row">
                 {% for message in messages %}
                 <div class="col-md-6 col-lg-4 mb-4">
@@ -30,7 +27,6 @@
                         {% elif message.priority == 'alta' %}border-warning
                         {% else %}border-info
                         {% endif %}">
-                        
                         <div class="card-header 
                             {% if message.priority == 'urgente' %}bg-danger text-white
                             {% elif message.priority == 'alta' %}bg-warning text-dark
@@ -55,13 +51,11 @@
                                 </small>
                             </div>
                         </div>
-                        
                         <div class="card-body">
                             <h6 class="card-title text-primary">{{ message.title }}</h6>
                             <p class="card-text">
                                 {{ message.message[:150] }}{% if message.message|length > 150 %}...{% endif %}
                             </p>
-                            
                             {% if message.expires_at %}
                             <div class="alert alert-light border-start border-warning border-3 p-2 mb-2">
                                 <small>
@@ -75,12 +69,10 @@
                                 </small>
                             </div>
                             {% endif %}
-                            
                             <button class="btn btn-outline-primary btn-sm w-100 view-message-btn" data-message-id="{{ message.id }}">>
                                 <i class="fas fa-eye"></i> Ver Mensaje Completo
                             </button>
                         </div>
-                        
                         <div class="card-footer text-muted">
                             <div class="d-flex justify-content-between">
                                 <small>
@@ -154,20 +146,15 @@
         </div>
     </div>
 {% endblock %}
-
 {% block scripts %}
 <script>
 const messages = {{ messages_json|tojson }};
-
 function viewFullMessage(messageId) {
     const message = messages.find(m => m.id === messageId);
     if (!message) return;
-
     const modalHeader = document.getElementById('modalHeader');
     const modalTitle = document.getElementById('modalTitle');
-    
     modalTitle.textContent = message.title;
-    
     if (message.priority === 'urgente') {
         modalHeader.className = 'modal-header bg-danger text-white';
     } else if (message.priority === 'alta') {
@@ -175,29 +162,24 @@ function viewFullMessage(messageId) {
     } else {
         modalHeader.className = 'modal-header bg-info text-white';
     }
-
     const typeLabel = message.is_global ? 
         '<span class="badge bg-success mb-3"><i class="fas fa-globe"></i> Mensaje Global</span>' :
         '<span class="badge bg-primary mb-3"><i class="fas fa-building"></i> Para Mi Sede</span>';
-    
     const priorityLabel = message.priority === 'urgente' ? 
         '<span class="badge bg-danger mb-3"><i class="fas fa-exclamation-triangle"></i> URGENTE</span>' :
         message.priority === 'alta' ?
         '<span class="badge bg-warning mb-3"><i class="fas fa-exclamation-circle"></i> ALTA PRIORIDAD</span>' :
         '<span class="badge bg-info mb-3"><i class="fas fa-info-circle"></i> INFORMACIÓN</span>';
-    
     document.getElementById('modalBody').innerHTML = `
         <div class="mb-3">
             ${priorityLabel}
             ${typeLabel}
         </div>
-        
         <div class="mb-4">
             <div class="p-4 bg-light rounded border-start border-primary border-3">
                 ${message.message.replace(/\n/g, '<br>')}
             </div>
         </div>
-        
         <div class="row">
             <div class="col-md-6">
                 <p class="mb-1"><strong>Enviado por:</strong></p>
@@ -208,7 +190,6 @@ function viewFullMessage(messageId) {
                 <p class="text-muted"><i class="fas fa-calendar"></i> ${new Date(message.created_at).toLocaleString()}</p>
             </div>
         </div>
-        
         ${message.expires_at ? `
             <div class="alert alert-warning">
                 <i class="fas fa-clock"></i> 
@@ -216,17 +197,13 @@ function viewFullMessage(messageId) {
             </div>
         ` : ''}
     `;
-    
     new bootstrap.Modal(document.getElementById('fullMessageModal')).show();
 }
-
 function filterMessages(type) {
     const cards = document.querySelectorAll('.card.h-100');
-    
     cards.forEach((card, index) => {
         const message = messages[index];
         let show = false;
-        
         switch(type) {
             case 'all':
                 show = true;
@@ -241,25 +218,20 @@ function filterMessages(type) {
                 show = !message.is_global;
                 break;
         }
-        
         card.closest('.col-md-6').style.display = show ? 'block' : 'none';
     });
-
     document.querySelectorAll('.btn-outline-secondary, .btn-outline-danger, .btn-outline-success, .btn-outline-info').forEach(btn => {
         btn.classList.remove('active');
     });
     event.target.classList.add('active');
 }
-
 document.addEventListener('DOMContentLoaded', function() {
-
     document.querySelectorAll('.filter-btn').forEach(function(button) {
         button.addEventListener('click', function() {
             const filter = this.getAttribute('data-filter');
             filterMessages(filter);
         });
     });
-
     document.querySelectorAll('.view-message-btn').forEach(function(button) {
         button.addEventListener('click', function() {
             const messageId = parseInt(this.getAttribute('data-message-id'));

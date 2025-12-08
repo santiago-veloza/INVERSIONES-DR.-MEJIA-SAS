@@ -225,14 +225,11 @@
     {% else %}
         <p>No hay proveedores registrados.</p>
     {% endif %}
-
     <script>
-
         function togglePassword(providerId) {
             const checkbox = document.getElementById('show_password_' + providerId);
             const newPassword = document.getElementById('new_password_' + providerId);
             const confirmPassword = document.getElementById('confirm_password_' + providerId);
-            
             if (checkbox && newPassword && confirmPassword) {
                 if (checkbox.checked) {
                     newPassword.type = 'text';
@@ -243,24 +240,18 @@
                 }
             }
         }
-
         function copyToClipboard(elementId) {
             const element = document.getElementById(elementId);
             element.select();
             element.setSelectionRange(0, 99999); 
-            
             try {
                 document.execCommand('copy');
-
                 const button = element.parentElement.querySelector('button');
                 const originalIcon = button.innerHTML;
-
                 const checkIcon = document.createElement('i');
                 checkIcon.className = 'fas fa-check text-success';
-                
                 button.textContent = '';
                 button.appendChild(checkIcon);
-                
                 setTimeout(() => {
                     button.innerHTML = originalIcon;
                 }, 1500);
@@ -269,46 +260,35 @@
                 alert('No se pudo copiar al portapapeles');
             }
         }
-
         document.addEventListener('DOMContentLoaded', function() {
-
             document.querySelectorAll('.clickable-row').forEach(row => {
                 row.addEventListener('click', function(e) {
-
                     if (e.target.closest('.btn') || e.target.closest('button') || e.target.closest('form')) {
                         return;
                     }
-                    
                     const providerId = this.getAttribute('data-provider-id');
-
                     const credentialsModal = new bootstrap.Modal(document.getElementById('credentialsModal' + providerId));
                     credentialsModal.show();
                 });
-
                 row.addEventListener('mouseenter', function() {
                     this.style.backgroundColor = '#f8f9fa';
                 });
-                
                 row.addEventListener('mouseleave', function() {
                     this.style.backgroundColor = '';
                 });
             });
-
             document.querySelectorAll('.copy-btn').forEach(function(button) {
                 button.addEventListener('click', function() {
                     const targetId = this.getAttribute('data-target');
                     copyToClipboard(targetId);
                 });
             });
-
             const changePasswordModals = document.querySelectorAll('[id^="changePasswordModal"]');
             changePasswordModals.forEach(function(modal) {
                 modal.addEventListener('show.bs.modal', function() {
-
                     const newPasswordField = modal.querySelector('input[name="new_password"]');
                     const confirmPasswordField = modal.querySelector('input[name="confirm_password"]');
                     const showPasswordCheckbox = modal.querySelector('input[type="checkbox"]');
-                    
                     if (newPasswordField) {
                         newPasswordField.value = '';
                         newPasswordField.disabled = false;
@@ -320,15 +300,12 @@
                     if (showPasswordCheckbox) {
                         showPasswordCheckbox.checked = false;
                     }
-
                     if (newPasswordField) newPasswordField.type = 'password';
                     if (confirmPasswordField) confirmPasswordField.type = 'password';
                 });
-
                 modal.addEventListener('shown.bs.modal', function() {
                     const newPasswordField = modal.querySelector('input[name="new_password"]');
                     if (newPasswordField) {
-
                         setTimeout(function() {
                             newPasswordField.focus();
                             newPasswordField.click();
@@ -336,26 +313,22 @@
                     }
                 });
             });
-
             const forms = document.querySelectorAll('form[action*="change_provider_password"]');
             forms.forEach(function(form) {
                 form.addEventListener('submit', function(e) {
                     const newPassword = form.querySelector('input[name="new_password"]');
                     const confirmPassword = form.querySelector('input[name="confirm_password"]');
-                    
                     if (!newPassword.value || !confirmPassword.value) {
                         e.preventDefault();
                         alert('Por favor, complete todos los campos.');
                         return;
                     }
-                    
                     if (newPassword.value.length < 6) {
                         e.preventDefault();
                         alert('La contraseña debe tener al menos 6 caracteres.');
                         newPassword.focus();
                         return;
                     }
-                    
                     if (newPassword.value !== confirmPassword.value) {
                         e.preventDefault();
                         alert('Las contraseñas no coinciden. Por favor, verifica e intenta nuevamente.');
