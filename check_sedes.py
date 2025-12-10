@@ -39,7 +39,7 @@ with app.app_context():
             },
             {
                 'name': 'Sede San José del Guaviare',
-                'department': 'Guaviare',
+                'department': 'Meta',
                 'city': 'San José del Guaviare',
                 'address': 'Avenida Principal #89',
                 'phone': '608-345-6789',

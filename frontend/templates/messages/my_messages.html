@@ -69,7 +69,7 @@
                                 </small>
                             </div>
                             {% endif %}
-                            <button class="btn btn-outline-primary btn-sm w-100 view-message-btn" data-message-id="{{ message.id }}">>
+                            <button class="btn btn-outline-primary btn-sm w-100 view-message-btn" data-message-id="{{ message.id }}">
                                 <i class="fas fa-eye"></i> Ver Mensaje Completo
                             </button>
                         </div>
@@ -98,22 +98,22 @@
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-md-3 mb-2">
-                                    <button class="btn btn-outline-secondary w-100 filter-btn" data-filter="all">>
+                                    <button class="btn btn-outline-secondary w-100 filter-btn" data-filter="all">
                                         Todos ({{ messages|length }})
                                     </button>
                                 </div>
                                 <div class="col-md-3 mb-2">
-                                    <button class="btn btn-outline-danger w-100 filter-btn" data-filter="urgente">>
+                                    <button class="btn btn-outline-danger w-100 filter-btn" data-filter="urgente">
                                         Urgentes ({{ messages|selectattr('priority', 'equalto', 'urgente')|list|length }})
                                     </button>
                                 </div>
                                 <div class="col-md-3 mb-2">
-                                    <button class="btn btn-outline-success w-100 filter-btn" data-filter="global">>
+                                    <button class="btn btn-outline-success w-100 filter-btn" data-filter="global">
                                         Globales ({{ messages|selectattr('is_global', 'equalto', True)|list|length }})
                                     </button>
                                 </div>
                                 <div class="col-md-3 mb-2">
-                                    <button class="btn btn-outline-info w-100 filter-btn" data-filter="sede">>
+                                    <button class="btn btn-outline-info w-100 filter-btn" data-filter="sede">
                                         Mi Sede ({{ messages|selectattr('is_global', 'equalto', False)|list|length }})
                                     </button>
                                 </div>

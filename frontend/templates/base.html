@@ -209,6 +209,14 @@
                     </a>
                 </li>
                 
+                <!-- Mensajes -->
+                <li class="sidebar-item">
+                    <a class="sidebar-link" href="{{ url_for('main.list_sede_messages') }}">
+                        <i class="fas fa-envelope"></i>
+                        <span>Mensajes</span>
+                    </a>
+                </li>
+                
                 {% elif current_user.role == 'admin_sede' %}
                 <!-- Menú para Admin de Sede -->
                 <li class="sidebar-item">

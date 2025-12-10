@@ -318,7 +318,7 @@ def login():
         return redirect(next_page)
     
     # GET request - mostrar el formulario de login
-    sedes = Sede.query.filter_by(is_active=True).order_by(Sede.department, Sede.city, Sede.name).all()
+    sedes = Sede.query.filter_by(is_active=True).order_by(Sede.display_order, Sede.name).all()
     return render_template('auth/login.html', title='Iniciar Sesión', sedes=sedes)
 
 @bp.route('/logout')
@@ -362,7 +362,7 @@ def index():
         current_year = 2025
         
         # Obtener todas las sedes activas
-        sedes = Sede.query.filter_by(is_active=True).order_by(Sede.name).all()
+        sedes = Sede.query.filter_by(is_active=True).order_by(Sede.display_order, Sede.name).all()
         
         # Estadísticas por sede
         sedes_stats = []
@@ -510,7 +510,7 @@ def sede_statistics():
     current_year = 2025
     
     # Obtener todas las sedes activas
-    sedes = Sede.query.filter_by(is_active=True).order_by(Sede.name).all()
+    sedes = Sede.query.filter_by(is_active=True).order_by(Sede.display_order, Sede.name).all()
     
     # Estadísticas por sede
     sedes_stats = []
@@ -750,7 +750,7 @@ def api_sede_stats():
         start_time = time.time()
         
         # Obtener sedes activas
-        sedes = Sede.query.filter_by(is_active=True).order_by(Sede.name).all()
+        sedes = Sede.query.filter_by(is_active=True).order_by(Sede.display_order, Sede.name).all()
         
         if not sedes:
             return jsonify({
@@ -1492,7 +1492,7 @@ def change_provider_password(provider_id):
 @login_required
 @role_required('admin', 'asistente')
 def list_sedes():
-    sedes = Sede.query.order_by(Sede.city, Sede.name).all()
+    sedes = Sede.query.order_by(Sede.display_order, Sede.name).all()
     return render_template('sedes/list.html', title='Gestión de Sedes', sedes=sedes)
 
 @bp.route('/sede/add', methods=['POST'])

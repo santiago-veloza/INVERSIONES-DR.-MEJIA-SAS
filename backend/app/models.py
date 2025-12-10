@@ -60,6 +60,7 @@ class Sede(db.Model):
     email = db.Column(db.String(120))  # Correo electrónico de la sede
     manager = db.Column(db.String(128))  # Encargado de la sede
     is_active = db.Column(db.Boolean, default=True)  # Si la sede está activa
+    display_order = db.Column(db.Integer, default=999)  # Orden de visualización
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Implementé relación con órdenes de trabajo

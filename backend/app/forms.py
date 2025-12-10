@@ -188,7 +188,7 @@ class WorkOrderForm(FlaskForm):
         else:
             # Para admin y asistente, muestro todas las sedes
             sedes_list = []
-            for s in Sede.query.filter_by(is_active=True).order_by(Sede.name).all():
+            for s in Sede.query.filter_by(is_active=True).order_by(Sede.display_order, Sede.name).all():
                 # Solo muestro la ciudad si no es un placeholder
                 if s.city and s.city not in ['Selecciona tu ciudad', 'selecciona tu ciudad', '']:
                     sedes_list.append((s.id, f"{s.name} - {s.city}"))
@@ -327,7 +327,7 @@ class SedeAdminForm(FlaskForm):
         super(SedeAdminForm, self).__init__(*args, **kwargs)
         from backend.app.models import Sede
         sedes_list = []
-        for s in Sede.query.filter_by(is_active=True).order_by(Sede.name).all():
+        for s in Sede.query.filter_by(is_active=True).order_by(Sede.display_order, Sede.name).all():
             if s.city and s.city not in ['Selecciona tu ciudad', 'selecciona tu ciudad', '']:
                 sedes_list.append((s.id, f"{s.name} - {s.city}"))
             else:
@@ -361,7 +361,7 @@ class SedeMessageForm(FlaskForm):
         super(SedeMessageForm, self).__init__(*args, **kwargs)
         from backend.app.models import Sede
         sedes_list = []
-        for s in Sede.query.filter_by(is_active=True).order_by(Sede.name).all():
+        for s in Sede.query.filter_by(is_active=True).order_by(Sede.display_order, Sede.name).all():
             if s.city and s.city not in ['Selecciona tu ciudad', 'selecciona tu ciudad', '']:
                 sedes_list.append((s.id, f"🏢 {s.name} - {s.city}"))
             else:
