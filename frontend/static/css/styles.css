@@ -41,9 +41,9 @@
 body {
     font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
     background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
-    color: var(--gray-800);
+    color: #000000;
     line-height: 1.6;
-    font-weight: 400;
+    font-weight: 600;
     margin: 0;
     padding: 0;
     overflow-x: hidden;
@@ -51,9 +51,11 @@ body {
 
 body.sidebar-layout {
     padding-top: var(--topbar-height) !important;
-    padding-left: var(--sidebar-width);
-    transition: padding-left 0.3s ease;
+    padding-left: var(--sidebar-width) !important;
+    transition: padding-left 0.3s ease !important;
     margin-top: 0 !important;
+    transform: none !important;
+    position: relative !important;
 }
 
 body.sidebar-collapsed {
@@ -212,15 +214,16 @@ body.sidebar-collapsed {
 .sidebar {
     position: fixed !important;
     top: var(--topbar-height) !important;
-    left: 0;
-    bottom: 0;
-    width: var(--sidebar-width);
-    background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%);
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    left: 0 !important;
+    bottom: 0 !important;
+    width: var(--sidebar-width) !important;
+    background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%) !important;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1) !important;
     z-index: 1040 !important;
-    overflow-y: auto;
-    overflow-x: hidden;
-    transition: var(--transition);
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    transition: var(--transition) !important;
+    transform: none !important;
 }
 
 .sidebar::-webkit-scrollbar {
@@ -4073,6 +4076,26 @@ tr.table-danger td,
     font-weight: 700 !important;
 }
 
+/* Color amarillo específico para órdenes vencidas */
+.table-vencida {
+    background-color: #ffc107 !important;
+    color: #000 !important;
+    font-weight: 700 !important;
+    border-left: 4px solid #ff9800 !important;
+}
+
+.table-vencida:hover {
+    background-color: #ffb300 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(255, 152, 0, 0.3) !important;
+}
+
+.table-vencida td {
+    background-color: transparent !important;
+    color: #000 !important;
+    font-weight: 700 !important;
+}
+
 /* Color verde para órdenes completadas en proveedor */
 .table-success {
     background-color: #43a047 !important;
@@ -4757,4 +4780,83 @@ tr.table-orange td {
 /* Border utilities */
 .border-left-primary {
     border-left: 2px solid #2874d4 !important;
+}
+
+/* ==========================================
+   TIPOGRAFÍA CONSISTENTE
+========================================== */
+
+/* REGLA GLOBAL PARA ICONOS FONTAWESOME */
+i.fas, i.fab, i.far, i.fal, i.fa,
+.fas, .fab, .far, .fal, .fa {
+    display: inline-block !important;
+    font-style: normal !important;
+    font-variant: normal !important;
+    text-rendering: auto !important;
+    -webkit-font-smoothing: antialiased !important;
+    font-family: "Font Awesome 5 Free" !important;
+    font-weight: 900 !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    /* NO sobreescribir colores, usar inherit */
+}
+
+/* Tipografía general en negrilla y negro */
+.card-title,
+.card-text,
+.table td,
+.table th,
+.alert,
+.badge-text,
+.list-group-item,
+.dropdown-item {
+    font-weight: 600 !important;
+    color: #000000 !important;
+}
+
+/* Excepciones para menú lateral - no cambiar colores originales */
+.sidebar .sidebar-link,
+.sidebar .sidebar-brand,
+.sidebar .nav-item,
+.sidebar h5,
+.sidebar span {
+    font-weight: inherit !important;
+    /* NO sobreescribir colores, mantener los originales */
+}
+
+/* Excepciones para navbar - no cambiar colores originales */
+.navbar .navbar-brand,
+.navbar .nav-link,
+.navbar span {
+    font-weight: inherit !important;
+    /* NO sobreescribir colores, mantener los originales */
+}
+
+/* Texto blanco donde aparece color azul */
+.text-primary,
+.btn-primary,
+.btn-primary *,
+.bg-primary,
+.bg-primary *,
+.text-info,
+.btn-info,
+.btn-info *,
+.bg-info,
+.bg-info * {
+    color: #ffffff !important;
+    font-weight: 600 !important;
+}
+
+/* Links con color azul mantener blanco */
+a.text-primary,
+.text-decoration-none.text-primary {
+    color: #ffffff !important;
+    font-weight: 600 !important;
+}
+
+/* Texto específico para elementos importantes */
+.fw-bold,
+.font-weight-bold {
+    font-weight: 700 !important;
+    color: #000000 !important;
 }

@@ -62,6 +62,7 @@
                 <div class="d-flex flex-wrap align-items-center gap-3">
                     <span class="badge text-white fs-6 px-3 py-2" style="background-color: #dc3545;">Pendiente</span>
                     <span class="badge text-white fs-6 px-3 py-2" style="background-color: #43a047;">Completada</span>
+                    <span class="badge text-dark fs-6 px-3 py-2" style="background-color: #ffc107;">Órdenes Vencidas</span>
                 </div>
             {% endif %}
         </div>
@@ -96,7 +97,7 @@
                     </thead>
                 <tbody>
                     {% for order in orders %}
-                    <tr class="clickable-row {% if order.pending_admin_review %}table-danger{% elif order.status == 'recibida_optica' %}table-success{% elif current_user.role == 'proveedor' and order.status == 'enviada' %}table-danger{% elif current_user.role == 'admin_sede' and order.status == 'aceptada' %}table-info{% elif (current_user.role == 'admin_sede' or current_user.role == 'proveedor') and order.status == 'en_proceso' %}table-warning{% elif current_user.role == 'proveedor' and order.status == 'devuelta_proveedor' %}table-success{% elif current_user.role == 'admin_sede' and order.status == 'devuelta_proveedor' %}table-orange{% endif %}" 
+                    <tr class="clickable-row {% if order.is_overdue %}table-vencida{% elif order.pending_admin_review %}table-danger{% elif order.status == 'recibida_optica' %}table-success{% elif current_user.role == 'proveedor' and order.status == 'enviada' %}table-danger{% elif current_user.role == 'admin_sede' and order.status == 'aceptada' %}table-info{% elif (current_user.role == 'admin_sede' or current_user.role == 'proveedor') and order.status == 'en_proceso' %}table-warning{% elif current_user.role == 'proveedor' and order.status == 'devuelta_proveedor' %}table-success{% elif current_user.role == 'admin_sede' and order.status == 'devuelta_proveedor' %}table-orange{% endif %}" 
                         data-order-id="{{ order.id }}" 
                         {% if order.pending_admin_review %}
                         data-pending-review="true"
@@ -165,7 +166,14 @@
                             {% endif %}
                         </td>
                         <td>
-                            {% if current_user.role == 'proveedor' %}
+                            {% if order.is_overdue %}
+                                <span class="badge text-dark fs-6" style="background-color: #ffc107;">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>⚠️ Vencida
+                                </span>
+                                {% if order.days_overdue %}
+                                    <br><small class="text-danger fw-bold">{{ order.days_overdue }} día(s) de atraso</small>
+                                {% endif %}
+                            {% elif current_user.role == 'proveedor' %}
                                 {% if order.status == 'enviada' %}
                                     <span class="badge bg-warning text-dark">📥 Recibida</span>
                                 {% elif order.status == 'aceptada' %}
@@ -186,7 +194,14 @@
                                     <span class="badge bg-secondary">{{ order.status.replace('_', ' ').title() }}</span>
                                 {% endif %}
                             {% else %}
-                                {% if order.status == 'pendiente_envio' %}
+                                {% if order.is_overdue %}
+                                    <span class="badge text-dark fs-6" style="background-color: #ffc107;">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>⚠️ Vencida
+                                    </span>
+                                    {% if order.days_overdue %}
+                                        <br><small class="text-danger fw-bold">{{ order.days_overdue }} día(s) de atraso</small>
+                                    {% endif %}
+                                {% elif order.status == 'pendiente_envio' %}
                                     <span class="badge bg-secondary">⏳ Preparando</span>
                                 {% elif order.status == 'enviada' %}
                                     <span class="badge bg-info text-dark">📧 Enviada</span>

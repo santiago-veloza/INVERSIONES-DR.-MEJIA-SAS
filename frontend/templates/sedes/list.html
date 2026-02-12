@@ -414,10 +414,22 @@
         function toggleSedeStatus(sedeId, isActive) {
             const action = isActive ? 'desactivar' : 'activar';
             if (confirm(`¿Está seguro de que desea ${action} esta sede?`)) {
+                let csrfToken = '';
+                const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+                if (csrfMeta) {
+                    csrfToken = csrfMeta.getAttribute('content');
+                } else {
+                    const csrfInput = document.querySelector('input[name="csrf_token"]');
+                    if (csrfInput) {
+                        csrfToken = csrfInput.value;
+                    }
+                }
+                
                 fetch(`/sede/toggle_status/${sedeId}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
                     }
                 })
                 .then(response => response.json())

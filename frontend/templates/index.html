@@ -103,6 +103,9 @@
                                         <th class="text-center border-0 py-4 fw-bold table-header-proceso">
                                             <i class="fas fa-clock me-1 text-warning"></i>Proceso
                                         </th>
+                                        <th class="text-center border-0 py-4 fw-bold table-header-vencidas">
+                                            <i class="fas fa-exclamation-triangle me-1 text-danger"></i>Vencidas
+                                        </th>
                                         <th class="text-end border-0 py-4 fw-bold table-header-ticket">
                                             <i class="fas fa-receipt me-1 text-info"></i>Ticket Prom.
                                         </th>
@@ -178,6 +181,23 @@
                                                 </div>
                                                 <span class="fw-semibold">{{ sede_stat['en_proceso'] }}</span>
                                             </div>
+                                        </td>
+                                        <td class="text-center align-middle py-4">
+                                            {% if sede_stat['vencidas'] > 0 %}
+                                                <div class="d-flex align-items-center justify-content-center">
+                                                    <div class="bg-danger bg-opacity-15 rounded-circle me-2 d-flex align-items-center justify-content-center icon-md">
+                                                        <i class="fas fa-exclamation-triangle text-danger small"></i>
+                                                    </div>
+                                                    <span class="fw-bold text-danger">{{ sede_stat['vencidas'] }}</span>
+                                                </div>
+                                            {% else %}
+                                                <div class="d-flex align-items-center justify-content-center">
+                                                    <div class="bg-success bg-opacity-10 rounded-circle me-2 d-flex align-items-center justify-content-center icon-md">
+                                                        <i class="fas fa-check text-success small"></i>
+                                                    </div>
+                                                    <span class="fw-semibold text-muted">0</span>
+                                                </div>
+                                            {% endif %}
                                         </td>
                                         <td class="text-end align-middle py-4">
                                             <div class="fw-semibold text-info">${{ "{:,.0f}".format(sede_stat['ticket_promedio']) }}</div>
@@ -273,6 +293,23 @@
                                                 </div>
                                                 <span class="fw-bold">{{ totales['en_proceso'] }}</span>
                                             </div>
+                                        </td>
+                                        <td class="text-center align-middle py-4">
+                                            {% if totales['vencidas'] > 0 %}
+                                                <div class="d-flex align-items-center justify-content-center">
+                                                    <div class="bg-danger bg-opacity-15 rounded-circle me-2 d-flex align-items-center justify-content-center icon-lg">
+                                                        <i class="fas fa-exclamation-triangle text-danger"></i>
+                                                    </div>
+                                                    <span class="fw-bold text-danger fs-6">{{ totales['vencidas'] }}</span>
+                                                </div>
+                                            {% else %}
+                                                <div class="d-flex align-items-center justify-content-center">
+                                                    <div class="bg-success bg-opacity-10 rounded-circle me-2 d-flex align-items-center justify-content-center icon-lg">
+                                                        <i class="fas fa-check-circle text-success"></i>
+                                                    </div>
+                                                    <span class="fw-bold text-success fs-6">0</span>
+                                                </div>
+                                            {% endif %}
                                         </td>
                                         <td class="text-end align-middle py-4">
                                             <div class="fw-bold text-info fs-6">${{ "{:,.0f}".format(totales['ticket_promedio']) }}</div>

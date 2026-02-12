@@ -7,18 +7,20 @@
 body {
     font-size: 12px !important;
     line-height: 1.35;
+    font-weight: 600 !important;
+    color: #000000 !important;
 }
 
 /* Reducir tamaños de headings */
-h1 { font-size: 1.5rem !important; margin-bottom: 0.6rem !important; }
-h2 { font-size: 1.3rem !important; margin-bottom: 0.5rem !important; }
-h3 { font-size: 1.15rem !important; margin-bottom: 0.45rem !important; }
-h4 { font-size: 1rem !important; margin-bottom: 0.4rem !important; }
-h5 { font-size: 0.9rem !important; margin-bottom: 0.35rem !important; }
-h6 { font-size: 0.85rem !important; margin-bottom: 0.3rem !important; }
+h1 { font-size: 1.5rem !important; margin-bottom: 0.6rem !important; font-weight: 700 !important; color: #000000 !important; }
+h2 { font-size: 1.3rem !important; margin-bottom: 0.5rem !important; font-weight: 700 !important; color: #000000 !important; }
+h3 { font-size: 1.15rem !important; margin-bottom: 0.45rem !important; font-weight: 700 !important; color: #000000 !important; }
+h4 { font-size: 1rem !important; margin-bottom: 0.4rem !important; font-weight: 700 !important; color: #000000 !important; }
+h5 { font-size: 0.9rem !important; margin-bottom: 0.35rem !important; font-weight: 700 !important; color: #000000 !important; }
+h6 { font-size: 0.85rem !important; margin-bottom: 0.3rem !important; font-weight: 700 !important; color: #000000 !important; }
 
 /* Reducir espaciado de párrafos */
-p { margin-bottom: 0.6rem !important; }
+p { margin-bottom: 0.6rem !important; font-weight: 600 !important; color: #000000 !important; }
 
 /* Cards más compactas */
 .card {
@@ -42,6 +44,7 @@ p { margin-bottom: 0.6rem !important; }
 .btn {
     padding: 0.4rem 0.85rem !important;
     font-size: 0.8rem !important;
+    font-weight: 600 !important;
 }
 
 .btn-lg {
@@ -74,6 +77,8 @@ p { margin-bottom: 0.6rem !important; }
 .form-label {
     margin-bottom: 0.3rem !important;
     font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    color: #000000 !important;
 }
 
 /* Tablas más compactas */
@@ -1600,6 +1605,33 @@ body.zoom-optimized .btn {
     width: 100% !important;
 }
 
+/* Asegurar que el sidebar se mantenga fijo */
+.sidebar {
+    position: fixed !important;
+    top: var(--topbar-height, 65px) !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    z-index: 1040 !important;
+    transform: none !important;
+    width: var(--sidebar-width, 280px) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    transition: none !important;
+}
+
+/* Override para páginas de estadísticas */
+.sede-statistics-page .sidebar,
+.admin-dashboard-page .sidebar {
+    position: fixed !important;
+    top: 65px !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    width: 280px !important;
+    z-index: 1040 !important;
+    transform: translateX(0) !important;
+    transition: none !important;
+}
+
 /* Asegurar padding del body */
 body {
     padding-top: 65px !important;
@@ -1607,10 +1639,32 @@ body {
 
 body.sidebar-layout {
     padding-top: 65px !important;
+    padding-left: var(--sidebar-width, 280px) !important;
+    transform: none !important;
 }
 
-/* Prevenir que otros elementos cubran el topbar */
+/* Prevenir que otros elementos cubran el topbar o sidebar */
 .container, .container-fluid, .row, .col, [class*="col-"] {
+    z-index: auto !important;
+}
+
+/* Asegurar que las tablas no interfieran con el sidebar */
+.table-responsive {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+/* Asegurar que el contenido principal no interfiera con el sidebar */
+.main-content, .main-wrapper {
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+/* Asegurar que las cards no interfieran */
+.card {
+    position: relative !important;
     z-index: auto !important;
 }
 
@@ -1643,6 +1697,54 @@ body {
 
 body.sidebar-layout {
     padding-top: 65px !important;
+}
+
+/* ==========================================
+   TIPOGRAFÍA ADICIONAL CONSISTENTE
+========================================== */
+
+/* Elementos específicos en negrilla y negro */
+.small, small {
+    font-weight: 600 !important;
+    color: #000000 !important;
+}
+
+/* Texto de tablas */
+.table {
+    font-weight: 600 !important;
+    color: #000000 !important;
+}
+
+/* Inputs y formularios */
+.form-control,
+.form-select {
+    font-weight: 600 !important;
+    color: #000000 !important;
+}
+
+/* Mantener colores originales en sidebar - NO sobreescribir */
+.sidebar .sidebar-link,
+.sidebar .sidebar-brand,
+.sidebar-heading {
+    /* Solo mantener font-weight original, NO tocar colores */
+}
+
+/* Mantener colores originales en navbar - NO sobreescribir */
+.navbar,
+.navbar-brand,
+.navbar-nav .nav-link {
+    /* Solo mantener font-weight original, NO tocar colores */
+}
+
+/* Elementos con texto que debe mantenerse blanco cuando tiene fondo azul */
+.btn-primary, 
+.btn-info,
+.bg-primary,
+.bg-info,
+.badge-primary,
+.badge-info {
+    color: #ffffff !important;
+    font-weight: 600 !important;
 }
 
 

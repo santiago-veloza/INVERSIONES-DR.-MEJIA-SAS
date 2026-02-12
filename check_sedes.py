@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+import sys
+import os
+# Agregar el directorio raíz al path para imports
+sys.path.insert(0, os.path.dirname(__file__))
+
 from backend.app import create_app, db
 from backend.app.models import Sede, User
 

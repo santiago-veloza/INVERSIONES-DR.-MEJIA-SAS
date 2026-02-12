@@ -612,10 +612,22 @@
             
             async extendSession() {
                 try {
+                    let csrfToken = '';
+                    const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+                    if (csrfMeta) {
+                        csrfToken = csrfMeta.getAttribute('content');
+                    } else {
+                        const csrfInput = document.querySelector('input[name="csrf_token"]');
+                        if (csrfInput) {
+                            csrfToken = csrfInput.value;
+                        }
+                    }
+                    
                     const response = await fetch(this.extendUrl, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
+                            'X-CSRFToken': csrfToken
                         }
                     });
                     

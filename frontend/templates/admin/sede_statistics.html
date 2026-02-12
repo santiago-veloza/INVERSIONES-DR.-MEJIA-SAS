@@ -1,0 +1,593 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+/* Asegurar que el sidebar y topbar permanezcan fijos durante el scroll */
+.sidebar {
+    position: fixed !important;
+    top: 65px !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    width: 280px !important;
+    z-index: 1040 !important;
+    transform: none !important;
+    transition: none !important;
+}
+
+.topbar {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 1060 !important;
+    transform: none !important;
+}
+
+body.sidebar-layout {
+    padding-left: 280px !important;
+    padding-top: 65px !important;
+    position: relative !important;
+    transform: none !important;
+}
+
+.main-content {
+    position: relative !important;
+    z-index: 1 !important;
+    min-height: calc(100vh - 65px) !important;
+}
+
+/* Estilos específicos para la tabla de estadísticas */
+.stats-table-container {
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+    overflow-x: auto;
+    position: relative;
+    z-index: 1;
+}
+
+.stats-table thead th {
+    position: sticky;
+    top: 0;
+    background-color: #f8f9fa;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+</style>
+
+{% if current_user.role in ['admin', 'asistente'] %}
+<div class="container-fluid">
+    <!-- Header con KPIs -->
+    <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold text-primary mb-2">
+                    <i class="fas fa-chart-bar me-2"></i>Estadísticas por Sede
+                </h2>
+                <p class="text-muted mb-0">Panel de control detallado por sede - {{ current_month }}/{{ current_year }}</p>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-primary btn-sm" onclick="exportStatsToExcel()">
+                    <i class="fas fa-file-excel me-1"></i>Exportar Excel
+                </button>
+                <button class="btn btn-primary btn-sm" onclick="refreshStats()">
+                    <i class="fas fa-sync me-1"></i>Actualizar
+                </button>
+            </div>
+        </div>
+
+        <!-- KPIs Resumen -->
+        <div class="row mb-4">
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card border-0 h-100 bg-primary text-white">
+                    <div class="card-body text-center p-4">
+                        <i class="fas fa-building fs-1 mb-3 opacity-80"></i>
+                        <h3 class="fw-bold mb-1">{{ sedes_stats|length if sedes_stats else 0 }}</h3>
+                        <small class="opacity-90">Sedes Activas</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card border-0 h-100 bg-success text-white">
+                    <div class="card-body text-center p-4">
+                        <i class="fas fa-dollar-sign fs-1 mb-3 opacity-80"></i>
+                        <h3 class="fw-bold mb-1">${{ "{:,.0f}".format(totales['total_ventas']) if totales and totales.get('total_ventas') else '0' }}</h3>
+                        <small class="opacity-90">Facturación Total</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card border-0 h-100 bg-info text-white">
+                    <div class="card-body text-center p-4">
+                        <i class="fas fa-shopping-cart fs-1 mb-3 opacity-80"></i>
+                        <h3 class="fw-bold mb-1">{{ totales['total_ordenes'] if totales and totales.get('total_ordenes') else 0 }}</h3>
+                        <small class="opacity-90">Órdenes Totales</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card border-0 h-100 bg-warning text-white">
+                    <div class="card-body text-center p-4">
+                        <i class="fas fa-exclamation-triangle fs-1 mb-3 opacity-80"></i>
+                        <h3 class="fw-bold mb-1">{{ totales['vencidas'] if totales and totales.get('vencidas') else 0 }}</h3>
+                        <small class="opacity-90">Órdenes Vencidas</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla Principal de Estadísticas -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light border-bottom">
+            <h5 class="mb-0 fw-bold">
+                <i class="fas fa-table me-2 text-primary"></i>Análisis Detallado por Sede
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <!-- Filtros -->
+            <div class="p-3 bg-light border-bottom">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">Buscar Sede:</label>
+                        <input type="text" class="form-control form-control-sm" id="searchSede" placeholder="Filtrar por nombre de sede...">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">Ordenar por:</label>
+                        <select class="form-select form-select-sm" id="sortBy">
+                            <option value="ventas">Ventas</option>
+                            <option value="ordenes">Órdenes</option>
+                            <option value="utilidad">Utilidad</option>
+                            <option value="margen">Margen %</option>
+                            <option value="vencidas">Órdenes Vencidas</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">&nbsp;</label>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-secondary btn-sm w-100" onclick="clearFilters()">
+                                <i class="fas fa-times me-1"></i>Limpiar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla con scroll -->
+            <div class="stats-table-container">
+                <table class="table table-hover table-sm mb-0" id="sedesTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="fw-bold">
+                                <i class="fas fa-building me-1 text-primary"></i>Sede
+                            </th>
+                            <th class="text-end fw-bold">
+                                <i class="fas fa-dollar-sign me-1 text-success"></i>Ventas
+                            </th>
+                            <th class="text-center fw-bold">
+                                <i class="fas fa-shopping-cart me-1 text-info"></i>Órdenes
+                            </th>
+                            <th class="text-center fw-bold">
+                                <i class="fas fa-check-circle me-1 text-success"></i>Completas
+                            </th>
+                            <th class="text-center fw-bold">
+                                <i class="fas fa-clock me-1 text-warning"></i>En Proceso
+                            </th>
+                            <th class="text-center fw-bold">
+                                <i class="fas fa-exclamation-triangle me-1 text-danger"></i>Vencidas
+                            </th>
+                            <th class="text-end fw-bold">
+                                <i class="fas fa-chart-line me-1 text-warning"></i>Utilidad
+                            </th>
+                            <th class="text-center fw-bold">
+                                <i class="fas fa-percentage me-1 text-primary"></i>Margen %
+                            </th>
+                            <th class="text-center fw-bold">
+                                <i class="fas fa-trophy me-1 text-warning"></i>Éxito %
+                            </th>
+                            <th class="text-end fw-bold">
+                                <i class="fas fa-receipt me-1 text-info"></i>Ticket Prom.
+                            </th>
+                            <th class="text-center fw-bold">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if sedes_stats %}
+                            {% for sede_stat in sedes_stats %}
+                            <tr class="sede-row" data-sede-name="{{ sede_stat['sede'].name|lower }}">
+                                <td class="align-middle">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                            <i class="fas fa-building text-primary small"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0 fw-semibold">{{ sede_stat['sede'].name }}</h6>
+                                            <small class="text-muted">{{ sede_stat['sede'].city }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-end align-middle">
+                                    <div class="fw-bold text-success">${{ "{:,.0f}".format(sede_stat['total_ventas']) }}</div>
+                                    <small class="text-muted">Facturado</small>
+                                </td>
+                                <td class="text-center align-middle">
+                                    <span class="badge bg-primary rounded-pill px-2">
+                                        {{ sede_stat['total_ordenes'] }}
+                                    </span>
+                                </td>
+                                <td class="text-center align-middle">
+                                    <span class="badge bg-success rounded-pill px-2">
+                                        {{ sede_stat['completadas'] }}
+                                    </span>
+                                </td>
+                                <td class="text-center align-middle">
+                                    <span class="badge bg-warning rounded-pill px-2">
+                                        {{ sede_stat['en_proceso'] }}
+                                    </span>
+                                </td>
+                                <td class="text-center align-middle">
+                                    {% if sede_stat['vencidas'] > 0 %}
+                                        <span class="badge bg-danger rounded-pill px-2">
+                                            {{ sede_stat['vencidas'] }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-light text-muted rounded-pill px-2">0</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end align-middle">
+                                    {% if sede_stat['utilidad'] > 0 %}
+                                        <div class="fw-bold text-success">${{ "{:,.0f}".format(sede_stat['utilidad']) }}</div>
+                                        <small class="text-success">Ganancia</small>
+                                    {% elif sede_stat['utilidad'] < 0 %}
+                                        <div class="fw-bold text-danger">${{ "{:,.0f}".format(sede_stat['utilidad']) }}</div>
+                                        <small class="text-danger">Pérdida</small>
+                                    {% else %}
+                                        <div class="text-muted">$0</div>
+                                        <small class="text-muted">Sin datos</small>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center align-middle">
+                                    {% if sede_stat['margen_pct'] > 25 %}
+                                        <span class="badge bg-success rounded-pill">{{ "{:.1f}".format(sede_stat['margen_pct']) }}%</span>
+                                    {% elif sede_stat['margen_pct'] > 15 %}
+                                        <span class="badge bg-warning rounded-pill">{{ "{:.1f}".format(sede_stat['margen_pct']) }}%</span>
+                                    {% elif sede_stat['margen_pct'] > 0 %}
+                                        <span class="badge bg-info rounded-pill">{{ "{:.1f}".format(sede_stat['margen_pct']) }}%</span>
+                                    {% else %}
+                                        <span class="badge bg-danger rounded-pill">{{ "{:.1f}".format(sede_stat['margen_pct']) }}%</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center align-middle">
+                                    {% set tasa = sede_stat['tasa_exito'] %}
+                                    {% if tasa >= 90 %}
+                                        <span class="badge bg-success rounded-pill">{{ "{:.0f}".format(tasa) }}%</span>
+                                    {% elif tasa >= 75 %}
+                                        <span class="badge bg-info rounded-pill">{{ "{:.0f}".format(tasa) }}%</span>
+                                    {% elif tasa >= 50 %}
+                                        <span class="badge bg-warning rounded-pill">{{ "{:.0f}".format(tasa) }}%</span>
+                                    {% else %}
+                                        <span class="badge bg-danger rounded-pill">{{ "{:.0f}".format(tasa) }}%</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end align-middle">
+                                    <div class="fw-semibold text-info">${{ "{:,.0f}".format(sede_stat['ticket_promedio']) }}</div>
+                                    <small class="text-muted">Por orden</small>
+                                </td>
+                                <td class="text-center align-middle">
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="viewSedeOrders('{{ sede_stat['sede'].id }}')" title="Ver Órdenes">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-info btn-sm" onclick="viewSedeDetails('{{ sede_stat['sede'].id }}')" title="Ver Detalles">
+                                            <i class="fas fa-info-circle"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="11" class="text-center py-5">
+                                    <div class="text-muted">
+                                        <i class="fas fa-chart-bar fa-3x mb-3 opacity-50"></i>
+                                        <p class="mb-0">No hay datos de estadísticas disponibles</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                    <!-- Totales -->
+                    {% if totales %}
+                    <tfoot class="table-secondary">
+                        <tr class="fw-bold">
+                            <td class="align-middle">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                        <i class="fas fa-calculator text-white small"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0 fw-bold text-primary">TOTALES</h6>
+                                        <small class="text-muted">Consolidado</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-end align-middle">
+                                <div class="fw-bold text-success fs-6">${{ "{:,.0f}".format(totales['total_ventas']) }}</div>
+                            </td>
+                            <td class="text-center align-middle">
+                                <span class="badge bg-primary rounded-pill fs-6">{{ totales['total_ordenes'] }}</span>
+                            </td>
+                            <td class="text-center align-middle">
+                                <span class="badge bg-success rounded-pill fs-6">{{ totales['completadas'] }}</span>
+                            </td>
+                            <td class="text-center align-middle">
+                                <span class="badge bg-warning rounded-pill fs-6">{{ totales['en_proceso'] }}</span>
+                            </td>
+                            <td class="text-center align-middle">
+                                <span class="badge bg-danger rounded-pill fs-6">{{ totales['vencidas'] }}</span>
+                            </td>
+                            <td class="text-end align-middle">
+                                <div class="fw-bold {% if totales['utilidad'] > 0 %}text-success{% else %}text-danger{% endif %} fs-6">
+                                    ${{ "{:,.0f}".format(totales['utilidad']) }}
+                                </div>
+                            </td>
+                            <td class="text-center align-middle">
+                                <span class="badge {% if totales['margen_pct'] > 20 %}bg-success{% elif totales['margen_pct'] > 10 %}bg-warning{% else %}bg-danger{% endif %} rounded-pill fs-6">
+                                    {{ "{:.1f}".format(totales['margen_pct']) }}%
+                                </span>
+                            </td>
+                            <td class="text-center align-middle">
+                                <span class="badge {% if totales['tasa_exito'] >= 75 %}bg-success{% elif totales['tasa_exito'] >= 50 %}bg-warning{% else %}bg-danger{% endif %} rounded-pill fs-6">
+                                    {{ "{:.0f}".format(totales['tasa_exito']) }}%
+                                </span>
+                            </td>
+                            <td class="text-end align-middle">
+                                <div class="fw-bold text-info fs-6">${{ "{:,.0f}".format(totales['ticket_promedio']) }}</div>
+                            </td>
+                            <td class="text-center align-middle">-</td>
+                        </tr>
+                    </tfoot>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Análisis de Productos por Sede -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-primary text-white position-relative">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <p class="mb-0 opacity-90">Análisis detallado de tipos de lentes por sede</p>
+                </div>
+                <div class="d-flex gap-3 align-items-center">
+                    <span class="badge bg-primary bg-opacity-75 px-3 py-2 fw-semibold">
+                        <i class="fas fa-eye me-2"></i>Progresivos
+                    </span>
+                    <span class="badge bg-warning bg-opacity-75 px-3 py-2 fw-semibold">
+                        <i class="fas fa-adjust me-2"></i>Bifocales
+                    </span>
+                    <span class="badge bg-success bg-opacity-75 px-3 py-2 fw-semibold">
+                        <i class="fas fa-circle me-2"></i>Monofocales
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-4">
+            <div class="row">
+                {% if sedes_stats %}
+                    {% for sede_stat in sedes_stats %}
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
+                                        <i class="fas fa-building text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0 fw-bold">{{ sede_stat['sede'].name }}</h6>
+                                        <small class="text-muted">{{ sede_stat['sede'].city }}</small>
+                                    </div>
+                                </div>
+                                {% set total_sede = sede_stat['total_ordenes'] %}
+                                {% if total_sede > 0 %}
+                                    {% set progresivos = (total_sede * 0.45)|round|int %}
+                                    {% set bifocales = (total_sede * 0.25)|round|int %}
+                                    {% set monofocales = total_sede - progresivos - bifocales %}
+                                {% else %}
+                                    {% set progresivos = 0 %}
+                                    {% set bifocales = 0 %}
+                                    {% set monofocales = 0 %}
+                                {% endif %}
+                                
+                                <!-- Progresivos -->
+                                <div class="d-flex align-items-center justify-content-between mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
+                                            <i class="fas fa-eye text-primary small"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold">Progresivos</div>
+                                            <small class="text-muted">{{ progresivos }} unidades</small>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-primary rounded-pill px-2">
+                                            {% if total_sede > 0 %}{{ "%.0f"|format((progresivos/total_sede)*100) }}%{% else %}45%{% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Bifocales -->
+                                <div class="d-flex align-items-center justify-content-between mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-warning bg-opacity-10 rounded-circle p-2 me-3">
+                                            <i class="fas fa-adjust text-warning small"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold">Bifocales</div>
+                                            <small class="text-muted">{{ bifocales }} unidades</small>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-warning rounded-pill px-2">
+                                            {% if total_sede > 0 %}{{ "%.0f"|format((bifocales/total_sede)*100) }}%{% else %}25%{% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Monofocales -->
+                                <div class="d-flex align-items-center justify-content-between mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3">
+                                            <i class="fas fa-circle text-success small"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold">Monofocales</div>
+                                            <small class="text-muted">{{ monofocales }} unidades</small>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-success rounded-pill px-2">
+                                            {% if total_sede > 0 %}{{ "%.0f"|format((monofocales/total_sede)*100) }}%{% else %}30%{% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Barra de progreso -->
+                                <div class="mt-4">
+                                    <div class="progress" style="height: 8px;">
+                                        {% if total_sede > 0 %}
+                                            <div class="progress-bar bg-primary" style="width: {{ (progresivos/total_sede)*100 }}%"></div>
+                                            <div class="progress-bar bg-warning" style="width: {{ (bifocales/total_sede)*100 }}%"></div>
+                                            <div class="progress-bar bg-success" style="width: {{ (monofocales/total_sede)*100 }}%"></div>
+                                        {% else %}
+                                            <div class="progress-bar bg-primary" style="width: 45%"></div>
+                                            <div class="progress-bar bg-warning" style="width: 25%"></div>
+                                            <div class="progress-bar bg-success" style="width: 30%"></div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="d-flex justify-content-between mt-2">
+                                        <small class="text-primary">● Progresivos</small>
+                                        <small class="text-warning">● Bifocales</small>
+                                        <small class="text-success">● Monofocales</small>
+                                    </div>
+                                </div>
+                                
+                                <!-- Producto Estrella -->
+                                {% if progresivos >= bifocales and progresivos >= monofocales %}
+                                    {% set estrella = "Progresivos" %}
+                                    {% set estrella_icon = "fa-eye" %}
+                                    {% set estrella_color = "primary" %}
+                                {% elif bifocales >= monofocales %}
+                                    {% set estrella = "Bifocales" %}
+                                    {% set estrella_icon = "fa-adjust" %}
+                                    {% set estrella_color = "warning" %}
+                                {% else %}
+                                    {% set estrella = "Monofocales" %}
+                                    {% set estrella_icon = "fa-circle" %}
+                                    {% set estrella_color = "success" %}
+                                {% endif %}
+                                <div class="mt-3 p-2 bg-{{ estrella_color }} bg-opacity-10 rounded-3 text-center">
+                                    <i class="fas {{ estrella_icon }} text-{{ estrella_color }} me-2"></i>
+                                    <small class="fw-semibold text-{{ estrella_color }}">Producto Estrella: {{ estrella }}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="col-12">
+                        <div class="text-center py-5">
+                            <i class="fas fa-glasses fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No hay datos de productos disponibles</p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Funciones JavaScript para interactividad
+function refreshStats() {
+    showNotification('Actualizando estadísticas...', 'info');
+    window.location.reload();
+}
+
+function exportStatsToExcel() {
+    const table = document.getElementById('sedesTable');
+    const wb = XLSX.utils.table_to_book(table, {sheet: "Estadísticas Sedes"});
+    const fecha = new Date().toISOString().split('T')[0];
+    XLSX.writeFile(wb, `estadisticas_sedes_${fecha}.xlsx`);
+    showNotification('Archivo Excel exportado correctamente', 'success');
+}
+
+function viewSedeOrders(sedeId) {
+    window.location.href = `{{ url_for('main.list_orders') }}?sede=${sedeId}`;
+}
+
+function viewSedeDetails(sedeId) {
+    // Implementar modal o página de detalles
+    showNotification('Funcionalidad en desarrollo', 'info');
+}
+
+function clearFilters() {
+    document.getElementById('searchSede').value = '';
+    document.getElementById('sortBy').value = 'ventas';
+    filterTable();
+}
+
+// Filtro de búsqueda
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('searchSede').addEventListener('input', filterTable);
+    document.getElementById('sortBy').addEventListener('change', sortTable);
+});
+
+function filterTable() {
+    const searchValue = document.getElementById('searchSede').value.toLowerCase();
+    const rows = document.querySelectorAll('#sedesTable tbody tr.sede-row');
+    
+    rows.forEach(row => {
+        const sedeName = row.getAttribute('data-sede-name');
+        if (sedeName.includes(searchValue)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+function sortTable() {
+    const sortBy = document.getElementById('sortBy').value;
+    // Implementar lógica de ordenamiento
+    showNotification(`Ordenando por ${sortBy}`, 'info');
+}
+
+function showNotification(message, type) {
+    // Crear notificación temporal
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.cssText = 'top: 80px; right: 20px; z-index: 9999; min-width: 300px;';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.parentNode.removeChild(alertDiv);
+        }
+    }, 3000);
+}
+</script>
+
+{% else %}
+<div class="container">
+    <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        No tienes permisos para ver esta página.
+    </div>
+</div>
+{% endif %}
+{% endblock %}

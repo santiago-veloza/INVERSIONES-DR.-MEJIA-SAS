@@ -3,19 +3,19 @@ import secrets
 from datetime import timedelta
 from dotenv import load_dotenv
 
-load_dotenv() # Carga las variables del archivo .env
+load_dotenv()  # Carga las variables del archivo .env
 
 class Config:
-    # Genero una clave secreta segura
+    # Clave secreta desde variable de entorno o generada
     SECRET_KEY = os.environ.get('SECRET_KEY') or secrets.token_hex(32)
     
-    # PostgreSQL en Supabase - Connection Pooler para producción
-    # Usar el pooler en lugar de la conexión directa para mejor compatibilidad
-    SQLALCHEMY_DATABASE_URI = 'postgresql://postgres.pqefwwfkjssjkddvgvha:sP9a$AVsfJ48GYt@aws-0-us-west-2.pooler.supabase.com:6543/postgres'
+    # Base de datos - usar variable de entorno en producción
+    SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI') or \
+        'postgresql://postgres.pqefwwfkjssjkddvgvha:sP9a$AVsfJ48GYt@aws-0-us-west-2.pooler.supabase.com:6543/postgres'
     
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
-    # Configuración del pool de conexiones para prevenir errores de conexión cerrada
+    # Configuración optimizada del pool de conexiones
     SQLALCHEMY_ENGINE_OPTIONS = {
         'pool_pre_ping': True,          # Verifica conexiones antes de usarlas
         'pool_recycle': 300,            # Recicla conexiones cada 5 minutos
@@ -24,15 +24,109 @@ class Config:
         'pool_timeout': 30,             # Timeout para obtener conexión del pool
     }
     
+    # Configuración de archivos
     UPLOAD_FOLDER = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', 'frontend', 'static', 'uploads')
-    MAX_CONTENT_LENGTH = 16 * 1024 * 1024 # 16 MB max upload size
+    MAX_CONTENT_LENGTH = int(os.environ.get('MAX_CONTENT_LENGTH', 16 * 1024 * 1024))  # 16 MB default
     
-    # Configuraciones de seguridad para sesiones que implementé (simplificado para debug)
-    SESSION_COOKIE_SECURE = False  # Deshabilitado temporalmente para desarrollo
+    # Configuraciones de seguridad mejoradas
+    SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'False').lower() == 'true'
     SESSION_COOKIE_HTTPONLY = True  
-    SESSION_COOKIE_SAMESITE = 'Lax'  # Protección CSRF básica
+    SESSION_COOKIE_SAMESITE = 'Lax'
     
-    # Configuración de timeout de sesión que implementé (TIEMPOS REDUCIDOS PARA PRUEBAS)
-    PERMANENT_SESSION_LIFETIME = timedelta(minutes=12)  # 12 minutos para pruebas
-    SESSION_TIMEOUT_WARNING = timedelta(minutes=11)     # Advertencia a 11 minutos
+    # Configuración de timeout de sesión más realista
+    PERMANENT_SESSION_LIFETIME = timedelta(minutes=int(os.environ.get('PERMANENT_SESSION_LIFETIME', 720)))  # 12 horas default
+    SESSION_TIMEOUT_WARNING = timedelta(minutes=int(os.environ.get('SESSION_TIMEOUT_WARNING', 700)))     # Advertencia a 11h 40m
     SESSION_REFRESH_EACH_REQUEST = True  # Renovar sesión en cada request
+    
+    # Configuración de cache
+    CACHE_TYPE = 'simple'
+    CACHE_DEFAULT_TIMEOUT = int(os.environ.get('CACHE_DEFAULT_TIMEOUT', 300))  # 5 minutos default
+    
+    # Configuración de desarrollo/producción
+    DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
+    TESTING = False
+    
+    # Configuración de logging
+    LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO')
+    LOG_FILE = os.environ.get('LOG_FILE', 'logs/app.log')
+    
+    @staticmethod
+    def init_app(app):
+        """Inicialización específica de la aplicación"""
+        # Configurar logging
+        import logging
+        from logging.handlers import RotatingFileHandler
+        
+        if not app.debug and not app.testing:
+            # Crear directorio de logs si no existe
+            log_dir = os.path.dirname(Config.LOG_FILE)
+            if log_dir and not os.path.exists(log_dir):
+                os.makedirs(log_dir)
+            
+            # Configurar handler de archivo con rotación
+            file_handler = RotatingFileHandler(
+                Config.LOG_FILE, 
+                maxBytes=10240000,  # 10MB
+                backupCount=10
+            )
+            file_handler.setFormatter(logging.Formatter(
+                '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+            ))
+            file_handler.setLevel(getattr(logging, Config.LOG_LEVEL))
+            app.logger.addHandler(file_handler)
+            app.logger.setLevel(getattr(logging, Config.LOG_LEVEL))
+            app.logger.info('Inversiones Dr. Mejia SAS startup')
+
+
+class DevelopmentConfig(Config):
+    """Configuración para desarrollo"""
+    DEBUG = True
+    SESSION_COOKIE_SECURE = False  # Permitir HTTP en desarrollo
+    PERMANENT_SESSION_LIFETIME = timedelta(minutes=30)  # Sesiones más cortas en desarrollo
+
+
+class ProductionConfig(Config):
+    """Configuración para producción"""
+    DEBUG = False
+    SESSION_COOKIE_SECURE = True  # Forzar HTTPS en producción
+    
+    @classmethod
+    def init_app(cls, app):
+        Config.init_app(app)
+        
+        # Log de errores críticos vía email (opcional)
+        import logging
+        from logging.handlers import SMTPHandler
+        credentials = None
+        secure = None
+        
+        if getattr(cls, 'MAIL_USERNAME', None) is not None:
+            credentials = (cls.MAIL_USERNAME, cls.MAIL_PASSWORD)
+            if getattr(cls, 'MAIL_USE_TLS', None):
+                secure = ()
+        
+        mail_handler = SMTPHandler(
+            mailhost=(cls.MAIL_SERVER or 'localhost', cls.MAIL_PORT or 587),
+            fromaddr=cls.MAIL_USERNAME or 'noreply@opticasdrmejia.com',
+            toaddrs=[cls.ADMIN_EMAIL or 'admin@opticasdrmejia.com'],
+            subject='Inversiones Dr. Mejia SAS - Error',
+            credentials=credentials,
+            secure=secure
+        )
+        mail_handler.setLevel(logging.ERROR)
+        app.logger.addHandler(mail_handler)
+
+
+class TestingConfig(Config):
+    """Configuración para testing"""
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL') or 'sqlite:///:memory:'
+    WTF_CSRF_ENABLED = False
+
+
+config = {
+    'development': DevelopmentConfig,
+    'production': ProductionConfig,
+    'testing': TestingConfig,
+    'default': DevelopmentConfig
+}

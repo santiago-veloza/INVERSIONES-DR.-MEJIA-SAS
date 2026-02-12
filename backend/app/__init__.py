@@ -5,8 +5,10 @@ from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
 from flask_caching import Cache
 import os
+import logging
+from logging.handlers import RotatingFileHandler
 
-# Extensiones que implementé
+# Extensiones
 db = SQLAlchemy()
 login_manager = LoginManager()
 login_manager.login_view = 'main.login'
@@ -19,7 +21,7 @@ bp = Blueprint('main', __name__)
 
 
 def create_app(config_class=Config):
-    # Defino rutas para frontend
+    # Definir rutas para frontend
     frontend_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '..', 'frontend')
     template_folder = os.path.join(frontend_path, 'templates')
     static_folder = os.path.join(frontend_path, 'static')
@@ -28,21 +30,34 @@ def create_app(config_class=Config):
                 template_folder=template_folder,
                 static_folder=static_folder)
     app.config.from_object(config_class)
-
+    
+    # Inicializar configuración específica
+    config_class.init_app(app)
+    
+    # Inicializar extensiones
     db.init_app(app)
     login_manager.init_app(app)
-    # Deshabilito CSRF temporalmente para evitar problemas de tokens
-    # csrf.init_app(app)
     
-    # Configurar cache para mejorar rendimiento
+    # Habilitar CSRF en producción, deshabilitar en desarrollo
+    if not app.config.get('DEBUG', False):
+        csrf.init_app(app)
+    
+    # Configurar cache
     cache.init_app(app, config={
-        'CACHE_TYPE': 'simple',
-        'CACHE_DEFAULT_TIMEOUT': 300  # 5 minutos de cache
+        'CACHE_TYPE': app.config.get('CACHE_TYPE', 'simple'),
+        'CACHE_DEFAULT_TIMEOUT': app.config.get('CACHE_DEFAULT_TIMEOUT', 300)
     })
-
-    # Creo la carpeta de uploads si no existe
+    
+    # Crear carpeta de uploads si no existe
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
         os.makedirs(app.config['UPLOAD_FOLDER'])
+    
+    # Configurar logging para desarrollo
+    if app.config.get('DEBUG', False):
+        logging.basicConfig(
+            level=getattr(logging, app.config.get('LOG_LEVEL', 'INFO')),
+            format='%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+        )
 
     # Importo módulos que dependen de db/login_manager
     from backend.app import models

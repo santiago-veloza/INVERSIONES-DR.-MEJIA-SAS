@@ -168,13 +168,15 @@ def login():
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
     
-    if request.method == 'POST':
+    form = LoginForm()
+    
+    if form.validate_on_submit():
         # Obtengo datos del formulario
-        user_type = request.form.get('user_type', '')
-        sede_id = request.form.get('sede_id', type=int)
-        username = request.form.get('username', '').strip()
-        password = request.form.get('password', '')
-        remember_me = 'remember_me' in request.form
+        user_type = form.user_type.data
+        sede_id = form.sede_id.data
+        username = form.username.data.strip() if form.username.data else ''
+        password = form.password.data
+        remember_me = form.remember_me.data
         
         # Validaciones básicas
         if not user_type or not password:
@@ -183,16 +185,12 @@ def login():
         
         # NUEVO SISTEMA: Login por sede con contraseña compartida
         if user_type == 'sede':
-            print(f"DEBUG: Login por sede - sede_id recibido: {sede_id}")
-            
             if not sede_id or sede_id == 0:
-                print(f"DEBUG: Sede ID inválido: {sede_id}")
                 flash('Debe seleccionar una sede válida de la lista.', 'danger')
                 return redirect(url_for('main.login'))
             
             # Verificar que la sede existe
             sede = Sede.query.get(sede_id)
-            print(f"DEBUG: Sede encontrada: {sede.name if sede else 'None'} - Activa: {sede.is_active if sede else 'N/A'}")
             
             if not sede or not sede.is_active:
                 flash(f'La sede seleccionada (ID: {sede_id}) no es válida o está inactiva.', 'danger')
@@ -200,14 +198,11 @@ def login():
             
             # Buscar el usuario genérico de la sede (formato: sede_[id])
             sede_username = f'sede_{sede_id}'
-            print(f"DEBUG: Buscando usuario: {sede_username}")
             
             user = User.query.filter_by(username=sede_username, role='admin_sede', sede_id=sede_id).first()
-            print(f"DEBUG: Usuario encontrado: {user.username if user else 'None'}")
             
             # Si no existe el usuario de la sede, lo creo automáticamente
             if not user:
-                print(f"DEBUG: Creando usuario automáticamente para sede {sede_id}")
                 user = User(
                     username=sede_username,
                     email=f'sede{sede_id}@opticasdrmejia.com',
@@ -219,26 +214,19 @@ def login():
                 user.set_password('OpticasDrMejia2024')
                 db.session.add(user)
                 db.session.commit()
-                print(f"DEBUG: Usuario {sede_username} creado exitosamente")
             
             # Validar la contraseña compartida
-            print(f"DEBUG: Validando contraseña para usuario {sede_username}")
             if not user.check_password(password):
-                print(f"DEBUG: Contraseña incorrecta para {sede_username}")
                 log_failed_login(sede_username, 'Invalid password')
-                flash('Contraseña incorrecta. Usa: OpticasDrMejia2024', 'danger')
+                flash('Contraseña incorrecta. Contacta al administrador.', 'danger')
                 return redirect(url_for('main.login'))
-            
-            print(f"DEBUG: Contraseña correcta para {sede_username}")
             
             # Almacenar la sede seleccionada en la sesión
             from flask import session
             session['sede_seleccionada'] = sede_id
-            print(f"DEBUG: Sede {sede_id} almacenada en sesión")
             
             # Login exitoso
             login_user(user, remember=remember_me)
-            print(f"DEBUG: Usuario {sede_username} logueado exitosamente")
             
             # Registrar login exitoso
             AuditLog.log_action(
@@ -250,7 +238,6 @@ def login():
                 metadata={'sede_id': sede_id, 'sede_name': sede.name}
             )
             
-            print(f"DEBUG: Login exitoso para {sede.name} - {sede.city}")
             flash(f'✅ Bienvenido a {sede.name} - {sede.city}!', 'success')
         
         # Sistema tradicional para admin central y proveedores
@@ -319,7 +306,7 @@ def login():
     
     # GET request - mostrar el formulario de login
     sedes = Sede.query.filter_by(is_active=True).order_by(Sede.display_order, Sede.name).all()
-    return render_template('auth/login.html', title='Iniciar Sesión', sedes=sedes)
+    return render_template('auth/login.html', title='Iniciar Sesión', sedes=sedes, form=form)
 
 @bp.route('/logout')
 @login_required
@@ -390,6 +377,14 @@ def index():
             # Órdenes rechazadas
             rechazadas = WorkOrder.query.filter_by(sede_id=sede.id, status='rechazada').count()
             
+            # Órdenes vencidas
+            vencidas = WorkOrder.query.filter(
+                and_(
+                    WorkOrder.sede_id == sede.id,
+                    WorkOrder.is_overdue == True
+                )
+            ).count()
+            
             # Total de ventas (sale_price de órdenes pagadas)
             total_ventas = db.session.query(func.coalesce(func.sum(WorkOrder.sale_price), 0)).filter(
                 and_(
@@ -439,6 +434,7 @@ def index():
                 'en_proceso': en_proceso,
                 'completadas': completadas,
                 'rechazadas': rechazadas,
+                'vencidas': vencidas,
                 'total_ventas': total_ventas,
                 'total_costos': total_costos,
                 'utilidad': utilidad,
@@ -461,6 +457,7 @@ def index():
             'en_proceso': sum(s['en_proceso'] for s in sedes_stats),
             'completadas': sum(s['completadas'] for s in sedes_stats),
             'rechazadas': sum(s['rechazadas'] for s in sedes_stats),
+            'vencidas': sum(s['vencidas'] for s in sedes_stats),
             'total_ventas': sum(s['total_ventas'] for s in sedes_stats),
             'total_costos': sum(s['total_costos'] for s in sedes_stats),
             'utilidad': sum(s['utilidad'] for s in sedes_stats),
@@ -493,7 +490,29 @@ def index():
     else:
         # Si un usuario proveedor no tiene provider_id asociado, o algún otro caso no manejado.
         flash('Tu cuenta no está completamente configurada. Contacta al administrador.', 'warning')
-        return render_template('index.html', title='Inicio')
+        # Pasar variables por defecto para evitar errores en el template
+        return render_template('index.html', 
+                               title='Inicio',
+                               sedes_stats=[],
+                               totales={
+                                   'total_ordenes': 0,
+                                   'en_proceso': 0,
+                                   'completadas': 0,
+                                   'rechazadas': 0,
+                                   'vencidas': 0,
+                                   'total_ventas': 0,
+                                   'total_costos': 0,
+                                   'utilidad': 0,
+                                   'margen_pct': 0,
+                                   'tasa_exito': 0,
+                                   'ticket_promedio': 0,
+                                   'pendientes_pago': 0
+                               },
+                               top_ventas=[],
+                               top_ordenes=[],
+                               sedes_chart_data={'labels': [], 'ordenes': [], 'ventas': []},
+                               current_month=12,
+                               current_year=2025)
 
 
 # --- Estadísticas por Sede ---
@@ -537,6 +556,14 @@ def sede_statistics():
         
         # Órdenes rechazadas
         rechazadas = WorkOrder.query.filter_by(sede_id=sede.id, status='rechazada').count()
+        
+        # Órdenes vencidas
+        vencidas = WorkOrder.query.filter(
+            and_(
+                WorkOrder.sede_id == sede.id,
+                WorkOrder.is_overdue == True
+            )
+        ).count()
         
         # Total de ventas (sale_price de órdenes pagadas)
         total_ventas = db.session.query(func.coalesce(func.sum(WorkOrder.sale_price), 0)).filter(
@@ -587,6 +614,7 @@ def sede_statistics():
             'en_proceso': en_proceso,
             'completadas': completadas,
             'rechazadas': rechazadas,
+            'vencidas': vencidas,
             'total_ventas': total_ventas,
             'total_costos': total_costos,
             'utilidad': utilidad,
@@ -609,6 +637,7 @@ def sede_statistics():
         'en_proceso': sum(s['en_proceso'] for s in sedes_stats),
         'completadas': sum(s['completadas'] for s in sedes_stats),
         'rechazadas': sum(s['rechazadas'] for s in sedes_stats),
+        'vencidas': sum(s['vencidas'] for s in sedes_stats),
         'total_ventas': sum(s['total_ventas'] for s in sedes_stats),
         'total_costos': sum(s['total_costos'] for s in sedes_stats),
         'utilidad': sum(s['utilidad'] for s in sedes_stats),
@@ -631,15 +660,15 @@ def sede_statistics():
         'ventas': [float(s['total_ventas']) for s in sedes_stats]
     }
     
-    return render_template('index.html', 
-                           title='Estadísticas por Sede',
-                           sedes_stats=sedes_stats,
-                           top_ventas=top_ventas,
-                           top_ordenes=top_ordenes,
-                           totales=totales,
-                           sedes_chart_data=sedes_chart_data,
-                           current_month=current_month,
-                           current_year=current_year)
+    return render_template('admin/sede_statistics.html', 
+                            title='Estadísticas por Sede',
+                            sedes_stats=sedes_stats,
+                            top_ventas=top_ventas,
+                            top_ordenes=top_ordenes,
+                            totales=totales,
+                            sedes_chart_data=sedes_chart_data,
+                            current_month=current_month,
+                            current_year=current_year)
 
 
 # --- Dashboard Administrativo que desarrollé ---
@@ -1581,6 +1610,7 @@ def add_sede():
 @bp.route('/sede/toggle_status/<int:sede_id>', methods=['POST'])
 @login_required
 @role_required('admin', 'asistente')
+@csrf.exempt
 def toggle_sede_status(sede_id):
     sede = Sede.query.get_or_404(sede_id)
     
@@ -2761,6 +2791,7 @@ def mark_notification_read(notification_id):
 
 @bp.route('/notifications/mark_all_read', methods=['POST'])
 @login_required
+@csrf.exempt
 def mark_all_notifications_read():
     """Marca todas las notificaciones del usuario como leídas"""
     Notification.query.filter_by(user_id=current_user.id, is_read=False).update({'is_read': True})

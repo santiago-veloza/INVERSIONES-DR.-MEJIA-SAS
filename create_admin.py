@@ -5,8 +5,8 @@ import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'backend'))
 
-from app import create_app, db
-from app.models import User
+from backend.app import create_app, db
+from backend.app.models import User
 from werkzeug.security import generate_password_hash
 
 app = create_app()
