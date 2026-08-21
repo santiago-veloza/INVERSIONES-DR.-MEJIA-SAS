@@ -9,9 +9,8 @@ class Config:
     # Clave secreta desde variable de entorno o generada
     SECRET_KEY = os.environ.get('SECRET_KEY') or secrets.token_hex(32)
     
-    # Base de datos - usar variable de entorno en producción
-    SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI') or \
-        'postgresql://postgres.pqefwwfkjssjkddvgvha:sP9a$AVsfJ48GYt@aws-0-us-west-2.pooler.supabase.com:6543/postgres'
+    # Base de datos - se define en la variable de entorno SQLALCHEMY_DATABASE_URI (.env)
+    SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI')
     
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
