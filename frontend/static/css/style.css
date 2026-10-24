@@ -5,22 +5,30 @@
 
 /* Reducir tamaño base de fuente */
 body {
-    font-size: 12px !important;
-    line-height: 1.35;
-    font-weight: 600 !important;
-    color: #000000 !important;
+    font-size: 14px !important;
+    line-height: 1.5;
+    font-weight: 400 !important;
+    color: #212529 !important;
 }
 
 /* Reducir tamaños de headings */
-h1 { font-size: 1.5rem !important; margin-bottom: 0.6rem !important; font-weight: 700 !important; color: #000000 !important; }
-h2 { font-size: 1.3rem !important; margin-bottom: 0.5rem !important; font-weight: 700 !important; color: #000000 !important; }
-h3 { font-size: 1.15rem !important; margin-bottom: 0.45rem !important; font-weight: 700 !important; color: #000000 !important; }
-h4 { font-size: 1rem !important; margin-bottom: 0.4rem !important; font-weight: 700 !important; color: #000000 !important; }
-h5 { font-size: 0.9rem !important; margin-bottom: 0.35rem !important; font-weight: 700 !important; color: #000000 !important; }
-h6 { font-size: 0.85rem !important; margin-bottom: 0.3rem !important; font-weight: 700 !important; color: #000000 !important; }
+h1 { font-size: 1.5rem !important; margin-bottom: 0.6rem !important; font-weight: 700 !important; color: #1a1d29 !important; }
+h2 { font-size: 1.3rem !important; margin-bottom: 0.5rem !important; font-weight: 700 !important; color: #1a1d29 !important; }
+h3 { font-size: 1.15rem !important; margin-bottom: 0.45rem !important; font-weight: 600 !important; color: #1a1d29 !important; }
+h4 { font-size: 1rem !important; margin-bottom: 0.4rem !important; font-weight: 600 !important; color: #1a1d29 !important; }
+h5 { font-size: 0.9rem !important; margin-bottom: 0.35rem !important; font-weight: 600 !important; color: #1a1d29 !important; }
+h6 { font-size: 0.85rem !important; margin-bottom: 0.3rem !important; font-weight: 600 !important; color: #1a1d29 !important; }
 
 /* Reducir espaciado de párrafos */
-p { margin-bottom: 0.6rem !important; font-weight: 600 !important; color: #000000 !important; }
+p { margin-bottom: 0.6rem !important; font-weight: 400 !important; color: #212529 !important; }
+
+/* Dentro de headers/tarjetas con fondo de color, títulos y párrafos deben
+   heredar el blanco del contenedor en vez del color oscuro de arriba. */
+.text-white h1, .text-white h2, .text-white h3, .text-white h4, .text-white h5, .text-white h6, .text-white p,
+.card-header h1, .card-header h2, .card-header h3, .card-header h4, .card-header h5, .card-header h6, .card-header p,
+.modal-header h1, .modal-header h2, .modal-header h3, .modal-header h4, .modal-header h5, .modal-header h6 {
+    color: inherit !important;
+}
 
 /* Cards más compactas */
 .card {
@@ -44,7 +52,7 @@ p { margin-bottom: 0.6rem !important; font-weight: 600 !important; color: #00000
 .btn {
     padding: 0.4rem 0.85rem !important;
     font-size: 0.8rem !important;
-    font-weight: 600 !important;
+    font-weight: 500 !important;
 }
 
 .btn-lg {
@@ -78,7 +86,7 @@ p { margin-bottom: 0.6rem !important; font-weight: 600 !important; color: #00000
     margin-bottom: 0.3rem !important;
     font-size: 0.8rem !important;
     font-weight: 600 !important;
-    color: #000000 !important;
+    color: #212529 !important;
 }
 
 /* Tablas más compactas */
@@ -106,14 +114,6 @@ p { margin-bottom: 0.6rem !important; font-weight: 600 !important; color: #00000
     padding: 0.85rem 1.1rem !important;
 }
 
-.modal-body {
-    padding: 0.85rem 1.1rem !important;
-}
-
-.modal-footer {
-    padding: 0.75rem 1.1rem !important;
-}
-
 .modal-title {
     font-size: 1rem !important;
 }
@@ -137,6 +137,34 @@ p { margin-bottom: 0.6rem !important; font-weight: 600 !important; color: #00000
 
 .stats-card i {
     font-size: 1.3rem !important;
+}
+
+/* Tarjetas tipo píldora (ícono + texto) más compactas en móvil */
+@media (max-width: 767px) {
+    .stats-card .card-body {
+        padding: 0.65rem !important;
+    }
+
+    .stats-card .rounded-circle {
+        padding: 0.55rem !important;
+    }
+
+    .stats-card .rounded-circle .bi-2x {
+        font-size: 1.15rem !important;
+    }
+
+    .stats-card h2 {
+        font-size: 1.15rem !important;
+    }
+
+    .stats-card h6.text-xs {
+        font-size: 0.55rem !important;
+        white-space: normal !important;
+    }
+
+    .stats-card .ms-3 {
+        margin-left: 0.6rem !important;
+    }
 }
 
 /* Acordeón de departamentos compacto */
@@ -164,6 +192,9 @@ p { margin-bottom: 0.6rem !important; font-weight: 600 !important; color: #00000
 
 .sede-card-header .sede-name {
     font-size: 0.875rem !important;
+    font-weight: 700;
+    color: #ffffff !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .sede-card-header .badge {
@@ -187,7 +218,10 @@ p { margin-bottom: 0.6rem !important; font-weight: 600 !important; color: #00000
 
 .sede-card .card-footer .btn {
     font-size: 0.75rem !important;
+    font-weight: 600;
     padding: 0.4rem 0.7rem !important;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
 }
 
 /* Reducir espaciado general */
@@ -202,13 +236,16 @@ p { margin-bottom: 0.6rem !important; font-weight: 600 !important; color: #00000
 .py-2 { padding-top: 0.45rem !important; padding-bottom: 0.45rem !important; }
 
 /* Iconos más pequeños */
-.fa, .fas, .far, .fab {
+.bi {
     font-size: inherit;
 }
 
-.fa-2x { font-size: 1.6em !important; }
-.fa-3x { font-size: 2.25em !important; }
-.fa-4x { font-size: 3em !important; }
+.bi-2x { font-size: 1.6em !important; }
+.bi-3x { font-size: 2.25em !important; }
+.bi-4x { font-size: 3em !important; }
+.bi-5x { font-size: 4em !important; }
+.bi-spin { animation: bi-spin 1s linear infinite; }
+@keyframes bi-spin { 100% { transform: rotate(360deg); } }
 
 /* Container más aprovechado */
 .container-lg {
@@ -273,7 +310,7 @@ small, .small {
 }
 
 .form-container h2, .form-container h3 {
-    color: #0d6efd;
+    color: #2563eb;
     margin-bottom: 1.5rem;
     padding-bottom: 0.5rem;
     border-bottom: 2px solid #e9ecef;
@@ -296,7 +333,7 @@ small, .small {
 
 
 .table-container .table th {
-    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
     color: #ffffff;
     font-weight: 600;
     text-transform: uppercase;
@@ -378,7 +415,7 @@ small, .small {
 
 .status-enviada {
     background: linear-gradient(135deg, #cfe2ff 0%, #b6d7ff 100%);
-    color: #0a58ca;
+    color: #1d4ed8;
     border: 1px solid #b6d7ff;
 }
 
@@ -430,7 +467,7 @@ small, .small {
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, #0d6efd, #6ea8fe, #0d6efd);
+    background: linear-gradient(90deg, #2563eb, #60a5fa, #2563eb);
     background-size: 200% 100%;
     animation: shimmer 3s linear infinite;
 }
@@ -461,7 +498,7 @@ small, .small {
 
 .dashboard-card .display-4 {
     font-weight: 700;
-    color: #0d6efd;
+    color: #2563eb;
     text-shadow: 0 2px 4px rgba(13, 110, 253, 0.1);
     margin-bottom: 0.5rem;
 }
@@ -481,22 +518,22 @@ small, .small {
     border: none;
     border-radius: 0.5rem;
     margin: 0 0.25rem;
-    color: #0d6efd;
+    color: #2563eb;
     font-weight: 500;
     transition: all 0.3s ease;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .page-link:hover {
-    background: #0d6efd;
+    background: #2563eb;
     color: #ffffff;
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
 }
 
 .page-item.active .page-link {
-    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
-    border-color: #0d6efd;
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    border-color: #2563eb;
     box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
 }
 
@@ -509,7 +546,7 @@ small, .small {
 }
 
 .modal-header {
-    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
     color: #ffffff;
     border: none;
     padding: 1.5rem 2rem;
@@ -542,12 +579,12 @@ small, .small {
 
 .breadcrumb-item + .breadcrumb-item::before {
     content: "›";
-    color: #0d6efd;
+    color: #2563eb;
     font-weight: bold;
 }
 
 .breadcrumb-item.active {
-    color: #0d6efd;
+    color: #2563eb;
     font-weight: 600;
 }
 
@@ -561,7 +598,7 @@ small, .small {
 }
 
 .progress-bar {
-    background: linear-gradient(135deg, #0d6efd 0%, #6ea8fe 100%);
+    background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
     border-radius: 2rem;
     position: relative;
     overflow: hidden;
@@ -601,7 +638,7 @@ small, .small {
 .input-group-text {
     background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
     border: 2px solid #dee2e6;
-    color: #0d6efd;
+    color: #2563eb;
     font-weight: 600;
 }
 
@@ -611,11 +648,11 @@ small, .small {
 
 .input-group .form-control:focus {
     box-shadow: none;
-    border-color: #0d6efd;
+    border-color: #2563eb;
 }
 
 .input-group .form-control:focus + .input-group-text {
-    border-color: #0d6efd;
+    border-color: #2563eb;
     background: linear-gradient(135deg, #cfe2ff 0%, #b6d7ff 100%);
 }
 
@@ -679,7 +716,7 @@ small, .small {
     width: 40px;
     height: 40px;
     border: 4px solid #e9ecef;
-    border-top: 4px solid #0d6efd;
+    border-top: 4px solid #2563eb;
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin: 20px auto;
@@ -702,13 +739,13 @@ small, .small {
 }
 
 .list-group-item:hover {
-    border-left-color: #0d6efd;
+    border-left-color: #2563eb;
     background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%);
     transform: translateX(5px);
 }
 
 .list-group-item.active {
-    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
     border-left-color: #ffffff;
     color: #ffffff;
 }
@@ -727,7 +764,7 @@ small, .small {
 }
 
 .gradient-text {
-    background: linear-gradient(135deg, #0d6efd 0%, #6ea8fe 100%);
+    background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -804,13 +841,13 @@ small, .small {
 /* Estilos específicos para botones outline */
 .quick-action-btn.outline-style {
     background: rgba(255, 255, 255, 0.95);
-    border: 2px solid #0d6efd;
+    border: 2px solid #2563eb;
     backdrop-filter: blur(10px);
 }
 
 .quick-action-btn.outline-style:hover {
     background: rgba(13, 110, 253, 0.05);
-    border-color: #0a58ca;
+    border-color: #1d4ed8;
 }
 
 /* Mejoras de responsividad para botones de acceso rápido */
@@ -1036,7 +1073,7 @@ small, .small {
 
 .detail-layout-compact .card-header {
     padding: 0.75rem 1rem;
-    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
     color: white;
     font-weight: 600;
     font-size: 0.95rem;
@@ -1078,7 +1115,7 @@ small, .small {
 
 .breadcrumb-compact .breadcrumb-item + .breadcrumb-item::before {
     content: "›";
-    color: #0d6efd;
+    color: #2563eb;
     font-weight: 600;
     margin: 0 0.3rem;
 }
@@ -1199,14 +1236,14 @@ body.zoom-optimized .btn {
 .department-section .region-title {
     font-size: 2rem;
     font-weight: 800;
-    color: #0d6efd;
+    color: #2563eb;
     text-transform: uppercase;
     letter-spacing: 1px;
 }
 
 .department-section .region-divider {
     height: 4px;
-    background: linear-gradient(90deg, #0d6efd 0%, #6ea8fe 50%, transparent 100%);
+    background: linear-gradient(90deg, #2563eb 0%, #60a5fa 50%, transparent 100%);
 }
 
 /* Grid de sedes - Cada sede es una tarjeta independiente */
@@ -1245,15 +1282,8 @@ body.zoom-optimized .btn {
 
 /* Encabezado de tarjeta de sede con fondo azul */
 .sede-card-header {
-    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%) !important;
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
     padding: 1.25rem !important;
-}
-
-.sede-card-header .sede-name {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #ffffff !important;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .sede-card-header .text-white-50 {
@@ -1306,7 +1336,7 @@ body.zoom-optimized .btn {
 }
 
 .department-accordion-button:not(.collapsed) {
-    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%) !important;
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
     color: white !important;
     box-shadow: 0 4px 20px rgba(13, 110, 253, 0.3) !important;
 }
@@ -1368,7 +1398,7 @@ body.zoom-optimized .btn {
 
 .region-divider {
     height: 3px;
-    background: linear-gradient(90deg, #0d6efd 0%, #6ea8fe 50%, transparent 100%);
+    background: linear-gradient(90deg, #2563eb 0%, #60a5fa 50%, transparent 100%);
     border-radius: 2px;
     margin-top: 0.75rem;
 }
@@ -1399,7 +1429,7 @@ body.zoom-optimized .btn {
 .sede-name {
     font-size: 1.125rem;
     font-weight: 700;
-    color: #1e3a8a;
+    color: #1d4ed8;
     margin-bottom: 0.25rem;
 }
 
@@ -1413,10 +1443,6 @@ body.zoom-optimized .btn {
     border-radius: 2rem;
     font-weight: 600;
     letter-spacing: 0.5px;
-}
-
-.sede-info {
-    font-size: 0.875rem;
 }
 
 .sede-info .info-item {
@@ -1450,14 +1476,6 @@ body.zoom-optimized .btn {
 .sede-card .card-footer {
     background: #f8f9fa;
     padding: 1rem 1.25rem;
-}
-
-.sede-card .card-footer .btn {
-    font-size: 0.875rem;
-    font-weight: 600;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    transition: all 0.3s ease;
 }
 
 .sede-card .card-footer .btn:hover {
@@ -1605,18 +1623,32 @@ body.zoom-optimized .btn {
     width: 100% !important;
 }
 
-/* Asegurar que el sidebar se mantenga fijo */
+/* Asegurar que el sidebar se mantenga fijo (ancho angosto en reposo,
+   se expande con :hover — ver regla en styles.css) */
 .sidebar {
     position: fixed !important;
     top: var(--topbar-height, 65px) !important;
     left: 0 !important;
     bottom: 0 !important;
     z-index: 1040 !important;
-    transform: none !important;
-    width: var(--sidebar-width, 280px) !important;
+    width: var(--sidebar-collapsed-width, 70px) !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
-    transition: none !important;
+    transition: width 0.25s ease, box-shadow 0.25s ease !important;
+}
+
+@media (min-width: 993px) {
+    .sidebar {
+        transform: none !important;
+    }
+}
+
+@media (min-width: 993px) {
+    .sidebar:hover,
+    .sede-statistics-page .sidebar:hover,
+    .admin-dashboard-page .sidebar:hover {
+        width: var(--sidebar-width, 280px) !important;
+    }
 }
 
 /* Override para páginas de estadísticas */
@@ -1626,21 +1658,37 @@ body.zoom-optimized .btn {
     top: 65px !important;
     left: 0 !important;
     bottom: 0 !important;
-    width: 280px !important;
+    width: var(--sidebar-collapsed-width, 70px) !important;
     z-index: 1040 !important;
-    transform: translateX(0) !important;
-    transition: none !important;
+    transition: width 0.25s ease !important;
 }
 
-/* Asegurar padding del body */
-body {
-    padding-top: 65px !important;
+@media (min-width: 993px) {
+    .sede-statistics-page .sidebar,
+    .admin-dashboard-page .sidebar {
+        transform: translateX(0) !important;
+    }
 }
+
+@media (max-width: 992px) {
+    .sidebar,
+    .sede-statistics-page .sidebar,
+    .admin-dashboard-page .sidebar {
+        width: var(--sidebar-width, 280px) !important;
+    }
+}
+
 
 body.sidebar-layout {
     padding-top: 65px !important;
-    padding-left: var(--sidebar-width, 280px) !important;
+    padding-left: var(--sidebar-collapsed-width, 70px) !important;
     transform: none !important;
+}
+
+@media (max-width: 992px) {
+    body.sidebar-layout {
+        padding-left: 0 !important;
+    }
 }
 
 /* Prevenir que otros elementos cubran el topbar o sidebar */
@@ -1695,31 +1743,35 @@ body {
     padding-top: 65px !important;
 }
 
-body.sidebar-layout {
-    padding-top: 65px !important;
-}
-
 /* ==========================================
    TIPOGRAFÍA ADICIONAL CONSISTENTE
 ========================================== */
 
-/* Elementos específicos en negrilla y negro */
+/* Texto secundario */
 .small, small {
-    font-weight: 600 !important;
-    color: #000000 !important;
+    font-weight: 400 !important;
+    color: #495057 !important;
+}
+
+/* Dentro de tarjetas/headers con fondo de color, el texto secundario debe
+   heredar blanco en vez del gris forzado de arriba. */
+.text-white .small, .text-white small,
+.card-header .small, .card-header small,
+.badge .small, .badge small {
+    color: inherit !important;
 }
 
 /* Texto de tablas */
 .table {
-    font-weight: 600 !important;
-    color: #000000 !important;
+    font-weight: 400 !important;
+    color: #212529 !important;
 }
 
 /* Inputs y formularios */
 .form-control,
 .form-select {
-    font-weight: 600 !important;
-    color: #000000 !important;
+    font-weight: 400 !important;
+    color: #212529 !important;
 }
 
 /* Mantener colores originales en sidebar - NO sobreescribir */

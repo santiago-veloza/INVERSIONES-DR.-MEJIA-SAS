@@ -93,7 +93,7 @@ Flask-Migrate        # Versionado de base de datos
 Bootstrap 5.3         <!-- Framework CSS responsive -->
 Jinja2 Templates      <!-- Motor de plantillas con herencia -->
 Chart.js 3.x         <!-- Visualización de datos interactiva -->
-Font Awesome 6       <!-- Iconografía profesional -->
+Bootstrap Icons 1.11 <!-- Iconografía profesional -->
 Vanilla JavaScript   <!-- Sin dependencias pesadas -->
 ```
 - **📱 Responsive Design**: Optimizado para desktop, tablet y móvil
@@ -256,6 +256,34 @@ python app.py
 🔒 Contraseña: admin123
 🎭 Rol: Admin Central (Acceso Total)
 ```
+Estos son solo los valores por defecto. Las credenciales reales viven en variables de entorno (`.env` en local, o las "Variables" del proyecto en Railway) y **nunca en el código**:
+
+```bash
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=admin123
+ADMIN_EMAIL=admin@opticas.com
+SEDE_SHARED_PASSWORD=OpticasDrMejia2024
+```
+
+### 🔄 **Cómo rotar la contraseña del admin**
+Cambiar `ADMIN_PASSWORD` en las variables de Railway **no actualiza sola la base de datos** por sí sola — necesita que se ejecute `create_admin.py --reset-password`. Esto ya está automatizado en el `Procfile`:
+
+```
+release: python create_admin.py --reset-password
+web: gunicorn app:app --bind 0.0.0.0:$PORT
+```
+
+Railway corre la línea `release:` una vez en cada deploy, antes de levantar el servidor. Entonces el flujo real es:
+1. Cambias `ADMIN_PASSWORD` en las variables de Railway.
+2. Haces deploy (push o "Redeploy" manual).
+3. Railway resetea la contraseña del admin automáticamente antes de arrancar — no hay que correr nada a mano.
+
+En local es un paso manual: `python create_admin.py --reset-password` después de actualizar `.env`.
+
+### 🏢 **Contraseña compartida de sedes**
+Esta **no** se gestiona por variable de entorno ni por script. El admin la cambia directamente desde el panel, en la vista de sedes (`/sede/change_shared_password`), y el cambio queda guardado en la base de datos al instante — sin redeploy, sin `.env`, sin comandos.
+
+`SEDE_SHARED_PASSWORD` en `.env`/Railway solo se usa como contraseña inicial cuando se **crea una sede nueva** — no refleja necesariamente la contraseña actual si el admin ya la cambió desde el panel.
 
 ### 👥 **Gestión de Usuarios**
 ```bash
@@ -411,7 +439,7 @@ CLOUDINARY_API_SECRET=your-api-secret
 - **Query Optimization**: Consultas SQL optimizadas para reportes
 - **Caching Strategy**: Flask-Caching para datos estáticos
 - **Asset Minification**: CSS y JS optimizados para producción
-- **CDN Integration**: Bootstrap y FontAwesome desde CDN
+- **CDN Integration**: Bootstrap y Bootstrap Icons desde CDN
 
 ### 📊 **KPIs del Sistema**
 ```python

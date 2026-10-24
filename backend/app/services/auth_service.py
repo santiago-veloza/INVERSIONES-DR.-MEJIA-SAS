@@ -1,10 +1,6 @@
-"""
-Servicio para gestión de autenticación y usuarios.
-Centraliza la lógica de login, logout y gestión de sesiones.
-"""
 
 from typing import Dict, List, Optional, Tuple
-from flask import session, request
+from flask import session, request, current_app
 from flask_login import login_user, logout_user
 from backend.app.models import User, Sede, Provider, db
 from backend.app.services import BaseService, ValidationMixin
@@ -62,7 +58,7 @@ class AuthService(BaseService, ValidationMixin):
                 metadata={'sede_id': sede_id, 'sede_name': sede.name}
             )
             
-            success_message = f'✅ Bienvenido a {sede.name}'
+            success_message = f'Bienvenido a {sede.name}'
             if sede.city:
                 success_message += f' - {sede.city}'
             success_message += '!'
@@ -265,8 +261,8 @@ class AuthService(BaseService, ValidationMixin):
                 is_active=True
             )
             
-            # Contraseña por defecto para sedes
-            user.set_password('OpticasDrMejia2024')
+            # Contraseña compartida para sedes, definida en .env (SEDE_SHARED_PASSWORD)
+            user.set_password(current_app.config['SEDE_SHARED_PASSWORD'])
             
             db.session.add(user)
             

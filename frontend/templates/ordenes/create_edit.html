@@ -7,7 +7,7 @@
             <div class="card border-0 shadow-sm order-header-card">
                 <div class="card-body text-white py-2">
                     <h5 class="mb-0 fw-bold">
-                        <i class="fas fa-clipboard-list me-2"></i>
+                        <i class="bi bi-clipboard-data me-2"></i>
                         {% if order %}
                             Editar Orden N° {{ order.order_number }}
                         {% else %}
@@ -27,8 +27,8 @@
             <!-- SECCIÓN 1 -->
             <div class="acc-item">
                 <button type="button" class="acc-header">
-                    <i class="fas fa-info-circle me-2"></i>INFORMACIÓN INICIAL
-                    <i class="fas fa-chevron-down ms-auto"></i>
+                    <i class="bi bi-info-circle-fill me-2"></i>INFORMACIÓN INICIAL
+                    <i class="bi bi-chevron-down ms-auto"></i>
                 </button>
                 <div class="acc-body">
 
@@ -90,8 +90,8 @@
             <!-- SECCIÓN 2: DATOS DEL PACIENTE -->
             <div class="acc-item">
                 <button type="button" class="acc-header">
-                    <i class="fas fa-user me-2"></i>DATOS DEL PACIENTE
-                    <i class="fas fa-chevron-down ms-auto"></i>
+                    <i class="bi bi-person-fill me-2"></i>DATOS DEL PACIENTE
+                    <i class="bi bi-chevron-down ms-auto"></i>
                 </button>
                 <div class="acc-body">
 
@@ -119,8 +119,8 @@
             <!-- SECCIÓN 3: ESPECIFICACIONES DE LENTES -->
             <div class="acc-item">
                 <button type="button" class="acc-header">
-                    <i class="fas fa-glasses me-2"></i>ESPECIFICACIONES DE LENTES
-                    <i class="fas fa-chevron-down ms-auto"></i>
+                    <i class="bi bi-eyeglasses me-2"></i>ESPECIFICACIONES DE LENTES
+                    <i class="bi bi-chevron-down ms-auto"></i>
                 </button>
                 <div class="acc-body">
 
@@ -168,8 +168,8 @@
             <!-- SECCIÓN 4: FÓRMULA ÓPTICA -->
             <div class="acc-item">
                 <button type="button" class="acc-header">
-                    <i class="fas fa-eye me-2"></i>FÓRMULA ÓPTICA
-                    <i class="fas fa-chevron-down ms-auto"></i>
+                    <i class="bi bi-eye-fill me-2"></i>FÓRMULA ÓPTICA
+                    <i class="bi bi-chevron-down ms-auto"></i>
                 </button>
                 <div class="acc-body">
 
@@ -219,10 +219,10 @@
             <div class="col-12">
                 <div class="d-flex gap-2 justify-content-end">
                     <a href="{{ url_for('main.list_orders') }}" class="btn btn-secondary btn-sm">
-                        <i class="fas fa-times me-1"></i>Cancelar
+                        <i class="bi bi-x-lg me-1"></i>Cancelar
                     </a>
                     <button type="submit" class="btn btn-primary btn-sm">
-                        <i class="fas fa-save me-1"></i>
+                        <i class="bi bi-save-fill me-1"></i>
                         {% if order %}Actualizar{% else %}Crear{% endif %} Orden
                     </button>
                 </div>
@@ -496,7 +496,7 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .acc-header.active {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
     color: white;
 }
 

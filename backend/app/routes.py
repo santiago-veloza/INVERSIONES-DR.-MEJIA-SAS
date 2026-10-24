@@ -210,8 +210,8 @@ def login():
                     sede_id=sede_id,
                     is_active=True
                 )
-                # Contraseña compartida para todas las sedes: "OpticasDrMejia2024"
-                user.set_password('OpticasDrMejia2024')
+                # Contraseña compartida para todas las sedes, definida en .env (SEDE_SHARED_PASSWORD)
+                user.set_password(current_app.config['SEDE_SHARED_PASSWORD'])
                 db.session.add(user)
                 db.session.commit()
             
@@ -238,7 +238,7 @@ def login():
                 metadata={'sede_id': sede_id, 'sede_name': sede.name}
             )
             
-            flash(f'✅ Bienvenido a {sede.name} - {sede.city}!', 'success')
+            flash(f'Bienvenido a {sede.name} - {sede.city}!', 'success')
         
         # Sistema tradicional para admin central y proveedores
         else:
@@ -480,9 +480,22 @@ def index():
             'ventas': [float(s['total_ventas']) for s in sedes_stats]
         }
         
-        # Esta es la página principal del dashboard
-        # Redirigir al dashboard administrativo completo
-        return redirect(url_for('main.admin_dashboard'))
+        # El dashboard administrativo completo (KPIs financieros, estadísticas por
+        # sede) es exclusivo del admin - el asistente no tiene acceso a esa ruta,
+        # así que aquí solo lo redirigimos si es admin. Para asistente, mostramos
+        # esta misma vista con los datos ya calculados arriba.
+        if current_user.role == 'admin':
+            return redirect(url_for('main.admin_dashboard'))
+
+        return render_template('index.html',
+                               title='Inicio',
+                               sedes_stats=sedes_stats,
+                               totales=totales,
+                               top_ventas=top_ventas,
+                               top_ordenes=top_ordenes,
+                               sedes_chart_data=sedes_chart_data,
+                               current_month=current_month,
+                               current_year=current_year)
 
     elif current_user.role == 'proveedor' and current_user.provider:
         # Proveedores van directamente a su lista de órdenes
@@ -731,40 +744,84 @@ def get_system_kpis_cached():
     """Obtener KPIs básicos del sistema con cache"""
     from sqlalchemy import func
     from datetime import datetime
-    
-    current_month = datetime.now().month
-    current_year = datetime.now().year
-    
+
+    current_date = datetime.now()
+    current_month = current_date.month
+    current_year = current_date.year
+    # Mes anterior (con manejo de cambio de año)
+    if current_month == 1:
+        last_month, last_month_year = 12, current_year - 1
+    else:
+        last_month, last_month_year = current_month - 1, current_year
+
     # Consultas simples para KPIs básicos (sin funciones complejas que causan errores)
     total_orders = WorkOrder.query.count()
-    
+
     # Calcular revenue total
     paid_orders = WorkOrder.query.filter(
         WorkOrder.payment_status == 'pagada',
         WorkOrder.sale_price.isnot(None)
     ).all()
     total_revenue = sum([float(order.sale_price) for order in paid_orders if order.sale_price])
-    
+
     # Calcular pagos pendientes
     pending_orders = WorkOrder.query.filter(
         WorkOrder.payment_status == 'pendiente',
         WorkOrder.sale_price.isnot(None)
     ).all()
     pending_payments = sum([float(order.sale_price) for order in pending_orders if order.sale_price])
-    
+
     # Órdenes de este mes (simplificado)
-    from datetime import datetime
-    current_date = datetime.now()
     orders_this_month = WorkOrder.query.filter(
         func.extract('month', WorkOrder.created_at) == current_month,
-        func.extract('year', WorkOrder.created_at) == current_date.year
+        func.extract('year', WorkOrder.created_at) == current_year
     ).count()
-    
+
+    # Órdenes del mes anterior, para calcular la tendencia real vs mes anterior
+    orders_last_month = WorkOrder.query.filter(
+        func.extract('month', WorkOrder.created_at) == last_month,
+        func.extract('year', WorkOrder.created_at) == last_month_year
+    ).count()
+
+    # Ingresos de este mes y del mes anterior (solo órdenes pagadas), para la tendencia
+    revenue_this_month_orders = WorkOrder.query.filter(
+        WorkOrder.payment_status == 'pagada',
+        WorkOrder.sale_price.isnot(None),
+        func.extract('month', WorkOrder.created_at) == current_month,
+        func.extract('year', WorkOrder.created_at) == current_year
+    ).all()
+    revenue_this_month = sum([float(o.sale_price) for o in revenue_this_month_orders if o.sale_price])
+
+    revenue_last_month_orders = WorkOrder.query.filter(
+        WorkOrder.payment_status == 'pagada',
+        WorkOrder.sale_price.isnot(None),
+        func.extract('month', WorkOrder.created_at) == last_month,
+        func.extract('year', WorkOrder.created_at) == last_month_year
+    ).all()
+    revenue_last_month = sum([float(o.sale_price) for o in revenue_last_month_orders if o.sale_price])
+
+    def pct_change(current, previous):
+        if previous == 0:
+            return 100.0 if current > 0 else 0.0
+        return round((current - previous) / previous * 100, 1)
+
+    orders_growth_pct = pct_change(orders_this_month, orders_last_month)
+    revenue_growth_pct = pct_change(revenue_this_month, revenue_last_month)
+
+    # Sedes creadas este mes, como indicador real de crecimiento de la red
+    sedes_created_this_month = Sede.query.filter(
+        func.extract('month', Sede.created_at) == current_month,
+        func.extract('year', Sede.created_at) == current_year
+    ).count()
+
     return {
         'total_orders': total_orders,
         'total_revenue': total_revenue,
         'pending_payments': pending_payments,
-        'orders_this_month': orders_this_month
+        'orders_this_month': orders_this_month,
+        'orders_growth_pct': orders_growth_pct,
+        'revenue_growth_pct': revenue_growth_pct,
+        'sedes_created_this_month': sedes_created_this_month
     }
 
 # === ENDPOINTS API PARA CARGA ASÍNCRONA ===
@@ -973,7 +1030,7 @@ def api_profit_analysis():
             'success': False,
             'error': 'Error al cargar análisis de ganancias'
         }), 500
-    
+
     # === CONSULTA AGREGADA OPTIMIZADA ===
     # Una sola consulta para obtener todas las estadísticas por sede
     stats_query = db.session.query(
@@ -1540,8 +1597,8 @@ def add_sede():
     admin_username = request.form.get('admin_username')
     admin_email = request.form.get('admin_email')
     
-    # Contraseña compartida para todas las sedes
-    SHARED_PASSWORD = "OpticasDrMejia2024"
+    # Contraseña compartida para todas las sedes, definida en .env (SEDE_SHARED_PASSWORD)
+    SHARED_PASSWORD = current_app.config['SEDE_SHARED_PASSWORD']
     
     # Valido datos básicos de la sede
     if not name or not city or not department:
@@ -1917,7 +1974,7 @@ def create_order():
             for admin in admin_users:
                 notification = Notification(
                     user_id=admin.id,
-                    message=f'⚠️ Nueva orden requiere completar especificaciones de lentes. Orden N° {order.order_number} para {order.client_name} de sede {order.sede.name}.',
+                    message=f'Nueva orden requiere completar especificaciones de lentes. Orden N° {order.order_number} para {order.client_name} de sede {order.sede.name}.',
                     work_order_id=order.id
                 )
                 db.session.add(notification)
@@ -1925,7 +1982,7 @@ def create_order():
             # Notificar a la sede que su orden está pendiente de completar
             notification = Notification(
                 user_id=current_user.id,
-                message=f'⚠️ Orden N° {order.order_number} creada exitosamente. Está pendiente de que el administrador complete las especificaciones de lentes antes de enviarla al proveedor.',
+                message=f'Orden N° {order.order_number} creada exitosamente. Está pendiente de que el administrador complete las especificaciones de lentes antes de enviarla al proveedor.',
                 work_order_id=order.id
             )
             db.session.add(notification)
@@ -1938,7 +1995,7 @@ def create_order():
             if provider_user:
                 notification = Notification(
                     user_id=provider_user.id,
-                    message=f'🆕 Nueva orden recibida! N°: {order.order_number} para {order.client_name}. Por favor acepta o rechaza esta orden.',
+                    message=f'Nueva orden recibida! N°: {order.order_number} para {order.client_name}. Por favor acepta o rechaza esta orden.',
                     work_order_id=order.id
                 )
                 db.session.add(notification)
@@ -1947,7 +2004,7 @@ def create_order():
             if current_user.role == 'admin_sede':
                 notification = Notification(
                     user_id=current_user.id,
-                    message=f'✅ Orden creada exitosamente. La orden N° {order.order_number} para {order.client_name} ha sido enviada al proveedor {order.provider.name}.',
+                    message=f'Orden creada exitosamente. La orden N° {order.order_number} para {order.client_name} ha sido enviada al proveedor {order.provider.name}.',
                     work_order_id=order.id
                 )
                 db.session.add(notification)
@@ -2086,7 +2143,7 @@ def accept_order_with_price(order_id):
         for admin_user in sede_admins:
             notification = Notification(
                 user_id=admin_user.id,
-                message=f'✅ ¡Orden aceptada! El proveedor {order.provider.name} ha aceptado la orden N° {order.order_number} por ${order.total_amount:,.0f} COP. Plazo máximo de entrega: {deadline_str} (7 días).',
+                message=f'¡Orden aceptada! El proveedor {order.provider.name} ha aceptado la orden N° {order.order_number} por ${order.total_amount:,.0f} COP. Plazo máximo de entrega: {deadline_str} (7 días).',
                 work_order_id=order.id
             )
             db.session.add(notification)
@@ -2096,7 +2153,7 @@ def accept_order_with_price(order_id):
         for u in optica_users:
             notification = Notification(
                 user_id=u.id,
-                message=f'✅ Orden aceptada: {order.provider.name} aceptó la orden N° {order.order_number} por ${order.total_amount:,.0f} COP. Entrega máxima: {deadline_str}.',
+                message=f'Orden aceptada: {order.provider.name} aceptó la orden N° {order.order_number} por ${order.total_amount:,.0f} COP. Entrega máxima: {deadline_str}.',
                 work_order_id=order.id
             )
             db.session.add(notification)
@@ -2181,7 +2238,7 @@ def update_order_status(order_id):
                 for admin_user in sede_admins:
                     notification = Notification(
                         user_id=admin_user.id, 
-                        message=f'📧 Orden enviada exitosamente. La orden N° {order.order_number} para {order.client_name} ha sido enviada al proveedor {order.provider.name}.', 
+                        message=f'Orden enviada exitosamente. La orden N° {order.order_number} para {order.client_name} ha sido enviada al proveedor {order.provider.name}.', 
                         work_order_id=order.id
                     )
                     db.session.add(notification)
@@ -2191,7 +2248,7 @@ def update_order_status(order_id):
             for admin_user in sede_admins:
                 notification = Notification(
                     user_id=admin_user.id, 
-                    message=f'✅ ¡Orden aceptada! El proveedor {order.provider.name} ha aceptado la orden N° {order.order_number} para {order.client_name}.', 
+                    message=f'¡Orden aceptada! El proveedor {order.provider.name} ha aceptado la orden N° {order.order_number} para {order.client_name}.', 
                     work_order_id=order.id
                 )
                 db.session.add(notification)
@@ -2207,7 +2264,7 @@ def update_order_status(order_id):
             for admin_user in sede_admins:
                 notification = Notification(
                     user_id=admin_user.id, 
-                    message=f'⚠️ Orden rechazada N° {order.order_number} para {order.client_name}. Razón: {order.rejection_reason}. Puede hacer ajustes y reenviar la orden.', 
+                    message=f'Orden rechazada N° {order.order_number} para {order.client_name}. Razón: {order.rejection_reason}. Puede hacer ajustes y reenviar la orden.', 
                     work_order_id=order.id
                 )
                 db.session.add(notification)
@@ -2215,7 +2272,7 @@ def update_order_status(order_id):
             # También notificar a administradores centrales
             optica_users = User.query.filter(User.role.in_(['admin', 'asistente'])).all()
             for u in optica_users:
-                notification = Notification(user_id=u.id, message=f'⚠️ Orden rechazada. El proveedor {order.provider.name} ha rechazado la orden N° {order.order_number} para {order.client_name}. Razón: {order.rejection_reason}', work_order_id=order.id)
+                notification = Notification(user_id=u.id, message=f'Orden rechazada. El proveedor {order.provider.name} ha rechazado la orden N° {order.order_number} para {order.client_name}. Razón: {order.rejection_reason}', work_order_id=order.id)
                 db.session.add(notification)
         elif order.status == 'en_proceso' and old_status != 'en_proceso':
             # Proveedor inició el trabajo - notificar PRINCIPALMENTE a la sede que la envió
@@ -2223,7 +2280,7 @@ def update_order_status(order_id):
             for admin_user in sede_admins:
                 notification = Notification(
                     user_id=admin_user.id, 
-                    message=f'🔧 Trabajo iniciado. El proveedor {order.provider.name} ha iniciado el trabajo en la orden N° {order.order_number} para {order.client_name}.', 
+                    message=f'Trabajo iniciado. El proveedor {order.provider.name} ha iniciado el trabajo en la orden N° {order.order_number} para {order.client_name}.', 
                     work_order_id=order.id
                 )
                 db.session.add(notification)
@@ -2231,7 +2288,7 @@ def update_order_status(order_id):
             # También notificar a administradores centrales
             optica_users = User.query.filter(User.role.in_(['admin', 'asistente'])).all()
             for u in optica_users:
-                notification = Notification(user_id=u.id, message=f'🔧 Trabajo iniciado. El proveedor {order.provider.name} ha iniciado el trabajo en la orden N° {order.order_number} para {order.client_name}.', work_order_id=order.id)
+                notification = Notification(user_id=u.id, message=f'Trabajo iniciado. El proveedor {order.provider.name} ha iniciado el trabajo en la orden N° {order.order_number} para {order.client_name}.', work_order_id=order.id)
                 db.session.add(notification)
         elif order.status == 'devuelta_proveedor' and old_status != 'devuelta_proveedor':
             # Proveedor terminó el trabajo - notificar PRINCIPALMENTE a la sede que la envió
@@ -2239,7 +2296,7 @@ def update_order_status(order_id):
             for admin_user in sede_admins:
                 notification = Notification(
                     user_id=admin_user.id, 
-                    message=f'✅ ¡Trabajo terminado! El proveedor {order.provider.name} ha terminado la orden N° {order.order_number} para {order.client_name}. Lista para recoger.', 
+                    message=f'¡Trabajo terminado! El proveedor {order.provider.name} ha terminado la orden N° {order.order_number} para {order.client_name}. Lista para recoger.', 
                     work_order_id=order.id
                 )
                 db.session.add(notification)
@@ -2247,7 +2304,7 @@ def update_order_status(order_id):
             # También notificar a administradores centrales
             optica_users = User.query.filter(User.role.in_(['admin', 'asistente'])).all()
             for u in optica_users:
-                notification = Notification(user_id=u.id, message=f'✅ ¡Trabajo terminado! El proveedor {order.provider.name} ha terminado la orden N° {order.order_number} para {order.client_name}. Lista para recoger.', work_order_id=order.id)
+                notification = Notification(user_id=u.id, message=f'¡Trabajo terminado! El proveedor {order.provider.name} ha terminado la orden N° {order.order_number} para {order.client_name}. Lista para recoger.', work_order_id=order.id)
                 db.session.add(notification)
         elif order.status == 'recibida_optica' and old_status != 'recibida_optica':
             # Óptica recibió el trabajo - notificar al proveedor
@@ -2293,7 +2350,7 @@ def start_work_order(order_id):
     for admin_user in sede_admins:
         notification = Notification(
             user_id=admin_user.id, 
-            message=f'🔧 Trabajo iniciado. El proveedor {order.provider.name} ha iniciado el trabajo en la orden N° {order.order_number} para {order.client_name}.', 
+            message=f'Trabajo iniciado. El proveedor {order.provider.name} ha iniciado el trabajo en la orden N° {order.order_number} para {order.client_name}.', 
             work_order_id=order.id
         )
         db.session.add(notification)
@@ -2303,7 +2360,7 @@ def start_work_order(order_id):
     for u in optica_users:
         notification = Notification(
             user_id=u.id, 
-            message=f'🔧 Trabajo iniciado. El proveedor {order.provider.name} ha iniciado el trabajo en la orden N° {order.order_number} para {order.client_name}.', 
+            message=f'Trabajo iniciado. El proveedor {order.provider.name} ha iniciado el trabajo en la orden N° {order.order_number} para {order.client_name}.', 
             work_order_id=order.id
         )
         db.session.add(notification)
@@ -2340,7 +2397,7 @@ def complete_work_order(order_id):
     for admin_user in sede_admins:
         notification = Notification(
             user_id=admin_user.id, 
-            message=f'✅ Trabajo terminado. El proveedor {order.provider.name} ha completado la orden N° {order.order_number} para {order.client_name}. Ya puede recoger los lentes.', 
+            message=f'Trabajo terminado. El proveedor {order.provider.name} ha completado la orden N° {order.order_number} para {order.client_name}. Ya puede recoger los lentes.', 
             work_order_id=order.id
         )
         db.session.add(notification)
@@ -2350,7 +2407,7 @@ def complete_work_order(order_id):
     for u in optica_users:
         notification = Notification(
             user_id=u.id, 
-            message=f'✅ Trabajo terminado. El proveedor {order.provider.name} ha completado la orden N° {order.order_number} para {order.client_name}.', 
+            message=f'Trabajo terminado. El proveedor {order.provider.name} ha completado la orden N° {order.order_number} para {order.client_name}.', 
             work_order_id=order.id
         )
         db.session.add(notification)
@@ -2492,14 +2549,32 @@ def edit_user(user_id):
     user = User.query.get_or_404(user_id)
     form = UserForm(original_user=user, obj=user) # obj pre-pobla el formulario
     if form.validate_on_submit():
+        new_password = request.form.get('new_password', '').strip()
+        confirm_password = request.form.get('confirm_password', '').strip()
+
+        if new_password or confirm_password:
+            if len(new_password) < 6:
+                flash('La contraseña debe tener al menos 6 caracteres.', 'error')
+                return render_template('admin/edit_user.html', title=f'Editar Usuario: {user.username}', form=form, user=user)
+            if new_password != confirm_password:
+                flash('Las contraseñas no coinciden.', 'error')
+                return render_template('admin/edit_user.html', title=f'Editar Usuario: {user.username}', form=form, user=user)
+
         form.populate_obj(user)
         # La asignación de provider_id solo si el rol es proveedor
         if user.role == 'proveedor' and form.provider_id.data:
             user.provider_id = form.provider_id.data
         elif user.role != 'proveedor':
             user.provider_id = None # Si cambia de rol, desasociar proveedor
+
+        if new_password:
+            user.set_password(new_password)
+
         db.session.commit()
-        flash(f'Usuario {user.username} actualizado exitosamente.', 'success')
+        mensaje = f'Usuario {user.username} actualizado exitosamente.'
+        if new_password:
+            mensaje += ' Contraseña actualizada.'
+        flash(mensaje, 'success')
         return redirect(url_for('main.admin_users'))
     return render_template('admin/edit_user.html', title=f'Editar Usuario: {user.username}', form=form, user=user)
 
@@ -3039,7 +3114,7 @@ def resubmit_order(order_id):
         if provider_user:
             notification = Notification(
                 user_id=provider_user.id,
-                message=f'🔄 Orden reenviada N° {order.order_number} para {order.client_name}. Se han realizado ajustes según su solicitud. Por favor revise nuevamente.',
+                message=f'Orden reenviada N° {order.order_number} para {order.client_name}. Se han realizado ajustes según su solicitud. Por favor revise nuevamente.',
                 work_order_id=order.id
             )
             db.session.add(notification)
@@ -3083,7 +3158,7 @@ def mark_order_collected(order_id):
         if provider_user:
             notification = Notification(
                 user_id=provider_user.id,
-                message=f'✅ Orden recogida. La sede {order.sede.name} ha recogido la orden N° {order.order_number} de {order.client_name}.',
+                message=f'Orden recogida. La sede {order.sede.name} ha recogido la orden N° {order.order_number} de {order.client_name}.',
                 work_order_id=order.id
             )
             db.session.add(notification)
@@ -3093,7 +3168,7 @@ def mark_order_collected(order_id):
         for u in optica_users:
             notification = Notification(
                 user_id=u.id,
-                message=f'📦 Orden recogida. La sede {order.sede.name} recogió la orden N° {order.order_number} de {order.client_name}.',
+                message=f'Orden recogida. La sede {order.sede.name} recogió la orden N° {order.order_number} de {order.client_name}.',
                 work_order_id=order.id
             )
             db.session.add(notification)
@@ -3222,7 +3297,7 @@ def check_overdue_orders():
                 order.overdue_alert_sent = True
                 
                 # Crear notificaciones de alerta
-                alert_message = f'🚨 ALERTA: La orden N° {order.order_number} está VENCIDA por {days_overdue} día(s). Proveedor: {order.provider.razon_social}. Se esperaba entrega el {order.delivery_deadline.strftime("%d/%m/%Y")}.'
+                alert_message = f'ALERTA: La orden N° {order.order_number} está VENCIDA por {days_overdue} día(s). Proveedor: {order.provider.razon_social}. Se esperaba entrega el {order.delivery_deadline.strftime("%d/%m/%Y")}.'
                 
                 # Notificar a administradores de la sede
                 sede_admins = User.query.filter_by(
@@ -3343,7 +3418,7 @@ def complete_lens_specs(order_id):
         if provider_user:
             notification = Notification(
                 user_id=provider_user.id,
-                message=f'🆕 Nueva orden recibida! N°: {order.order_number} para {order.client_name}. Por favor acepta o rechaza esta orden.',
+                message=f'Nueva orden recibida! N°: {order.order_number} para {order.client_name}. Por favor acepta o rechaza esta orden.',
                 work_order_id=order.id
             )
             db.session.add(notification)
@@ -3357,7 +3432,7 @@ def complete_lens_specs(order_id):
         for admin in sede_admins:
             notification = Notification(
                 user_id=admin.id,
-                message=f'✅ Especificaciones de lentes completadas. La orden N° {order.order_number} para {order.client_name} ha sido enviada al proveedor {order.provider.name}.',
+                message=f'Especificaciones de lentes completadas. La orden N° {order.order_number} para {order.client_name} ha sido enviada al proveedor {order.provider.name}.',
                 work_order_id=order.id
             )
             db.session.add(notification)

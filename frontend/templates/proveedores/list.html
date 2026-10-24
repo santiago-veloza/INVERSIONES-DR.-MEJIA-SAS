@@ -3,7 +3,7 @@
     <h1 class="mb-4">Proveedores</h1>
     <p>
         <a href="{{ url_for('main.create_provider') }}" class="btn btn-success">
-            <i class="fas fa-plus"></i> Registrar Nuevo Proveedor
+            <i class="bi bi-plus-lg"></i> Registrar Nuevo Proveedor
         </a>
     </p>
     {% if providers %}
@@ -52,7 +52,7 @@
                             <div class="btn-group" role="group">
                                 <a href="{{ url_for('main.edit_provider', provider_id=provider.id) }}" 
                                    class="btn btn-sm btn-info" title="Editar Proveedor">
-                                   <i class="fas fa-edit"></i>
+                                   <i class="bi bi-pencil-square"></i>
                                 </a>
                                 {% set user = provider.users|first if provider.users else none %}
                                 {% if user and current_user.role in ['admin', 'asistente'] %}
@@ -61,14 +61,14 @@
                                         data-bs-toggle="modal" 
                                         data-bs-target="#credentialsModal{{ provider.id }}"
                                         title="Ver Credenciales">
-                                    <i class="fas fa-eye"></i>
+                                    <i class="bi bi-eye-fill"></i>
                                 </button>
                                 <button type="button" 
                                         class="btn btn-sm btn-warning" 
                                         data-bs-toggle="modal" 
                                         data-bs-target="#changePasswordModal{{ provider.id }}"
                                         title="Cambiar Contraseña">
-                                    <i class="fas fa-key"></i>
+                                    <i class="bi bi-key-fill"></i>
                                 </button>
                                 {% endif %}
                             </div>
@@ -91,7 +91,7 @@
                     </div>
                     <div class="modal-body">
                         <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i> 
+                            <i class="bi bi-info-circle-fill"></i> 
                             Estas son las credenciales que el proveedor debe usar para acceder al sistema.
                         </div>
                         <div class="row">
@@ -115,7 +115,7 @@
                                     <div class="input-group">
                                         <input type="text" class="form-control" value="{{ user.username }}" readonly id="username{{ provider.id }}">
                                         <button class="btn btn-outline-secondary copy-btn" type="button" data-target="username{{ provider.id }}">>
-                                            <i class="fas fa-copy"></i>
+                                            <i class="bi bi-copy"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -126,7 +126,7 @@
                                     <div class="input-group">
                                         <input type="text" class="form-control" value="{{ user.email }}" readonly id="email{{ provider.id }}">
                                         <button class="btn btn-outline-secondary copy-btn" type="button" data-target="email{{ provider.id }}">>
-                                            <i class="fas fa-copy"></i>
+                                            <i class="bi bi-copy"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -137,12 +137,12 @@
                             <div class="input-group">
                                 <input type="text" class="form-control" value="{{ request.url_root }}" readonly id="url{{ provider.id }}">
                                 <button class="btn btn-outline-secondary copy-btn" type="button" data-target="url{{ provider.id }}">>
-                                    <i class="fas fa-copy"></i>
+                                    <i class="bi bi-copy"></i>
                                 </button>
                             </div>
                         </div>
                         <div class="alert alert-warning">
-                            <i class="fas fa-exclamation-triangle"></i> 
+                            <i class="bi bi-exclamation-triangle-fill"></i> 
                             <strong>Nota:</strong> La contraseña no se muestra por seguridad. Si el proveedor la olvida, use el botón "Cambiar Contraseña".
                         </div>
                     </div>
@@ -172,6 +172,7 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <form method="POST" action="{{ url_for('main.change_provider_password', provider_id=provider.id) }}" autocomplete="off">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="modal-body">
                             <div class="mb-3">
                                 <label class="form-label">Usuario:</label>
@@ -249,7 +250,7 @@
                 const button = element.parentElement.querySelector('button');
                 const originalIcon = button.innerHTML;
                 const checkIcon = document.createElement('i');
-                checkIcon.className = 'fas fa-check text-success';
+                checkIcon.className = 'bi bi-check-lg text-success';
                 button.textContent = '';
                 button.appendChild(checkIcon);
                 setTimeout(() => {

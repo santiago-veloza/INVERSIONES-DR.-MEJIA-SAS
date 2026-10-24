@@ -1,7 +1,3 @@
-"""
-Servicios base para mantener la lógica de negocio separada de los controladores.
-Esta estructura mejora la mantenibilidad sin afectar la funcionalidad existente.
-"""
 
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional

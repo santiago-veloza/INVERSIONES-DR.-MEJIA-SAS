@@ -4,12 +4,12 @@
         <div class="mb-3 mb-md-0">
             <h1 class="text-gradient mb-2">Órdenes Pendientes de Pago</h1>
             <p class="text-muted mb-0">
-                <i class="fas fa-clock me-2"></i>Gestiona los pagos pendientes
+                <i class="bi bi-clock-fill me-2"></i>Gestiona los pagos pendientes
             </p>
         </div>
         <div>
             <a href="{{ url_for('main.sede_payments') }}" class="btn btn-outline-primary">
-                <i class="fas fa-arrow-left me-2"></i>
+                <i class="bi bi-arrow-left me-2"></i>
                 <span class="d-none d-sm-inline">Volver a </span>Mis Pagos
             </a>
         </div>
@@ -26,18 +26,18 @@
             </div>
             <div class="col-md-auto">
                 <a href="{{ url_for('main.list_pending_payments') }}" class="btn btn-secondary">
-                    <i class="fas fa-times"></i> Limpiar
+                    <i class="bi bi-x-lg"></i> Limpiar
                 </a>
             </div>
         </form>
     </div>
     {% if filtered_provider %}
     <div class="alert alert-info mb-3">
-        <i class="fas fa-filter"></i> 
+        <i class="bi bi-funnel-fill"></i> 
         Mostrando órdenes filtradas por proveedor: <strong>{{ filtered_provider.name or filtered_provider.razon_social }}</strong>
         <span class="ms-2">
             <a href="{{ url_for('main.list_pending_payments') }}" class="btn btn-sm btn-outline-secondary">
-                <i class="fas fa-times"></i> Quitar filtro
+                <i class="bi bi-x-lg"></i> Quitar filtro
             </a>
         </span>
     </div>
@@ -94,10 +94,10 @@
                         <td>
                             <div class="btn-group" role="group">
                                 <a href="{{ url_for('main.view_order', order_id=order.id) }}" class="btn btn-sm btn-primary" title="Ver Detalle">
-                                    <i class="fas fa-eye"></i>
+                                    <i class="bi bi-eye-fill"></i>
                                 </a>
                                 <a href="{{ url_for('main.add_payment', order_id=order.id) }}" class="btn btn-sm btn-success" title="Registrar Pago">
-                                    <i class="fas fa-dollar-sign"></i>
+                                    <i class="bi bi-currency-dollar"></i>
                                 </a>
                             </div>
                         </td>
@@ -114,7 +114,7 @@
                         <div class="card-body">
                             <div class="d-flex align-items-center justify-content-center mb-3">
                                 <div class="bg-primary bg-opacity-10 rounded-circle p-3">
-                                    <i class="fas fa-file-invoice fa-2x text-primary"></i>
+                                    <i class="bi bi-receipt-cutoff bi-2x text-primary"></i>
                                 </div>
                             </div>
                             <h6 class="text-muted">Total de Órdenes</h6>
@@ -127,7 +127,7 @@
                         <div class="card-body">
                             <div class="d-flex align-items-center justify-content-center mb-3">
                                 <div class="bg-info bg-opacity-10 rounded-circle p-3">
-                                    <i class="fas fa-dollar-sign fa-2x text-info"></i>
+                                    <i class="bi bi-currency-dollar bi-2x text-info"></i>
                                 </div>
                             </div>
                             <h6 class="text-muted">Monto Total</h6>
@@ -141,7 +141,7 @@
                         <div class="card-body">
                             <div class="d-flex align-items-center justify-content-center mb-3">
                                 <div class="bg-success bg-opacity-10 rounded-circle p-3">
-                                    <i class="fas fa-check-circle fa-2x text-success"></i>
+                                    <i class="bi bi-check-circle-fill bi-2x text-success"></i>
                                 </div>
                             </div>
                             <h6 class="text-muted">Total Pagado</h6>
@@ -159,7 +159,7 @@
                         <div class="card-body">
                             <div class="d-flex align-items-center justify-content-center mb-3">
                                 <div class="bg-danger bg-opacity-10 rounded-circle p-3">
-                                    <i class="fas fa-exclamation-triangle fa-2x text-danger"></i>
+                                    <i class="bi bi-exclamation-triangle-fill bi-2x text-danger"></i>
                                 </div>
                             </div>
                             <h6 class="text-muted">Total Pendiente</h6>
@@ -180,7 +180,7 @@
         </div>
     {% else %}
         <div class="alert alert-info text-center">
-            <i class="fas fa-info-circle"></i>
+            <i class="bi bi-info-circle-fill"></i>
             <h4>No hay órdenes pendientes de pago</h4>
             <p class="mb-0">Todas las órdenes han sido pagadas completamente.</p>
         </div>

@@ -10,7 +10,7 @@
     {% endif %}
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js" 
             crossorigin="anonymous"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
@@ -26,8 +26,8 @@
     <nav class="topbar">
         <div class="topbar-container">
             <div class="topbar-left">
-                <button class="sidebar-toggle" id="sidebarToggle">
-                    <i class="fas fa-bars"></i>
+                <button class="sidebar-toggle d-lg-none" id="sidebarToggle">
+                    <i class="bi bi-list"></i>
                 </button>
                 <a class="topbar-brand" href="{{ url_for('main.index') }}">
                     <img src="https://res.cloudinary.com/dwdnfpr8i/image/upload/v1762146543/logo-DR_MEJIA_za9ocq.png" 
@@ -42,7 +42,7 @@
                     <!-- Notificaciones -->
                     <div class="topbar-item dropdown">
                         <a class="topbar-icon" href="#" id="notificationsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-bell"></i>
+                            <i class="bi bi-bell"></i>
                             {% if unread_notifications_count > 0 %}
                                 <span class="topbar-badge" id="notificationBadge">{{ unread_notifications_count }}</span>
                             {% endif %}
@@ -51,55 +51,49 @@
                             {% if latest_notifications %}
                                 {% for notification in latest_notifications %}
                                     <li>
+                                        {% set msg = notification.message.lower() %}
                                         {% set notif_class = '' %}
-                                        {% if '⚠️' in notification.message or 'rechazada' in notification.message.lower() or 'pendiente' in notification.message.lower() %}
+                                        {% set notif_icon = 'bi-info-circle-fill' %}
+                                        {% if 'rechazada' in msg or 'pendiente' in msg or 'vencida' in msg %}
                                             {% set notif_class = 'notification-urgent' %}
-                                        {% elif '✅' in notification.message or 'aceptada' in notification.message.lower() or 'completado' in notification.message.lower() or 'terminado' in notification.message.lower() or 'recogida' in notification.message.lower() %}
+                                            {% set notif_icon = 'bi-exclamation-triangle-fill' %}
+                                        {% elif 'aceptada' in msg or 'completad' in msg or 'terminad' in msg or 'recogi' in msg or 'finaliz' in msg %}
                                             {% set notif_class = 'notification-success' %}
-                                        {% elif '🔧' in notification.message or 'iniciado' in notification.message.lower() or 'proceso' in notification.message.lower() %}
+                                            {% set notif_icon = 'bi-check-circle-fill' %}
+                                        {% elif 'iniciado' in msg or 'proceso' in msg or 'reenviada' in msg %}
                                             {% set notif_class = 'notification-warning' %}
-                                        {% elif '📧' in notification.message or 'enviada' in notification.message.lower() or '📦' in notification.message %}
+                                            {% set notif_icon = 'bi-gear-fill' %}
+                                        {% elif 'enviada' in msg or 'lista' in msg %}
                                             {% set notif_class = 'notification-info' %}
+                                            {% set notif_icon = 'bi-envelope-fill' %}
                                         {% endif %}
-                                        
-                                        <a class="dropdown-item {% if not notification.is_read %}fw-bold{% endif %} {{ notif_class }}" 
+
+                                        <a class="dropdown-item {% if not notification.is_read %}fw-bold{% endif %} {{ notif_class }}"
                                            href="{{ url_for('main.view_order', order_id=notification.work_order_id) if notification.work_order_id else url_for('main.view_notifications') }}">
-                                            {% if '⚠️' in notification.message %}
-                                                <i class="fas fa-exclamation-triangle me-2"></i>
-                                            {% elif '✅' in notification.message %}
-                                                <i class="fas fa-check-circle me-2"></i>
-                                            {% elif '🔧' in notification.message %}
-                                                <i class="fas fa-cog me-2"></i>
-                                            {% elif '📧' in notification.message %}
-                                                <i class="fas fa-envelope me-2"></i>
-                                            {% elif '📦' in notification.message %}
-                                                <i class="fas fa-box me-2"></i>
-                                            {% else %}
-                                                <i class="fas fa-info-circle me-2"></i>
-                                            {% endif %}
+                                            <i class="bi {{ notif_icon }} me-2"></i>
                                             {{ notification.message }}
                                             <small class="d-block mt-1">
-                                                <i class="fas fa-clock me-1"></i>{{ notification.created_at.strftime('%H:%M %d/%m') }}
+                                                <i class="bi bi-clock-fill me-1"></i>{{ notification.created_at.strftime('%H:%M %d/%m') }}
                                             </small>
                                         </a>
                                     </li>
                                 {% endfor %}
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item text-center fw-bold" href="{{ url_for('main.view_notifications') }}">
-                                    <i class="fas fa-eye me-2"></i>Ver todas las notificaciones
+                                    <i class="bi bi-eye-fill me-2"></i>Ver todas las notificaciones
                                 </a></li>
                             {% else %}
                                 <li><span class="dropdown-item text-muted text-center">
-                                    <i class="fas fa-bell-slash me-2"></i>No hay notificaciones nuevas.
+                                    <i class="bi bi-bell-slash me-2"></i>No hay notificaciones nuevas.
                                 </span></li>
                             {% endif %}
                         </ul>
                     </div>
                     
-                    <!-- Perfil de Usuario -->
-                    <div class="topbar-item dropdown">
-                        <a class="topbar-user" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-user-circle"></i>
+                    <!-- Usuario (opciones de cuenta ahora en el menú lateral) -->
+                    <div class="topbar-item">
+                        <span class="topbar-user">
+                            <i class="bi bi-person-circle"></i>
                             <span class="topbar-username">
                                 {% if current_user.role == 'admin_sede' and current_user.sede_asignada %}
                                     {{ current_user.sede_asignada.name }}
@@ -107,37 +101,11 @@
                                     {{ current_user.username }}
                                 {% endif %}
                             </span>
-                            <i class="fas fa-chevron-down"></i>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                            <li class="dropdown-header">
-                                <strong>
-                                    {% if current_user.role == 'admin_sede' and current_user.sede_asignada %}
-                                        {{ current_user.sede_asignada.name }}
-                                    {% else %}
-                                        {{ current_user.username }}
-                                    {% endif %}
-                                </strong>
-                                <br><small>{{ current_user.role.replace('_', ' ').title() }}</small>
-                            </li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#">
-                                <i class="fas fa-user me-2"></i> Perfil
-                            </a></li>
-                            {% if current_user.role == 'admin' %}
-                            <li><a class="dropdown-item" href="{{ url_for('main.change_my_password') }}">
-                                <i class="fas fa-key me-2"></i> Cambiar Contraseña
-                            </a></li>
-                            {% endif %}
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="{{ url_for('main.logout') }}">
-                                <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
-                            </a></li>
-                        </ul>
+                        </span>
                     </div>
                 {% else %}
                     <a class="btn btn-light btn-sm" href="{{ url_for('main.login') }}">
-                        <i class="fas fa-sign-in-alt me-1"></i> Iniciar Sesión
+                        <i class="bi bi-box-arrow-in-right me-1"></i> Iniciar Sesión
                     </a>
                 {% endif %}
             </div>
@@ -148,7 +116,7 @@
     {% if current_user.is_authenticated %}
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <h5><i class="fas fa-th-large me-2"></i>Menú Principal</h5>
+            <h5><i class="bi bi-grid-3x3-gap-fill me-2"></i>Menú Principal</h5>
         </div>
         <nav class="sidebar-nav">
             <ul class="sidebar-menu">
@@ -156,7 +124,7 @@
                 <!-- Dashboard (Reportes y Estadísticas) -->
                 <li class="sidebar-item">
                     <a class="sidebar-link" href="{{ url_for('main.index') }}">
-                        <i class="fas fa-tachometer-alt"></i>
+                        <i class="bi bi-speedometer2"></i>
                         <span>Dashboard</span>
                     </a>
                 </li>
@@ -164,7 +132,7 @@
                 <!-- Consolidado de Órdenes -->
                 <li class="sidebar-item">
                     <a class="sidebar-link" href="{{ url_for('main.list_orders') }}">
-                        <i class="fas fa-clipboard-list"></i>
+                        <i class="bi bi-clipboard-data"></i>
                         <span>Consolidado de Órdenes</span>
                     </a>
                 </li>
@@ -172,39 +140,43 @@
                 <!-- Órdenes por sede -->
                 <li class="sidebar-item">
                     <a class="sidebar-link" href="{{ url_for('main.list_sedes') }}">
-                        <i class="fas fa-map-marked-alt"></i>
+                        <i class="bi bi-geo-alt-fill"></i>
                         <span>Órdenes por Sede</span>
                     </a>
                 </li>
                 
-                <!-- Estadísticas por sede -->
+                {% if current_user.role == 'admin' %}
+                <!-- Estadísticas por sede (solo admin: la ruta en el backend está restringida a este rol) -->
                 <li class="sidebar-item">
                     <a class="sidebar-link" href="{{ url_for('main.sede_statistics') }}">
-                        <i class="fas fa-chart-line"></i>
+                        <i class="bi bi-graph-up"></i>
                         <span>Estadísticas por Sede</span>
                     </a>
                 </li>
-                
+                {% endif %}
+
                 <!-- Pagos -->
                 <li class="sidebar-item">
                     <a class="sidebar-link" href="{{ url_for('main.list_pending_payments') }}">
-                        <i class="fas fa-dollar-sign"></i>
+                        <i class="bi bi-currency-dollar"></i>
                         <span>Pagos</span>
                     </a>
                 </li>
                 
-                <!-- Usuarios -->
+                {% if current_user.role == 'admin' %}
+                <!-- Usuarios (solo admin: la ruta en el backend está restringida a este rol) -->
                 <li class="sidebar-item">
                     <a class="sidebar-link" href="{{ url_for('main.admin_users') }}">
-                        <i class="fas fa-users"></i>
+                        <i class="bi bi-people-fill"></i>
                         <span>Usuarios</span>
                     </a>
                 </li>
-                
+                {% endif %}
+
                 <!-- Proveedores -->
                 <li class="sidebar-item">
                     <a class="sidebar-link" href="{{ url_for('main.list_providers') }}">
-                        <i class="fas fa-truck"></i>
+                        <i class="bi bi-truck"></i>
                         <span>Proveedores</span>
                     </a>
                 </li>
@@ -212,7 +184,7 @@
                 <!-- Mensajes -->
                 <li class="sidebar-item">
                     <a class="sidebar-link" href="{{ url_for('main.list_sede_messages') }}">
-                        <i class="fas fa-envelope"></i>
+                        <i class="bi bi-envelope-fill"></i>
                         <span>Mensajes</span>
                     </a>
                 </li>
@@ -221,19 +193,19 @@
                 <!-- Menú para Admin de Sede -->
                 <li class="sidebar-item">
                     <a class="sidebar-link" href="{{ url_for('main.list_orders') }}">
-                        <i class="fas fa-clipboard-list"></i>
+                        <i class="bi bi-clipboard-data"></i>
                         <span>Órdenes de Trabajo</span>
                     </a>
                 </li>
                 <li class="sidebar-item">
                     <a class="sidebar-link" href="{{ url_for('main.sede_payments') }}">
-                        <i class="fas fa-credit-card"></i>
+                        <i class="bi bi-credit-card-fill"></i>
                         <span>Mis Pagos</span>
                     </a>
                 </li>
                 <li class="sidebar-item">
                     <a class="sidebar-link" href="{{ url_for('main.my_sede_messages') }}">
-                        <i class="fas fa-envelope"></i>
+                        <i class="bi bi-envelope-fill"></i>
                         <span>Mensajes</span>
                         {% if sede_messages_count > 0 %}
                             <span class="sidebar-badge">{{ sede_messages_count }}</span>
@@ -245,17 +217,41 @@
                 <!-- Menú para Proveedor -->
                 <li class="sidebar-item">
                     <a class="sidebar-link" href="{{ url_for('main.index') }}">
-                        <i class="fas fa-tachometer-alt"></i>
+                        <i class="bi bi-speedometer2"></i>
                         <span>Dashboard</span>
                     </a>
                 </li>
                 <li class="sidebar-item">
                     <a class="sidebar-link" href="{{ url_for('main.list_orders') }}">
-                        <i class="fas fa-clipboard-list"></i>
+                        <i class="bi bi-clipboard-data"></i>
                         <span>Mis Órdenes</span>
                     </a>
                 </li>
                 {% endif %}
+
+                <li><div class="sidebar-divider"></div></li>
+
+                <!-- Cuenta -->
+                <li class="sidebar-item">
+                    <a class="sidebar-link" href="#">
+                        <i class="bi bi-person-fill"></i>
+                        <span>Perfil</span>
+                    </a>
+                </li>
+                {% if current_user.role == 'admin' %}
+                <li class="sidebar-item">
+                    <a class="sidebar-link" href="{{ url_for('main.change_my_password') }}">
+                        <i class="bi bi-key-fill"></i>
+                        <span>Cambiar Contraseña</span>
+                    </a>
+                </li>
+                {% endif %}
+                <li class="sidebar-item">
+                    <a class="sidebar-link" href="{{ url_for('main.logout') }}">
+                        <i class="bi bi-box-arrow-right"></i>
+                        <span>Cerrar Sesión</span>
+                    </a>
+                </li>
             </ul>
         </nav>
     </aside>
@@ -269,15 +265,15 @@
                     {% for category, message in messages %}
                         <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
                             {% if category == 'success' %}
-                                <i class="fas fa-check-circle me-2"></i>
+                                <i class="bi bi-check-circle-fill me-2"></i>
                             {% elif category == 'danger' %}
-                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
                             {% elif category == 'warning' %}
-                                <i class="fas fa-exclamation-circle me-2"></i>
+                                <i class="bi bi-exclamation-circle-fill me-2"></i>
                             {% elif category == 'info' %}
-                                <i class="fas fa-info-circle me-2"></i>
+                                <i class="bi bi-info-circle-fill me-2"></i>
                             {% else %}
-                                <i class="fas fa-info me-2"></i>
+                                <i class="bi bi-info-lg me-2"></i>
                             {% endif %}
                             {{ message }}
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -293,10 +289,10 @@
     <footer class="main-footer">
         <div class="footer-container">
             <p class="mb-0">
-                <i class="fas fa-copyright me-2"></i>
+                <i class="bi bi-c-circle me-2"></i>
                 <strong>2025 Inversiones Dr. Mejía SAS</strong>
                 <span class="mx-3">|</span>
-                <i class="fas fa-shield-alt me-1"></i>
+                <i class="bi bi-shield-fill-check me-1"></i>
                 Todos los derechos reservados
             </p>
         </div>
@@ -318,22 +314,12 @@
             overlay.className = 'sidebar-overlay';
             document.body.appendChild(overlay);
 
+            // En escritorio el sidebar se expande solo con :hover (CSS).
+            // En móvil no hay hover, así que se abre/cierra con el botón y overlay.
             if (sidebarToggle && sidebar) {
                 sidebarToggle.addEventListener('click', function() {
-                    const isMobile = window.innerWidth <= 992;
-                    
-                    if (isMobile) {
-                        // En móvil, mostrar/ocultar sidebar con overlay
-                        sidebar.classList.toggle('show');
-                        overlay.classList.toggle('show');
-                    } else {
-                        // En desktop, colapsar/expandir sidebar
-                        sidebar.classList.toggle('collapsed');
-                        body.classList.toggle('sidebar-collapsed');
-                        
-                        // Guardar preferencia
-                        localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
-                    }
+                    sidebar.classList.toggle('show');
+                    overlay.classList.toggle('show');
                 });
 
                 // Cerrar sidebar al hacer clic en overlay (móvil)
@@ -355,28 +341,14 @@
                     });
                 });
 
-                // Restaurar preferencia solo en desktop
-                if (window.innerWidth > 992) {
-                    const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-                    if (isCollapsed) {
-                        sidebar.classList.add('collapsed');
-                        body.classList.add('sidebar-collapsed');
-                    }
-                }
-
-                // Manejar resize de ventana
+                // Al pasar a escritorio, limpiar el estado de apertura móvil
                 let resizeTimer;
                 window.addEventListener('resize', function() {
                     clearTimeout(resizeTimer);
                     resizeTimer = setTimeout(function() {
                         if (window.innerWidth > 992) {
-                            // En desktop, remover clases de móvil
                             sidebar.classList.remove('show');
                             overlay.classList.remove('show');
-                        } else {
-                            // En móvil, remover clases de desktop
-                            sidebar.classList.remove('collapsed');
-                            body.classList.remove('sidebar-collapsed');
                         }
                     }, 250);
                 });
@@ -395,7 +367,7 @@
         function showLoading(element) {
             const originalText = element.textContent;
             const spinner = document.createElement('i');
-            spinner.className = 'fas fa-spinner fa-spin me-2';
+            spinner.className = 'bi bi-arrow-repeat bi-spin me-2';
 
             element.textContent = '';
             element.appendChild(spinner);
@@ -698,12 +670,12 @@
                             <div class="modal-content border-warning">
                                 <div class="modal-header bg-warning text-dark">
                                     <h5 class="modal-title" id="sessionWarningModalLabel">
-                                        <i class="fas fa-exclamation-triangle me-2"></i>Advertencia de Sesión
+                                        <i class="bi bi-exclamation-triangle-fill me-2"></i>Advertencia de Sesión
                                     </h5>
                                 </div>
                                 <div class="modal-body text-center">
                                     <div class="mb-3">
-                                        <i class="fas fa-clock fa-3x text-warning mb-3"></i>
+                                        <i class="bi bi-clock-fill bi-3x text-warning mb-3"></i>
                                     </div>
                                     <h6>Su sesión expirará en:</h6>
                                     <div class="display-4 text-danger mb-3" id="sessionTimeRemaining">2:00</div>
@@ -711,10 +683,10 @@
                                 </div>
                                 <div class="modal-footer justify-content-center">
                                     <button type="button" class="btn btn-success" onclick="sessionManager.extendSession(); sessionManager.hideWarning();">
-                                        <i class="fas fa-refresh me-2"></i>Extender Sesión
+                                        <i class="bi bi-arrow-clockwise me-2"></i>Extender Sesión
                                     </button>
                                     <button type="button" class="btn btn-secondary" onclick="sessionManager.forceLogout('Cerrado por usuario');">
-                                        <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                                        <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
                                     </button>
                                 </div>
                             </div>
@@ -759,19 +731,19 @@
                             <div class="modal-content border-danger">
                                 <div class="modal-header bg-danger text-white">
                                     <h5 class="modal-title" id="${modalId}Label">
-                                        <i class="fas fa-exclamation-circle me-2"></i>Sesión Terminada
+                                        <i class="bi bi-exclamation-circle-fill me-2"></i>Sesión Terminada
                                     </h5>
                                 </div>
                                 <div class="modal-body text-center">
                                     <div class="mb-3">
-                                        <i class="fas fa-sign-out-alt fa-3x text-danger mb-3"></i>
+                                        <i class="bi bi-box-arrow-right bi-3x text-danger mb-3"></i>
                                     </div>
                                     <h6 class="text-dark">${reason}</h6>
                                     <p class="text-muted mt-3">Será redirigido al inicio de sesión automáticamente.</p>
                                 </div>
                                 <div class="modal-footer justify-content-center">
                                     <button type="button" class="btn btn-danger" onclick="window.location.href = sessionManager.logoutUrl;">
-                                        <i class="fas fa-sign-in-alt me-2"></i>Ir al Login
+                                        <i class="bi bi-box-arrow-in-right me-2"></i>Ir al Login
                                     </button>
                                 </div>
                             </div>

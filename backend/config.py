@@ -27,14 +27,13 @@ class Config:
     UPLOAD_FOLDER = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', 'frontend', 'static', 'uploads')
     MAX_CONTENT_LENGTH = int(os.environ.get('MAX_CONTENT_LENGTH', 16 * 1024 * 1024))  # 16 MB default
     
-    # Configuraciones de seguridad mejoradas
-    SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'False').lower() == 'true'
+    SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'True').lower() == 'true'
     SESSION_COOKIE_HTTPONLY = True  
     SESSION_COOKIE_SAMESITE = 'Lax'
     
-    # Configuración de timeout de sesión más realista
-    PERMANENT_SESSION_LIFETIME = timedelta(minutes=int(os.environ.get('PERMANENT_SESSION_LIFETIME', 720)))  # 12 horas default
-    SESSION_TIMEOUT_WARNING = timedelta(minutes=int(os.environ.get('SESSION_TIMEOUT_WARNING', 700)))     # Advertencia a 11h 40m
+    # Configuración de timeout de sesión: cierre por inactividad y aviso previo
+    PERMANENT_SESSION_LIFETIME = timedelta(minutes=int(os.environ.get('PERMANENT_SESSION_LIFETIME', 17)))  # 17 minutos default
+    SESSION_TIMEOUT_WARNING = timedelta(minutes=int(os.environ.get('SESSION_TIMEOUT_WARNING', 15)))     # Aviso 2 minutos antes
     SESSION_REFRESH_EACH_REQUEST = True  # Renovar sesión en cada request
     
     # Configuración de cache
@@ -48,6 +47,11 @@ class Config:
     # Configuración de logging
     LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO')
     LOG_FILE = os.environ.get('LOG_FILE', 'logs/app.log')
+
+    ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'admin')
+    ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'admin123')
+    ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'admin@opticas.com')
+    SEDE_SHARED_PASSWORD = os.environ.get('SEDE_SHARED_PASSWORD', 'OpticasDrMejia2024')
     
     @staticmethod
     def init_app(app):

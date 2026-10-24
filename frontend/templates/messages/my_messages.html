@@ -3,7 +3,7 @@
     <div class="container-fluid">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1>
-                <i class="fas fa-envelope"></i> Mis Mensajes
+                <i class="bi bi-envelope-fill"></i> Mis Mensajes
                 {% if sede_messages_count > 0 %}
                     <span class="badge bg-primary">{{ sede_messages_count }}</span>
                 {% endif %}
@@ -14,7 +14,7 @@
             {% if urgent_messages %}
             <div class="alert alert-danger border-start border-danger border-5 mb-4">
                 <h5 class="alert-heading">
-                    <i class="fas fa-exclamation-triangle"></i> Mensajes Urgentes
+                    <i class="bi bi-exclamation-triangle-fill"></i> Mensajes Urgentes
                 </h5>
                 <p>Tienes {{ urgent_messages|length }} mensaje(s) urgente(s) que requieren atención inmediata.</p>
             </div>
@@ -35,18 +35,18 @@
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     {% if message.priority == 'urgente' %}
-                                        <i class="fas fa-exclamation-triangle"></i> URGENTE
+                                        <i class="bi bi-exclamation-triangle-fill"></i> URGENTE
                                     {% elif message.priority == 'alta' %}
-                                        <i class="fas fa-exclamation-circle"></i> ALTA PRIORIDAD
+                                        <i class="bi bi-exclamation-circle-fill"></i> ALTA PRIORIDAD
                                     {% else %}
-                                        <i class="fas fa-info-circle"></i> INFORMACIÓN
+                                        <i class="bi bi-info-circle-fill"></i> INFORMACIÓN
                                     {% endif %}
                                 </div>
                                 <small>
                                     {% if message.is_global %}
-                                        <i class="fas fa-globe"></i> Global
+                                        <i class="bi bi-globe"></i> Global
                                     {% else %}
-                                        <i class="fas fa-building"></i> Mi Sede
+                                        <i class="bi bi-building"></i> Mi Sede
                                     {% endif %}
                                 </small>
                             </div>
@@ -59,7 +59,7 @@
                             {% if message.expires_at %}
                             <div class="alert alert-light border-start border-warning border-3 p-2 mb-2">
                                 <small>
-                                    <i class="fas fa-clock text-warning"></i> 
+                                    <i class="bi bi-clock-fill text-warning"></i> 
                                     <strong>Vigente hasta:</strong> {{ message.expires_at.strftime('%d/%m/%Y') }}
                                     {% if message.expires_at.date() < current_date %}
                                         <span class="badge bg-danger ms-1">EXPIRADO</span>
@@ -70,16 +70,16 @@
                             </div>
                             {% endif %}
                             <button class="btn btn-outline-primary btn-sm w-100 view-message-btn" data-message-id="{{ message.id }}">
-                                <i class="fas fa-eye"></i> Ver Mensaje Completo
+                                <i class="bi bi-eye-fill"></i> Ver Mensaje Completo
                             </button>
                         </div>
                         <div class="card-footer text-muted">
                             <div class="d-flex justify-content-between">
                                 <small>
-                                    <i class="fas fa-user"></i> {{ message.sender.username }}
+                                    <i class="bi bi-person-fill"></i> {{ message.sender.username }}
                                 </small>
                                 <small>
-                                    <i class="fas fa-calendar"></i> {{ message.created_at.strftime('%d/%m/%Y') }}
+                                    <i class="bi bi-calendar"></i> {{ message.created_at.strftime('%d/%m/%Y') }}
                                 </small>
                             </div>
                         </div>
@@ -92,7 +92,7 @@
                     <div class="card">
                         <div class="card-header">
                             <h5 class="mb-0">
-                                <i class="fas fa-filter"></i> Filtrar Mensajes
+                                <i class="bi bi-funnel-fill"></i> Filtrar Mensajes
                             </h5>
                         </div>
                         <div class="card-body">
@@ -124,7 +124,7 @@
             </div>
         {% else %}
             <div class="text-center py-5">
-                <i class="fas fa-inbox fa-5x text-muted mb-3"></i>
+                <i class="bi bi-inbox-fill bi-5x text-muted mb-3"></i>
                 <h3 class="text-muted">No tienes mensajes</h3>
                 <p class="text-muted">Cuando recibas mensajes de administración aparecerán aquí</p>
             </div>
@@ -163,13 +163,13 @@ function viewFullMessage(messageId) {
         modalHeader.className = 'modal-header bg-info text-white';
     }
     const typeLabel = message.is_global ? 
-        '<span class="badge bg-success mb-3"><i class="fas fa-globe"></i> Mensaje Global</span>' :
-        '<span class="badge bg-primary mb-3"><i class="fas fa-building"></i> Para Mi Sede</span>';
+        '<span class="badge bg-success mb-3"><i class="bi bi-globe"></i> Mensaje Global</span>' :
+        '<span class="badge bg-primary mb-3"><i class="bi bi-building"></i> Para Mi Sede</span>';
     const priorityLabel = message.priority === 'urgente' ? 
-        '<span class="badge bg-danger mb-3"><i class="fas fa-exclamation-triangle"></i> URGENTE</span>' :
+        '<span class="badge bg-danger mb-3"><i class="bi bi-exclamation-triangle-fill"></i> URGENTE</span>' :
         message.priority === 'alta' ?
-        '<span class="badge bg-warning mb-3"><i class="fas fa-exclamation-circle"></i> ALTA PRIORIDAD</span>' :
-        '<span class="badge bg-info mb-3"><i class="fas fa-info-circle"></i> INFORMACIÓN</span>';
+        '<span class="badge bg-warning mb-3"><i class="bi bi-exclamation-circle-fill"></i> ALTA PRIORIDAD</span>' :
+        '<span class="badge bg-info mb-3"><i class="bi bi-info-circle-fill"></i> INFORMACIÓN</span>';
     document.getElementById('modalBody').innerHTML = `
         <div class="mb-3">
             ${priorityLabel}
@@ -183,16 +183,16 @@ function viewFullMessage(messageId) {
         <div class="row">
             <div class="col-md-6">
                 <p class="mb-1"><strong>Enviado por:</strong></p>
-                <p class="text-muted"><i class="fas fa-user"></i> ${message.sender.username}</p>
+                <p class="text-muted"><i class="bi bi-person-fill"></i> ${message.sender.username}</p>
             </div>
             <div class="col-md-6">
                 <p class="mb-1"><strong>Fecha de envío:</strong></p>
-                <p class="text-muted"><i class="fas fa-calendar"></i> ${new Date(message.created_at).toLocaleString()}</p>
+                <p class="text-muted"><i class="bi bi-calendar"></i> ${new Date(message.created_at).toLocaleString()}</p>
             </div>
         </div>
         ${message.expires_at ? `
             <div class="alert alert-warning">
-                <i class="fas fa-clock"></i> 
+                <i class="bi bi-clock-fill"></i> 
                 <strong>Este mensaje expira el:</strong> ${new Date(message.expires_at).toLocaleDateString()}
             </div>
         ` : ''}

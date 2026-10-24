@@ -13,7 +13,7 @@
 }
 
 .priority-urgent {
-    border-left: 4px solid #dc3545 !important;
+    border-left: 4px solid #e11d48 !important;
     background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%);
 }
 
@@ -23,12 +23,12 @@
 }
 
 .priority-normal {
-    border-left: 4px solid #0dcaf0 !important;
+    border-left: 4px solid #0891b2 !important;
     background: linear-gradient(135deg, #f0fcff 0%, #ffffff 100%);
 }
 
 .message-stats-card {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
     color: white;
 }
 
@@ -66,53 +66,53 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="fw-bold text-primary mb-2">
-                <i class="fas fa-envelope-open me-2"></i>Centro de Mensajes
+                <i class="bi bi-envelope-open-fill me-2"></i>Centro de Mensajes
             </h2>
             <p class="text-muted mb-0">Gestión y envío de comunicaciones a las sedes</p>
         </div>
         <div class="d-flex gap-2">
             <button class="btn btn-outline-info btn-sm" onclick="refreshMessages()">
-                <i class="fas fa-sync me-1"></i>Actualizar
+                <i class="bi bi-arrow-clockwise me-1"></i>Actualizar
             </button>
             <a href="{{ url_for('main.send_sede_message') }}" class="btn btn-primary">
-                <i class="fas fa-paper-plane me-1"></i>Nuevo Mensaje
+                <i class="bi bi-send-fill me-1"></i>Nuevo Mensaje
             </a>
         </div>
     </div>
 
     <!-- Estadísticas Rápidas -->
     <div class="row mb-4">
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card border-0 bg-primary text-white h-100">
-                <div class="card-body text-center p-4">
-                    <i class="fas fa-paper-plane fs-1 mb-3 opacity-80"></i>
+        <div class="col-6 col-lg-3 mb-3">
+            <div class="card border-0 kpi-card-sedes h-100">
+                <div class="card-body text-center text-white p-4">
+                    <i class="bi bi-send-fill fs-1 mb-3 opacity-80"></i>
                     <h3 class="fw-bold mb-1">{{ messages|length if messages else 0 }}</h3>
                     <small class="opacity-90">Mensajes Enviados</small>
                 </div>
             </div>
         </div>
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card border-0 bg-success text-white h-100">
-                <div class="card-body text-center p-4">
-                    <i class="fas fa-globe fs-1 mb-3 opacity-80"></i>
+        <div class="col-6 col-lg-3 mb-3">
+            <div class="card border-0 kpi-card-ventas h-100">
+                <div class="card-body text-center text-white p-4">
+                    <i class="bi bi-globe fs-1 mb-3 opacity-80"></i>
                     <h3 class="fw-bold mb-1">{{ messages|selectattr('is_global', 'equalto', True)|list|length if messages else 0 }}</h3>
                     <small class="opacity-90">Mensajes Globales</small>
                 </div>
             </div>
         </div>
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card border-0 bg-warning text-white h-100">
-                <div class="card-body text-center p-4">
-                    <i class="fas fa-exclamation-triangle fs-1 mb-3 opacity-80"></i>
+        <div class="col-6 col-lg-3 mb-3">
+            <div class="card border-0 kpi-card-ordenes h-100">
+                <div class="card-body text-center text-white p-4">
+                    <i class="bi bi-exclamation-triangle-fill fs-1 mb-3 opacity-80"></i>
                     <h3 class="fw-bold mb-1">{{ messages|selectattr('priority', 'equalto', 'alta')|list|length if messages else 0 }}</h3>
                     <small class="opacity-90">Prioridad Alta</small>
                 </div>
             </div>
         </div>
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card border-0 bg-danger text-white h-100">
-                <div class="card-body text-center p-4">
-                    <i class="fas fa-fire fs-1 mb-3 opacity-80"></i>
+        <div class="col-6 col-lg-3 mb-3">
+            <div class="card border-0 kpi-card-utilidad h-100">
+                <div class="card-body text-center text-white p-4">
+                    <i class="bi bi-fire fs-1 mb-3 opacity-80"></i>
                     <h3 class="fw-bold mb-1">{{ messages|selectattr('priority', 'equalto', 'urgente')|list|length if messages else 0 }}</h3>
                     <small class="opacity-90">Urgentes</small>
                 </div>
@@ -124,7 +124,7 @@
     <div class="card filter-card border-0 mb-4">
         <div class="card-body p-3">
             <h6 class="fw-bold mb-3">
-                <i class="fas fa-filter me-2"></i>Filtros de Búsqueda
+                <i class="bi bi-funnel-fill me-2"></i>Filtros de Búsqueda
             </h6>
             <div class="row g-3">
                 <div class="col-md-3">
@@ -160,10 +160,10 @@
                     <label class="form-label small fw-bold">&nbsp;</label>
                     <div class="d-flex gap-1">
                         <button class="btn btn-outline-secondary btn-sm flex-fill" onclick="clearFilters()">
-                            <i class="fas fa-times me-1"></i>Limpiar
+                            <i class="bi bi-x-lg me-1"></i>Limpiar
                         </button>
                         <button class="btn btn-primary btn-sm flex-fill" onclick="applyFilters()">
-                            <i class="fas fa-search me-1"></i>Filtrar
+                            <i class="bi bi-search me-1"></i>Filtrar
                         </button>
                     </div>
                 </div>
@@ -187,45 +187,45 @@
                             <div class="flex-grow-1">
                                 {% if message.priority == 'urgente' %}
                                     <span class="badge bg-danger mb-2">
-                                        <i class="fas fa-fire me-1"></i>URGENTE
+                                        <i class="bi bi-fire me-1"></i>URGENTE
                                     </span>
                                 {% elif message.priority == 'alta' %}
                                     <span class="badge bg-warning mb-2">
-                                        <i class="fas fa-exclamation-triangle me-1"></i>ALTA
+                                        <i class="bi bi-exclamation-triangle-fill me-1"></i>ALTA
                                     </span>
                                 {% else %}
                                     <span class="badge bg-info mb-2">
-                                        <i class="fas fa-info-circle me-1"></i>NORMAL
+                                        <i class="bi bi-info-circle-fill me-1"></i>NORMAL
                                     </span>
                                 {% endif %}
                             </div>
                             <div class="dropdown">
                                 <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                    <i class="fas fa-ellipsis-v"></i>
+                                    <i class="bi bi-three-dots-vertical"></i>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end">
                                     <li>
                                         <a class="dropdown-item" href="#" onclick="viewMessage({{ message.id }})">
-                                            <i class="fas fa-eye me-2"></i>Ver Completo
+                                            <i class="bi bi-eye-fill me-2"></i>Ver Completo
                                         </a>
                                     </li>
                                     <li>
                                         <a class="dropdown-item" href="#" onclick="duplicateMessage({{ message.id }})">
-                                            <i class="fas fa-copy me-2"></i>Duplicar
+                                            <i class="bi bi-copy me-2"></i>Duplicar
                                         </a>
                                     </li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
                                         <a class="dropdown-item text-warning" href="{{ url_for('main.archive_sede_message', message_id=message.id) }}" 
                                            onclick="return confirm('¿Archivar este mensaje?')">
-                                            <i class="fas fa-archive me-2"></i>Archivar
+                                            <i class="bi bi-archive me-2"></i>Archivar
                                         </a>
                                     </li>
                                 </ul>
                             </div>
                         </div>
                         <h6 class="card-title mb-1 text-white fw-bold">
-                            <i class="fas fa-comment-alt me-2"></i>{{ message.title }}
+                            <i class="bi bi-chat-left-text-fill me-2"></i>{{ message.title }}
                         </h6>
                     </div>
                     <div class="card-body pt-0">
@@ -235,15 +235,15 @@
                         
                         <!-- Alcance -->
                         <div class="d-flex align-items-center mb-2">
-                            <i class="fas fa-{{ 'globe' if message.is_global else 'map-marker-alt' }} text-white me-2"></i>
+                            <i class="bi bi-{{ 'globe' if message.is_global else 'geo-alt-fill' }} text-white me-2"></i>
                             <small class="text-white">
                                 {% if message.is_global %}
                                     <span class="badge bg-success bg-opacity-90 text-white">
-                                        <i class="fas fa-globe me-1"></i>Todas las Sedes
+                                        <i class="bi bi-globe me-1"></i>Todas las Sedes
                                     </span>
                                 {% else %}
                                     <span class="badge bg-info bg-opacity-90 text-white">
-                                        <i class="fas fa-building me-1"></i>{{ message.sede.name }} - {{ message.sede.city }}
+                                        <i class="bi bi-building me-1"></i>{{ message.sede.name }} - {{ message.sede.city }}
                                     </span>
                                 {% endif %}
                             </small>
@@ -252,12 +252,12 @@
                         <!-- Expiración -->
                         {% if message.expires_at %}
                         <div class="d-flex align-items-center mb-2">
-                            <i class="fas fa-calendar-times text-white me-2"></i>
+                            <i class="bi bi-calendar-x text-white me-2"></i>
                             <small class="text-white">
                                 Expira: {{ message.expires_at.strftime('%d/%m/%Y') }}
                                 {% if message.expires_at.date() < current_date %}
                                     <span class="badge bg-danger ms-1">
-                                        <i class="fas fa-exclamation-triangle me-1"></i>EXPIRADO
+                                        <i class="bi bi-exclamation-triangle-fill me-1"></i>EXPIRADO
                                     </span>
                                 {% else %}
                                     <span class="badge bg-success bg-opacity-90 text-white ms-1">Activo</span>
@@ -269,10 +269,10 @@
                     <div class="card-footer bg-light border-0 bg-opacity-10">
                         <div class="d-flex justify-content-between align-items-center">
                             <small class="text-white">
-                                <i class="fas fa-user me-1"></i>{{ message.sender.username }}
+                                <i class="bi bi-person-fill me-1"></i>{{ message.sender.username }}
                             </small>
                             <small class="text-white">
-                                <i class="fas fa-clock me-1"></i>{{ message.created_at.strftime('%d/%m/%Y %H:%M') }}
+                                <i class="bi bi-clock-fill me-1"></i>{{ message.created_at.strftime('%d/%m/%Y %H:%M') }}
                             </small>
                         </div>
                     </div>
@@ -283,17 +283,17 @@
         
         <!-- Sin resultados tras filtrar -->
         <div id="noResultsMessage" class="text-center py-5" style="display: none;">
-            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+            <i class="bi bi-search bi-3x text-muted mb-3"></i>
             <h4 class="text-muted">No se encontraron mensajes</h4>
             <p class="text-muted">Intenta ajustar los filtros de búsqueda</p>
         </div>
     {% else %}
         <div class="text-center py-5">
-            <i class="fas fa-inbox fa-5x text-muted mb-4"></i>
+            <i class="bi bi-inbox-fill bi-5x text-muted mb-4"></i>
             <h3 class="text-muted">No hay mensajes enviados</h3>
             <p class="text-muted mb-4">Envía tu primer mensaje a las sedes</p>
             <a href="{{ url_for('main.send_sede_message') }}" class="btn btn-primary btn-lg">
-                <i class="fas fa-paper-plane me-2"></i>Enviar Primer Mensaje
+                <i class="bi bi-send-fill me-2"></i>Enviar Primer Mensaje
             </a>
         </div>
     {% endif %}
@@ -304,7 +304,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="messageModalTitle">
-                    <i class="fas fa-comment-alt me-2"></i>Detalle del Mensaje
+                    <i class="bi bi-chat-left-text-fill me-2"></i>Detalle del Mensaje
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
@@ -313,10 +313,10 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="fas fa-times me-1"></i>Cerrar
+                    <i class="bi bi-x-lg me-1"></i>Cerrar
                 </button>
                 <button type="button" class="btn btn-primary" onclick="duplicateFromModal()">
-                    <i class="fas fa-copy me-1"></i>Duplicar Mensaje
+                    <i class="bi bi-copy me-1"></i>Duplicar Mensaje
                 </button>
             </div>
         </div>
@@ -390,14 +390,14 @@ function viewMessage(messageId) {
     currentMessage = message;
     
     const priorityBadges = {
-        'urgente': '<span class="badge bg-danger"><i class="fas fa-fire me-1"></i>URGENTE</span>',
-        'alta': '<span class="badge bg-warning"><i class="fas fa-exclamation-triangle me-1"></i>ALTA</span>',
-        'normal': '<span class="badge bg-info"><i class="fas fa-info-circle me-1"></i>NORMAL</span>'
+        'urgente': '<span class="badge bg-danger"><i class="bi bi-fire me-1"></i>URGENTE</span>',
+        'alta': '<span class="badge bg-warning"><i class="bi bi-exclamation-triangle-fill me-1"></i>ALTA</span>',
+        'normal': '<span class="badge bg-info"><i class="bi bi-info-circle-fill me-1"></i>NORMAL</span>'
     };
     
     const scopeBadge = message.is_global 
-        ? '<span class="badge bg-success"><i class="fas fa-globe me-1"></i>Todas las Sedes</span>'
-        : `<span class="badge bg-info"><i class="fas fa-building me-1"></i>${message.sede_name} - ${message.sede_city}</span>`;
+        ? '<span class="badge bg-success"><i class="bi bi-globe me-1"></i>Todas las Sedes</span>'
+        : `<span class="badge bg-info"><i class="bi bi-building me-1"></i>${message.sede_name} - ${message.sede_city}</span>`;
     
     let expirationInfo = '';
     if (message.expires_at) {
@@ -405,7 +405,7 @@ function viewMessage(messageId) {
         const isExpired = expDate < new Date();
         expirationInfo = `
             <div class="alert alert-${isExpired ? 'danger' : 'success'} mt-3">
-                <i class="fas fa-calendar-times me-2"></i>
+                <i class="bi bi-calendar-x me-2"></i>
                 <strong>Expiración:</strong> ${expDate.toLocaleDateString('es-ES')}
                 ${isExpired ? '<span class="badge bg-danger ms-2">EXPIRADO</span>' : '<span class="badge bg-success ms-2">ACTIVO</span>'}
             </div>`;
@@ -432,12 +432,12 @@ function viewMessage(messageId) {
         <div class="row mt-3">
             <div class="col-md-6">
                 <small class="text-muted">
-                    <i class="fas fa-user me-1"></i><strong>Enviado por:</strong> ${message.sender_username}
+                    <i class="bi bi-person-fill me-1"></i><strong>Enviado por:</strong> ${message.sender_username}
                 </small>
             </div>
             <div class="col-md-6 text-end">
                 <small class="text-muted">
-                    <i class="fas fa-clock me-1"></i><strong>Fecha:</strong> ${new Date(message.created_at).toLocaleString('es-ES')}
+                    <i class="bi bi-clock-fill me-1"></i><strong>Fecha:</strong> ${new Date(message.created_at).toLocaleString('es-ES')}
                 </small>
             </div>
         </div>
@@ -519,7 +519,7 @@ function showNotification(message, type = 'info') {
     alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
     alertDiv.style.cssText = 'top: 80px; right: 20px; z-index: 9999; min-width: 300px;';
     alertDiv.innerHTML = `
-        <i class="fas fa-${type === 'success' ? 'check' : type === 'danger' ? 'exclamation-triangle' : 'info'}-circle me-2"></i>
+        <i class="bi bi-${type === 'success' ? 'check-circle-fill' : type === 'danger' ? 'exclamation-circle-fill' : 'info-circle-fill'} me-2"></i>
         ${message}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     `;

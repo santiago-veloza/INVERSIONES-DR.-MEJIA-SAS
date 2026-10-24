@@ -4,7 +4,7 @@
         <div class="mb-3 mb-md-0">
             <h1 class="text-gradient mb-2">Gestión de Pagos</h1>
             <p class="text-muted mb-0">
-                <i class="fas fa-building me-2"></i>{{ sede.name }}
+                <i class="bi bi-building me-2"></i>{{ sede.name }}
             </p>
         </div>
     </div>
@@ -85,16 +85,16 @@
                                 <td>
                                     <div class="btn-group" role="group">
                                         <a href="{{ url_for('main.view_order', order_id=order.id) }}" class="btn btn-sm btn-primary" title="Ver Detalle">
-                                            <i class="fas fa-eye"></i>
+                                            <i class="bi bi-eye-fill"></i>
                                         </a>
                                         {% if order.payment_status != 'pagada' and order.status == 'aceptada' %}
                                             <a href="{{ url_for('main.add_payment', order_id=order.id) }}" class="btn btn-sm btn-success" title="Registrar Pago">
-                                                <i class="fas fa-dollar-sign"></i>
+                                                <i class="bi bi-currency-dollar"></i>
                                             </a>
                                         {% endif %}
                                         {% if order.payments %}
                                             <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#paymentsModal{{ order.id }}" title="Ver Pagos">
-                                                <i class="fas fa-list"></i>
+                                                <i class="bi bi-list-ul"></i>
                                             </button>
                                         {% endif %}
                                     </div>
@@ -135,11 +135,11 @@
                                 <td>
                                     <div class="btn-group" role="group">
                                         <a href="{{ url_for('main.view_order', order_id=order.id) }}" class="btn btn-sm btn-primary" title="Ver Detalle">
-                                            <i class="fas fa-eye"></i>
+                                            <i class="bi bi-eye-fill"></i>
                                         </a>
                                         {% if order.payments %}
                                             <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#paymentsModal{{ order.id }}" title="Ver Pagos">
-                                                <i class="fas fa-list"></i>
+                                                <i class="bi bi-list-ul"></i>
                                             </button>
                                         {% endif %}
                                     </div>
@@ -212,16 +212,16 @@
                                 <td>
                                     <div class="btn-group" role="group">
                                         <a href="{{ url_for('main.view_order', order_id=order.id) }}" class="btn btn-sm btn-primary" title="Ver Detalle">
-                                            <i class="fas fa-eye"></i>
+                                            <i class="bi bi-eye-fill"></i>
                                         </a>
                                         {% if order.payment_status != 'pagada' and order.status == 'aceptada' %}
                                             <a href="{{ url_for('main.add_payment', order_id=order.id) }}" class="btn btn-sm btn-success" title="Registrar Pago">
-                                                <i class="fas fa-dollar-sign"></i>
+                                                <i class="bi bi-currency-dollar"></i>
                                             </a>
                                         {% endif %}
                                         {% if order.payments %}
                                             <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#paymentsModal{{ order.id }}" title="Ver Pagos">
-                                                <i class="fas fa-list"></i>
+                                                <i class="bi bi-list-ul"></i>
                                             </button>
                                         {% endif %}
                                     </div>
@@ -264,7 +264,7 @@
                                                 <td>
                                                     {% if payment.support_file %}
                                                         <a href="{{ url_for('static', filename='uploads/' + payment.support_file) }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                                            <i class="fas fa-file"></i> Ver
+                                                            <i class="bi bi-file-earmark-fill"></i> Ver
                                                         </a>
                                                     {% else %}
                                                         <span class="text-muted">Sin archivo</span>
@@ -288,7 +288,7 @@
         {% endfor %}
     {% else %}
         <div class="alert alert-info text-center">
-            <i class="fas fa-info-circle"></i>
+            <i class="bi bi-info-circle-fill"></i>
             <h4>No hay órdenes registradas</h4>
             <p class="mb-0">No hay órdenes de trabajo registradas para esta sede.</p>
         </div>

@@ -2,6 +2,10 @@ from backend.app import db, login_manager
 from datetime import datetime
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
+from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError, InvalidHash
+
+_argon2_hasher = PasswordHasher()
 
 # Implementé esto para Flask-Login para cargar un usuario dado su ID
 @login_manager.user_loader
@@ -12,7 +16,7 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128))
+    password_hash = db.Column(db.String(255))
     role = db.Column(db.String(64), nullable=False, default='asistente') # 'admin', 'asistente', 'admin_sede', 'proveedor'
     is_active = db.Column(db.Boolean, default=True) # Para desactivar usuarios
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -26,18 +30,30 @@ class User(UserMixin, db.Model):
     sede_asignada = db.relationship('Sede', backref='administrators', foreign_keys=[sede_id])
 
     def set_password(self, password):
-        # Uso pbkdf2:sha256 que es compatible con Python 3.13
-        self.password_hash = generate_password_hash(password, method='pbkdf2:sha256')
+        # Argon2id: algoritmo de hash de contraseñas recomendado actualmente por OWASP
+        self.password_hash = _argon2_hasher.hash(password)
 
     def check_password(self, password):
+        # Hashes nuevos usan Argon2 (empiezan con "$argon2")
+        if self.password_hash and self.password_hash.startswith('$argon2'):
+            try:
+                return _argon2_hasher.verify(self.password_hash, password)
+            except VerifyMismatchError:
+                return False
+            except InvalidHash:
+                return False
+
+        # Compatibilidad con hashes antiguos (pbkdf2/scrypt, de antes de este cambio).
+        # Si la contraseña es correcta, migro el hash a Argon2 de una vez (migración perezosa).
         try:
-            return check_password_hash(self.password_hash, password)
+            if check_password_hash(self.password_hash, password):
+                self.set_password(password)
+                db.session.commit()
+                return True
+            return False
         except ValueError as e:
             if 'unsupported hash type' in str(e):
-                # Si el hash existente no es compatible, rehasheo con método compatible
                 print(f"Rehashing password for user {self.username} due to compatibility issue")
-                # Por seguridad, solo lo hago si la contraseña es correcta usando método alternativo
-                # En este caso, permito rehacer el hash
                 self.set_password(password)
                 db.session.commit()
                 return True

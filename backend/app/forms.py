@@ -6,12 +6,13 @@ from backend.app.models import User, Provider, WorkOrder
 
 class LoginForm(FlaskForm):
     user_type = SelectField('Tipo de Usuario', choices=[
-        ('sede', '🏢 Sede (Administrador de Sede)'),
-        ('central', '🏛️ Administración Central'),
-        ('proveedor', '🏭 Proveedor')
+        ('sede', 'Sede (Administrador de Sede)'),
+        ('central', 'Administración Central'),
+        ('proveedor', 'Proveedor')
     ], validators=[DataRequired()])
     sede_id = SelectField('Sede', coerce=int, validators=[Optional()])
-    username = StringField('Usuario', validators=[DataRequired()])
+
+    username = StringField('Usuario', validators=[Optional()])
     password = PasswordField('Contraseña', validators=[DataRequired()])
     remember_me = BooleanField('Recordarme')
     submit = SubmitField('Iniciar Sesión')
@@ -350,9 +351,9 @@ class SedeMessageForm(FlaskForm):
     message = TextAreaField('Mensaje', validators=[DataRequired(), Length(min=10, max=1000)])
     sede_id = SelectField('Destino', coerce=int)  # Removido DataRequired() para permitir 0
     priority = SelectField('Prioridad', choices=[
-        ('normal', '📢 Normal'),
-        ('alta', '⚠️ Alta'),
-        ('urgente', '🚨 Urgente')
+        ('normal', 'Normal'),
+        ('alta', 'Alta'),
+        ('urgente', 'Urgente')
     ], validators=[DataRequired()])
     expires_at = DateField('Fecha de Expiración (Opcional)', validators=[Optional()])
     submit = SubmitField('Enviar Mensaje')
@@ -363,10 +364,10 @@ class SedeMessageForm(FlaskForm):
         sedes_list = []
         for s in Sede.query.filter_by(is_active=True).order_by(Sede.display_order, Sede.name).all():
             if s.city and s.city not in ['Selecciona tu ciudad', 'selecciona tu ciudad', '']:
-                sedes_list.append((s.id, f"🏢 {s.name} - {s.city}"))
+                sedes_list.append((s.id, f"{s.name} - {s.city}"))
             else:
-                sedes_list.append((s.id, f"🏢 {s.name}"))
-        self.sede_id.choices = [(0, '📢 Todas las Sedes')] + sedes_list
+                sedes_list.append((s.id, f"{s.name}"))
+        self.sede_id.choices = [(0, 'Todas las Sedes')] + sedes_list
         
         # Establezco valor por defecto si no se ha enviado el formulario
         if not self.sede_id.data:

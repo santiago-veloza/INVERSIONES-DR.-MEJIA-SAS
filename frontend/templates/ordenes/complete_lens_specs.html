@@ -6,7 +6,7 @@
             <div class="card mb-4 border-info">
                 <div class="card-header bg-info text-white">
                     <h4 class="mb-0">
-                        <i class="fas fa-glasses me-2"></i>
+                        <i class="bi bi-eyeglasses me-2"></i>
                         Completar Especificaciones de Lentes - Orden N° {{ order.order_number }}
                     </h4>
                     <small>Orden creada por {{ order.sede.name }} - {{ order.sede.city }}</small>
@@ -30,7 +30,7 @@
                     </div>
                     <hr>
                     <div class="alert alert-warning">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
                         <strong>Importante:</strong> Complete los siguientes campos administrativos para que la orden pueda ser enviada al proveedor.
                     </div>
                     <form method="POST">
@@ -41,7 +41,7 @@
                                 {{ form.orden_laboratorio.label(class="form-label fw-bold") }}
                                 {{ form.orden_laboratorio(class="form-control form-control-lg", placeholder="Número de orden de laboratorio") }}
                                 <div class="form-text">
-                                    <i class="fas fa-info-circle me-1"></i>
+                                    <i class="bi bi-info-circle-fill me-1"></i>
                                     Número asignado por el laboratorio/proveedor
                                 </div>
                             </div>
@@ -61,7 +61,7 @@
                                 {{ form.lens_type_asesor.label(class="form-label fw-bold text-info") }}
                                 {{ form.lens_type_asesor(class="form-control form-control-lg bg-light") }}
                                 <div class="form-text">
-                                    <i class="fas fa-info-circle me-1"></i>
+                                    <i class="bi bi-info-circle-fill me-1"></i>
                                     Este es el tipo de lente indicado por el asesor de la sede
                                 </div>
                             </div>
@@ -133,15 +133,15 @@
                     <hr>
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <a href="{{ url_for('main.list_pending_review_orders') }}" class="btn btn-secondary me-md-2">
-                            <i class="fas fa-arrow-left me-1"></i>Volver a la lista
+                            <i class="bi bi-arrow-left me-1"></i>Volver a la lista
                         </a>
                         <a href="{{ url_for('main.view_order', order_id=order.id) }}" class="btn btn-info me-md-2">
-                            <i class="fas fa-eye me-1"></i>Ver orden completa
+                            <i class="bi bi-eye-fill me-1"></i>Ver orden completa
                         </a>
                         {{ form.submit(class="btn btn-success btn-lg") }}
                     </div>
                     <div class="alert alert-success mt-3">
-                        <h6><i class="fas fa-check-circle me-2"></i>Después de completar las especificaciones:</h6>
+                        <h6><i class="bi bi-check-circle-fill me-2"></i>Después de completar las especificaciones:</h6>
                         <ul class="mb-0">
                             <li>La orden será <strong>enviada automáticamente</strong> al proveedor {{ order.provider.razon_social }}</li>
                             <li>El proveedor recibirá una <strong>notificación</strong> para aceptar o rechazar la orden</li>
@@ -153,7 +153,7 @@
                 </div>
             </div>
             <div class="alert alert-info mt-4">
-                <h6><i class="fas fa-info-circle me-2"></i>Guía para Clasificación de Lentes</h6>
+                <h6><i class="bi bi-info-circle-fill me-2"></i>Guía para Clasificación de Lentes</h6>
                 <div class="row">
                     <div class="col-md-4">
                         <strong>Progresivo:</strong>

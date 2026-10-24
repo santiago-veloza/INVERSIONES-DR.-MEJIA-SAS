@@ -1,16 +1,16 @@
 {% extends "base.html" %}
 {% block content %}
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
         <div>
-            <h1 class="mb-2"><i class="fas fa-map-marked-alt me-2"></i>Red de Sedes</h1>
+            <h1 class="mb-2"><i class="bi bi-geo-alt-fill me-2"></i>Red de Sedes</h1>
             <p class="text-muted mb-0">{{ sedes|length }} sedes activas a nivel nacional</p>
         </div>
-        <div class="d-flex gap-2">
-            <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#changeSharedPasswordModal">
-                <i class="fas fa-key me-2"></i>Cambiar Contraseña Compartida
+        <div class="d-flex flex-column flex-sm-row gap-2">
+            <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#changeSharedPasswordModal">
+                <i class="bi bi-key-fill me-2"></i>Cambiar Contraseña Compartida
             </button>
-            <button class="btn btn-success btn-lg" data-bs-toggle="modal" data-bs-target="#addSedeModal">
-                <i class="fas fa-plus-circle me-2"></i>Agregar Nueva Sede
+            <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#addSedeModal">
+                <i class="bi bi-plus-circle-fill me-2"></i>Agregar Nueva Sede
             </button>
         </div>
     </div>
@@ -21,13 +21,13 @@
             {% set total_ordenes.value = total_ordenes.value + (sede.orders|length) %}
         {% endfor %}
         {% set departamentos = sedes|groupby('city')|list|length %}
-        <div class="col-md-3 col-sm-6 mb-3">
+        <div class="col-6 col-md-3 mb-3">
             <div class="stats-card card border-0 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
                             <div class="bg-primary bg-gradient rounded-circle p-3">
-                                <i class="fas fa-building text-white fa-2x"></i>
+                                <i class="bi bi-building text-white bi-2x"></i>
                             </div>
                         </div>
                         <div class="flex-grow-1 ms-3">
@@ -38,13 +38,13 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3 col-sm-6 mb-3">
+        <div class="col-6 col-md-3 mb-3">
             <div class="stats-card card border-0 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
                             <div class="bg-success bg-gradient rounded-circle p-3">
-                                <i class="fas fa-check-circle text-white fa-2x"></i>
+                                <i class="bi bi-check-circle-fill text-white bi-2x"></i>
                             </div>
                         </div>
                         <div class="flex-grow-1 ms-3">
@@ -55,13 +55,13 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3 col-sm-6 mb-3">
+        <div class="col-6 col-md-3 mb-3">
             <div class="stats-card card border-0 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
                             <div class="bg-info bg-gradient rounded-circle p-3">
-                                <i class="fas fa-map-marker-alt text-white fa-2x"></i>
+                                <i class="bi bi-geo-alt-fill text-white bi-2x"></i>
                             </div>
                         </div>
                         <div class="flex-grow-1 ms-3">
@@ -72,13 +72,13 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3 col-sm-6 mb-3">
+        <div class="col-6 col-md-3 mb-3">
             <div class="stats-card card border-0 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
                             <div class="bg-warning bg-gradient rounded-circle p-3">
-                                <i class="fas fa-clipboard-list text-white fa-2x"></i>
+                                <i class="bi bi-clipboard-data text-white bi-2x"></i>
                             </div>
                         </div>
                         <div class="flex-grow-1 ms-3">
@@ -104,7 +104,7 @@
                             aria-expanded="{% if loop.first %}true{% else %}false{% endif %}" 
                             aria-controls="collapse{{ departamento|replace(' ', '') }}">
                         <div class="d-flex align-items-center w-100">
-                            <i class="fas fa-map-marked-alt me-3 text-primary icon-lg"></i>
+                            <i class="bi bi-geo-alt-fill me-3 text-primary icon-lg"></i>
                             <div class="flex-grow-1">
                                 <span class="fw-bold icon-xl">{{ departamento or 'Sin Departamento' }}</span>
                                 <span class="badge bg-primary ms-3">{{ sedes_depto|list|length }} sedes</span>
@@ -130,17 +130,17 @@
                                 <div class="flex-grow-1">
                                     <h5 class="sede-name mb-1 text-white fw-bold">{{ sede.name }}</h5>
                                     <p class="text-white-50 small mb-0">
-                                        <i class="fas fa-map-marker-alt me-1"></i>{{ sede.city }}
+                                        <i class="bi bi-geo-alt-fill me-1"></i>{{ sede.city }}
                                     </p>
                                 </div>
                                 <div class="sede-status-badge">
                                     {% if sede.is_active %}
                                         <span class="badge bg-success bg-opacity-75">
-                                            <i class="fas fa-circle me-1 icon-xxs"></i>Activa
+                                            <i class="bi bi-circle-fill me-1 icon-xxs"></i>Activa
                                         </span>
                                     {% else %}
                                         <span class="badge bg-secondary bg-opacity-75">
-                                            <i class="fas fa-circle me-1 icon-xxs"></i>Inactiva
+                                            <i class="bi bi-circle-fill me-1 icon-xxs"></i>Inactiva
                                         </span>
                                     {% endif %}
                                 </div>
@@ -149,21 +149,21 @@
                         <div class="card-body">
                             <div class="sede-info mb-3">
                                 <div class="info-item mb-2">
-                                    <i class="fas fa-location-arrow text-primary me-2"></i>
+                                    <i class="bi bi-cursor-fill text-primary me-2"></i>
                                     <span class="text-dark text-sm">{{ sede.address or 'Dirección no disponible' }}</span>
                                 </div>
                                 <div class="info-item mb-2">
-                                    <i class="fas fa-phone text-success me-2"></i>
+                                    <i class="bi bi-telephone-fill text-success me-2"></i>
                                     <span class="text-dark text-sm">{{ sede.phone or 'Sin teléfono' }}</span>
                                 </div>
                                 {% if sede.email %}
                                 <div class="info-item mb-2">
-                                    <i class="fas fa-envelope text-warning me-2"></i>
+                                    <i class="bi bi-envelope-fill text-warning me-2"></i>
                                     <span class="text-dark text-sm">{{ sede.email }}</span>
                                 </div>
                                 {% endif %}
                                 <div class="info-item mb-2">
-                                    <i class="fas fa-user-tie text-info me-2"></i>
+                                    <i class="bi bi-person-workspace text-info me-2"></i>
                                     <span class="text-dark text-sm">{{ sede.manager or 'Sin encargado asignado' }}</span>
                                 </div>
                             </div>
@@ -174,13 +174,13 @@
                                         onclick="event.stopPropagation();"
                                         data-bs-toggle="modal" 
                                         data-bs-target="#editSedeModal{{ sede.id }}">
-                                    <i class="fas fa-edit me-1"></i>Editar
+                                    <i class="bi bi-pencil-square me-1"></i>Editar
                                 </button>
                                 <button class="btn btn-outline-{% if sede.is_active %}danger{% else %}success{% endif %} btn-sm toggle-status-btn" 
                                         onclick="event.stopPropagation();"
                                         data-sede-id="{{ sede.id }}" 
                                         data-current-status="{{ sede.is_active|lower }}">
-                                    <i class="fas fa-{% if sede.is_active %}pause{% else %}play{% endif %}-circle me-1"></i>
+                                    <i class="bi bi-{% if sede.is_active %}pause{% else %}play{% endif %}-circle-fill me-1"></i>
                                     {% if sede.is_active %}Desactivar{% else %}Activar{% endif %}
                                 </button>
                             </div>
@@ -198,11 +198,11 @@
     {% else %}
         <div class="text-center py-5">
             <div class="empty-state">
-                <i class="fas fa-building fa-4x text-muted mb-3"></i>
+                <i class="bi bi-building bi-4x text-muted mb-3"></i>
                 <h4>No hay sedes registradas</h4>
                 <p class="text-muted">Comienza agregando tu primera sede</p>
                 <button class="btn btn-success btn-lg mt-3" data-bs-toggle="modal" data-bs-target="#addSedeModal">
-                    <i class="fas fa-plus-circle me-2"></i>Agregar Primera Sede
+                    <i class="bi bi-plus-circle-fill me-2"></i>Agregar Primera Sede
                 </button>
             </div>
         </div>
@@ -215,8 +215,9 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <form method="POST" action="{{ url_for('main.add_sede') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="modal-body modal-body-scrollable">
-                        <h6 class="mb-2 text-primary"><i class="fas fa-building"></i> Información de la Sede</h6>
+                        <h6 class="mb-2 text-primary"><i class="bi bi-building"></i> Información de la Sede</h6>
                         <div class="mb-2">
                             <label class="form-label small mb-1">Nombre de la Sede <span class="text-danger">*</span></label>
                             <input type="text" class="form-control form-control-sm" name="name" required 
@@ -228,9 +229,39 @@
                                     <label class="form-label small mb-1">Departamento <span class="text-danger">*</span></label>
                                     <select class="form-select form-select-sm" name="department" required>
                                         <option value="">Seleccione...</option>
-                                        <option value="Meta">Meta</option>
+                                        <option value="Amazonas">Amazonas</option>
+                                        <option value="Antioquia">Antioquia</option>
+                                        <option value="Arauca">Arauca</option>
+                                        <option value="Atlántico">Atlántico</option>
+                                        <option value="Bogotá D.C.">Bogotá D.C.</option>
+                                        <option value="Bolívar">Bolívar</option>
+                                        <option value="Boyacá">Boyacá</option>
+                                        <option value="Caldas">Caldas</option>
+                                        <option value="Caquetá">Caquetá</option>
                                         <option value="Casanare">Casanare</option>
+                                        <option value="Cauca">Cauca</option>
+                                        <option value="Cesar">Cesar</option>
+                                        <option value="Chocó">Chocó</option>
+                                        <option value="Córdoba">Córdoba</option>
+                                        <option value="Cundinamarca">Cundinamarca</option>
+                                        <option value="Guainía">Guainía</option>
                                         <option value="Guaviare">Guaviare</option>
+                                        <option value="Huila">Huila</option>
+                                        <option value="La Guajira">La Guajira</option>
+                                        <option value="Magdalena">Magdalena</option>
+                                        <option value="Meta">Meta</option>
+                                        <option value="Nariño">Nariño</option>
+                                        <option value="Norte de Santander">Norte de Santander</option>
+                                        <option value="Putumayo">Putumayo</option>
+                                        <option value="Quindío">Quindío</option>
+                                        <option value="Risaralda">Risaralda</option>
+                                        <option value="San Andrés y Providencia">San Andrés y Providencia</option>
+                                        <option value="Santander">Santander</option>
+                                        <option value="Sucre">Sucre</option>
+                                        <option value="Tolima">Tolima</option>
+                                        <option value="Valle del Cauca">Valle del Cauca</option>
+                                        <option value="Vaupés">Vaupés</option>
+                                        <option value="Vichada">Vichada</option>
                                     </select>
                                 </div>
                             </div>
@@ -275,9 +306,9 @@
                             </div>
                         </div>
                         <hr class="my-2">
-                        <h6 class="mb-2 text-primary"><i class="fas fa-user-shield"></i> Credenciales de Acceso</h6>
+                        <h6 class="mb-2 text-primary"><i class="bi bi-person-fill-check"></i> Credenciales de Acceso</h6>
                         <div class="alert alert-warning alert-sm py-2 mb-2">
-                            <small><i class="fas fa-lock"></i> Contraseña compartida: <code>OpticasDrMejia2024</code></small>
+                            <small><i class="bi bi-lock-fill"></i> Contraseña compartida: <code>{{ config.SEDE_SHARED_PASSWORD }}</code></small>
                         </div>
                         <div class="mb-2">
                             <label class="form-label small mb-1">Usuario de Login <span class="text-danger">*</span></label>
@@ -295,7 +326,7 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                         <button type="submit" class="btn btn-success">
-                            <i class="fas fa-plus"></i> Crear Sede y Administrador
+                            <i class="bi bi-plus-lg"></i> Crear Sede y Administrador
                         </button>
                     </div>
                 </form>
@@ -311,6 +342,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <form method="POST" action="{{ url_for('main.edit_sede', sede_id=sede.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="modal-body">
                         <div class="mb-3">
                             <label class="form-label">Nombre de la Sede <span class="text-danger">*</span></label>
@@ -320,9 +352,14 @@
                             <label class="form-label">Departamento <span class="text-danger">*</span></label>
                             <select class="form-select" name="department" required>
                                 <option value="">Seleccione departamento...</option>
-                                <option value="Meta" {% if sede.department == 'Meta' %}selected{% endif %}>Meta</option>
-                                <option value="Casanare" {% if sede.department == 'Casanare' %}selected{% endif %}>Casanare</option>
-                                <option value="Guaviare" {% if sede.department == 'Guaviare' %}selected{% endif %}>Guaviare</option>
+                                {% for depto in ['Amazonas', 'Antioquia', 'Arauca', 'Atlántico', 'Bogotá D.C.', 'Bolívar',
+                                                  'Boyacá', 'Caldas', 'Caquetá', 'Casanare', 'Cauca', 'Cesar', 'Chocó',
+                                                  'Córdoba', 'Cundinamarca', 'Guainía', 'Guaviare', 'Huila', 'La Guajira',
+                                                  'Magdalena', 'Meta', 'Nariño', 'Norte de Santander', 'Putumayo', 'Quindío',
+                                                  'Risaralda', 'San Andrés y Providencia', 'Santander', 'Sucre', 'Tolima',
+                                                  'Valle del Cauca', 'Vaupés', 'Vichada'] %}
+                                <option value="{{ depto }}" {% if sede.department == depto %}selected{% endif %}>{{ depto }}</option>
+                                {% endfor %}
                             </select>
                         </div>
                         <div class="mb-3">
@@ -356,16 +393,17 @@
     </div>
     {% endfor %}
     <div class="modal fade" id="changeSharedPasswordModal" tabindex="-1">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header bg-warning text-dark">
-                    <h5 class="modal-title"><i class="fas fa-key me-2"></i>Cambiar Contraseña Compartida</h5>
+                    <h5 class="modal-title"><i class="bi bi-key-fill me-2"></i>Cambiar Contraseña Compartida</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <form method="POST" action="{{ url_for('main.change_shared_sede_password') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="modal-body">
                         <div class="alert alert-warning">
-                            <i class="fas fa-exclamation-triangle"></i>
+                            <i class="bi bi-exclamation-triangle-fill"></i>
                             <strong>¡Atención!</strong> Esta acción cambiará la contraseña de acceso para <strong>TODAS las sedes</strong> ({{ sedes|length }} sedes).
                         </div>
                         <div class="mb-3">
@@ -373,7 +411,7 @@
                             <div class="input-group">
                                 <input type="password" class="form-control" id="sharedPassword" name="new_shared_password" required minlength="6">
                                 <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('sharedPassword')">
-                                    <i class="fas fa-eye"></i>
+                                    <i class="bi bi-eye-fill"></i>
                                 </button>
                             </div>
                             <small class="text-muted">Mínimo 6 caracteres</small>
@@ -383,12 +421,12 @@
                             <div class="input-group">
                                 <input type="password" class="form-control" id="confirmSharedPassword" name="confirm_shared_password" required minlength="6">
                                 <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('confirmSharedPassword')">
-                                    <i class="fas fa-eye"></i>
+                                    <i class="bi bi-eye-fill"></i>
                                 </button>
                             </div>
                         </div>
                         <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i>
+                            <i class="bi bi-info-circle-fill"></i>
                             <strong>Sedes que se actualizarán:</strong>
                             <ul class="mb-0 mt-2 small">
                                 {% for sede in sedes[:5] %}
@@ -403,7 +441,7 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                         <button type="submit" class="btn btn-warning">
-                            <i class="fas fa-sync-alt me-1"></i>Actualizar Todas las Sedes
+                            <i class="bi bi-arrow-clockwise me-1"></i>Actualizar Todas las Sedes
                         </button>
                     </div>
                 </form>
@@ -464,12 +502,12 @@
             const icon = button.querySelector('i');
             if (field.type === 'password') {
                 field.type = 'text';
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
+                icon.classList.remove('bi-eye-fill');
+                icon.classList.add('bi-eye-slash-fill');
             } else {
                 field.type = 'password';
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
+                icon.classList.remove('bi-eye-slash-fill');
+                icon.classList.add('bi-eye-fill');
             }
         }
         document.addEventListener('DOMContentLoaded', function() {

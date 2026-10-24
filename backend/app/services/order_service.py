@@ -1,8 +1,3 @@
-"""
-Servicio para gestión de órdenes de trabajo.
-Separa la lógica de negocio de los controladores para mejor mantenibilidad.
-"""
-
 from typing import Dict, List, Optional, Tuple
 from datetime import datetime, timedelta
 from backend.app.models import WorkOrder, User, Sede, Provider, Notification, db
@@ -205,26 +200,26 @@ class OrderService(BaseService, ValidationMixin):
                 # Notificar a la sede que creó la orden
                 sede_users = User.query.filter_by(sede_id=order.sede_id, is_active=True).all()
                 notification_targets.extend(sede_users)
-                message = f"✅ Orden {order.order_number} ha sido aceptada por el proveedor"
+                message = f"Orden {order.order_number} ha sido aceptada por el proveedor"
                 
             elif new_status == 'completado':
                 # Notificar a la sede
                 sede_users = User.query.filter_by(sede_id=order.sede_id, is_active=True).all()
                 notification_targets.extend(sede_users)
-                message = f"🎉 Orden {order.order_number} para {order.client_name} está lista para recoger"
+                message = f"Orden {order.order_number} para {order.client_name} está lista para recoger"
                 
             elif new_status == 'rechazada':
                 # Notificar a admin y sede
                 sede_users = User.query.filter_by(sede_id=order.sede_id, is_active=True).all()
                 admin_users = User.query.filter_by(role='admin', is_active=True).all()
                 notification_targets.extend(sede_users + admin_users)
-                message = f"⚠️ Orden {order.order_number} fue rechazada por el proveedor"
+                message = f"Orden {order.order_number} fue rechazada por el proveedor"
             
             else:
                 # Notificación general de cambio de estado
                 sede_users = User.query.filter_by(sede_id=order.sede_id, is_active=True).all()
                 notification_targets.extend(sede_users)
-                message = f"📦 Orden {order.order_number} cambió de estado: {new_status}"
+                message = f"Orden {order.order_number} cambió de estado: {new_status}"
             
             # Crear notificaciones
             for target_user in notification_targets:

@@ -4,20 +4,20 @@
     <div class="row">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2><i class="fas fa-shield-alt text-primary"></i> Dashboard de Seguridad</h2>
+                <h2><i class="bi bi-shield-fill-check text-primary"></i> Dashboard de Seguridad</h2>
                 <div class="btn-group">
                     <a href="{{ url_for('main.view_audit_logs') }}" class="btn btn-outline-primary">
-                        <i class="fas fa-list"></i> Ver Todos los Logs
+                        <i class="bi bi-list-ul"></i> Ver Todos los Logs
                     </a>
                     <button class="btn btn-danger" onclick="exportSecurityReport()" 
                             {% if security_stats.critical_24h == 0 %}disabled{% endif %}>
-                        <i class="fas fa-exclamation-triangle"></i> Reporte de Incidentes
+                        <i class="bi bi-exclamation-triangle-fill"></i> Reporte de Incidentes
                     </button>
                 </div>
             </div>
             {% if security_stats.critical_24h > 0 or security_stats.suspicious_24h > 5 %}
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="fas fa-exclamation-triangle"></i>
+                <i class="bi bi-exclamation-triangle-fill"></i>
                 <strong>¡Atención Requerida!</strong> 
                 Se han detectado {{ security_stats.critical_24h }} eventos críticos y {{ security_stats.suspicious_24h }} actividades sospechosas en las últimas 24 horas.
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -27,7 +27,7 @@
                 <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
                     <div class="card {% if security_stats.critical_24h > 0 %}bg-danger text-white{% else %}bg-success text-white{% endif %}">
                         <div class="card-body text-center">
-                            <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                            <i class="bi bi-exclamation-triangle-fill bi-2x mb-2"></i>
                             <h3>{{ security_stats.critical_24h }}</h3>
                             <small>Eventos Críticos (24h)</small>
                         </div>
@@ -36,7 +36,7 @@
                 <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
                     <div class="card {% if security_stats.failed_logins_24h > 10 %}bg-warning{% elif security_stats.failed_logins_24h > 0 %}bg-info{% else %}bg-success{% endif %} text-white">
                         <div class="card-body text-center">
-                            <i class="fas fa-user-times fa-2x mb-2"></i>
+                            <i class="bi bi-person-fill-x bi-2x mb-2"></i>
                             <h3>{{ security_stats.failed_logins_24h }}</h3>
                             <small>Login Fallidos (24h)</small>
                         </div>
@@ -45,7 +45,7 @@
                 <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
                     <div class="card {% if security_stats.suspicious_24h > 5 %}bg-warning{% elif security_stats.suspicious_24h > 0 %}bg-info{% else %}bg-success{% endif %} text-white">
                         <div class="card-body text-center">
-                            <i class="fas fa-search fa-2x mb-2"></i>
+                            <i class="bi bi-search bi-2x mb-2"></i>
                             <h3>{{ security_stats.suspicious_24h }}</h3>
                             <small>Actividad Sospechosa (24h)</small>
                         </div>
@@ -54,7 +54,7 @@
                 <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
                     <div class="card {% if security_stats.unauthorized_24h > 0 %}bg-danger text-white{% else %}bg-success text-white{% endif %}">
                         <div class="card-body text-center">
-                            <i class="fas fa-ban fa-2x mb-2"></i>
+                            <i class="bi bi-slash-circle bi-2x mb-2"></i>
                             <h3>{{ security_stats.unauthorized_24h }}</h3>
                             <small>Accesos No Autorizados (24h)</small>
                         </div>
@@ -63,14 +63,14 @@
                 <div class="col-lg-4 col-md-8 col-sm-12 mb-3">
                     <div class="card {% if security_stats.attention_required > 0 %}bg-warning{% else %}bg-secondary{% endif %} text-white">
                         <div class="card-body text-center">
-                            <i class="fas fa-eye fa-2x mb-2"></i>
+                            <i class="bi bi-eye-fill bi-2x mb-2"></i>
                             <h3>{{ security_stats.attention_required }}</h3>
                             <small>Eventos Pendientes de Revisión</small>
                             {% if security_stats.attention_required > 0 %}
                             <div class="mt-2">
                                 <a href="{{ url_for('main.view_audit_logs', requires_attention='true') }}" 
                                    class="btn btn-light btn-sm">
-                                    <i class="fas fa-arrow-right"></i> Revisar Ahora
+                                    <i class="bi bi-arrow-right"></i> Revisar Ahora
                                 </a>
                             </div>
                             {% endif %}
@@ -82,7 +82,7 @@
                 <div class="col-lg-6 mb-4">
                     <div class="card">
                         <div class="card-header bg-warning text-dark">
-                            <h5><i class="fas fa-network-wired"></i> Top IPs con Actividad Sospechosa (7 días)</h5>
+                            <h5><i class="bi bi-diagram-3-fill"></i> Top IPs con Actividad Sospechosa (7 días)</h5>
                         </div>
                         <div class="card-body">
                             {% if suspicious_ips %}
@@ -110,11 +110,11 @@
                                             <td>
                                                 <div class="btn-group btn-group-sm">
                                                     <button class="btn btn-outline-primary" onclick="viewIPDetails('{{ ip }}')">
-                                                        <i class="fas fa-search"></i>
+                                                        <i class="bi bi-search"></i>
                                                     </button>
                                                     {% if count > 5 %}
                                                     <button class="btn btn-outline-danger" onclick="blockIP('{{ ip }}')">
-                                                        <i class="fas fa-ban"></i> Bloquear
+                                                        <i class="bi bi-slash-circle"></i> Bloquear
                                                     </button>
                                                     {% endif %}
                                                 </div>
@@ -126,7 +126,7 @@
                             </div>
                             {% else %}
                             <div class="text-center py-4">
-                                <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
+                                <i class="bi bi-check-circle-fill text-success bi-3x mb-3"></i>
                                 <p class="text-muted">No se han detectado IPs sospechosas en los últimos 7 días</p>
                             </div>
                             {% endif %}
@@ -136,7 +136,7 @@
                 <div class="col-lg-6 mb-4">
                     <div class="card">
                         <div class="card-header bg-info text-white">
-                            <h5><i class="fas fa-users"></i> Usuarios con más Intentos Fallidos (7 días)</h5>
+                            <h5><i class="bi bi-people-fill"></i> Usuarios con más Intentos Fallidos (7 días)</h5>
                         </div>
                         <div class="card-body">
                             {% if failed_login_users %}
@@ -177,7 +177,7 @@
                             </div>
                             {% else %}
                             <div class="text-center py-4">
-                                <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
+                                <i class="bi bi-check-circle-fill text-success bi-3x mb-3"></i>
                                 <p class="text-muted">No se han detectado patrones anómalos de login en los últimos 7 días</p>
                             </div>
                             {% endif %}
@@ -190,7 +190,7 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-header bg-danger text-white">
-                            <h5><i class="fas fa-exclamation-triangle"></i> Eventos Críticos Recientes (24 horas)</h5>
+                            <h5><i class="bi bi-exclamation-triangle-fill"></i> Eventos Críticos Recientes (24 horas)</h5>
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
@@ -234,7 +234,7 @@
                                             <td>
                                                 <a href="{{ url_for('main.view_audit_log_detail', log_id=log.id) }}" 
                                                    class="btn btn-sm btn-outline-primary">
-                                                    <i class="fas fa-eye"></i> Ver
+                                                    <i class="bi bi-eye-fill"></i> Ver
                                                 </a>
                                             </td>
                                         </tr>
@@ -283,7 +283,7 @@ startAutoRefresh();
 {% endif %}
 {% if security_stats.critical_24h > 0 %}
 if (Notification.permission === "granted") {
-    new Notification("⚠️ Eventos de Seguridad Críticos", {
+    new Notification("Alerta: Eventos de Seguridad Críticos", {
         body: "Se han detectado {{ security_stats.critical_24h }} eventos críticos en las últimas 24 horas.",
         icon: "/static/img/security-alert.png"
     });

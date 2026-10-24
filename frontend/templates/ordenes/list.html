@@ -4,20 +4,20 @@
     <div class="d-flex justify-content-between align-items-center mb-2 first-content-element">
         <h3 class="d-flex align-items-center">
             {% if current_user.role == 'proveedor' %}
-                <i class="fas fa-tasks me-1"></i> Mis Órdenes de Trabajo
+                <i class="bi bi-list-check me-1"></i> Mis Órdenes de Trabajo
             {% else %}
-                <i class="fas fa-list me-1"></i> Órdenes de Trabajo
+                <i class="bi bi-list-ul me-1"></i> Órdenes de Trabajo
             {% endif %}
-        </h1>
+        </h3>
         {% if current_user.role == 'admin' or current_user.role == 'asistente' or current_user.role == 'admin_sede' %}
-        <a href="{{ url_for('main.create_order') }}" class="btn btn-success">
-            <i class="fas fa-plus"></i> Crear Nueva Orden
+        <a href="{{ url_for('main.create_order') }}" class="btn btn-success btn-sm">
+            <i class="bi bi-plus-lg"></i> Crear Nueva Orden
         </a>
         {% endif %}
     </div>
     <div class="card mb-3 shadow-sm">
         <div class="card-body">
-            <h6 class="mb-3"><i class="fas fa-filter me-2"></i>Filtros de Búsqueda</h6>
+            <h6 class="mb-3"><i class="bi bi-funnel-fill me-2"></i>Filtros de Búsqueda</h6>
             <div class="row g-3">
                 <div class="col-md-4">
                     <label class="form-label">Buscar por N° Recibo</label>
@@ -34,37 +34,25 @@
             </div>
             <div class="mt-3">
                 <button onclick="clearFilters()" class="btn btn-outline-secondary btn-sm">
-                    <i class="fas fa-times me-1"></i>Limpiar Filtros
+                    <i class="bi bi-x-lg me-1"></i>Limpiar Filtros
                 </button>
             </div>
         </div>
     </div>
     <div class="card mb-3 shadow-sm">
         <div class="card-body py-3">
-            <span class="fw-bold d-block mb-2"><i class="fas fa-info-circle me-1"></i>Código de Colores:</span>
-            {% if current_user.role == 'admin_sede' %}
-                <div class="d-flex flex-wrap align-items-center gap-3">
-                    <span class="badge text-dark fs-6 px-3 py-2" style="background-color: #e57373;">Pendiente Completar Admin</span>
-                    <span class="badge text-dark fs-6 px-3 py-2" style="background-color: #4fc3f7;">Aceptada por Proveedor</span>
-                    <span class="badge text-dark fs-6 px-3 py-2" style="background-color: #ffca28;">En Proceso</span>
-                    <span class="badge text-dark fs-6 px-3 py-2" style="background-color: #ff7043;">Devuelta del Proveedor</span>
-                    <span class="badge text-dark fs-6 px-3 py-2" style="background-color: #43a047; color: white;">Recibida en Óptica</span>
-                    <span class="badge text-dark fs-6 px-3 py-2" style="background-color: #f8f9fa;">Próximo a Iniciar Trabajo</span>
-                </div>
-            {% elif current_user.role == 'proveedor' %}
-                <div class="d-flex flex-wrap align-items-center gap-3">
-                    <span class="badge text-dark fs-6 px-3 py-2" style="background-color: #f5c2c7;">Nueva Orden (Requiere Atención)</span>
-                    <span class="badge text-dark fs-6 px-3 py-2" style="background-color: #ffca28;">En Proceso</span>
-                    <span class="badge text-dark fs-6 px-3 py-2" style="background-color: #43a047; color: white;">Devuelta a Óptica</span>
-                    <span class="badge text-dark fs-6 px-3 py-2" style="background-color: #f8f9fa;">Iniciar Trabajo</span>
-                </div>
-            {% else %}
-                <div class="d-flex flex-wrap align-items-center gap-3">
-                    <span class="badge text-white fs-6 px-3 py-2" style="background-color: #dc3545;">Pendiente</span>
-                    <span class="badge text-white fs-6 px-3 py-2" style="background-color: #43a047;">Completada</span>
-                    <span class="badge text-dark fs-6 px-3 py-2" style="background-color: #ffc107;">Órdenes Vencidas</span>
-                </div>
-            {% endif %}
+            <span class="fw-bold d-block mb-2"><i class="bi bi-info-circle-fill me-1"></i>Código de Colores por Estado:</span>
+            <div class="d-flex flex-wrap align-items-center gap-3">
+                <span><span class="status-legend-dot status-legend-dot-pendiente_envio"></span>Pendiente de Envío</span>
+                <span><span class="status-legend-dot status-legend-dot-enviada"></span>Enviada al Proveedor</span>
+                <span><span class="status-legend-dot status-legend-dot-aceptada"></span>Aceptada por Proveedor</span>
+                <span><span class="status-legend-dot status-legend-dot-rechazada"></span>Rechazada</span>
+                <span><span class="status-legend-dot status-legend-dot-en_proceso"></span>En Proceso</span>
+                <span><span class="status-legend-dot status-legend-dot-devuelta_proveedor"></span>Lista para Recoger</span>
+                <span><span class="status-legend-dot status-legend-dot-recibida_optica"></span>Recibida en Óptica</span>
+                <span><span class="status-legend-dot status-legend-dot-finalizada"></span>Finalizada</span>
+                <span><span class="status-legend-dot status-legend-dot-cancelada"></span>Cancelada</span>
+            </div>
         </div>
     </div>
     {% if orders %}
@@ -97,7 +85,7 @@
                     </thead>
                 <tbody>
                     {% for order in orders %}
-                    <tr class="clickable-row {% if order.is_overdue %}table-vencida{% elif order.pending_admin_review %}table-danger{% elif order.status == 'recibida_optica' %}table-success{% elif current_user.role == 'proveedor' and order.status == 'enviada' %}table-danger{% elif current_user.role == 'admin_sede' and order.status == 'aceptada' %}table-info{% elif (current_user.role == 'admin_sede' or current_user.role == 'proveedor') and order.status == 'en_proceso' %}table-warning{% elif current_user.role == 'proveedor' and order.status == 'devuelta_proveedor' %}table-success{% elif current_user.role == 'admin_sede' and order.status == 'devuelta_proveedor' %}table-orange{% endif %}" 
+                    <tr class="clickable-row status-row-{{ order.status }} {% if order.is_overdue %}row-overdue{% endif %}"
                         data-order-id="{{ order.id }}" 
                         {% if order.pending_admin_review %}
                         data-pending-review="true"
@@ -106,7 +94,7 @@
                             {{ order.order_number }}
                             {% if order.pending_admin_review %}
                                 <span class="badge bg-danger ms-1" title="Pendiente completar especificaciones">
-                                    <i class="fas fa-exclamation-circle"></i>
+                                    <i class="bi bi-exclamation-circle-fill"></i>
                                 </span>
                             {% endif %}
                         </td>
@@ -124,14 +112,14 @@
                             {% if order.orden_laboratorio %}
                                 {{ order.orden_laboratorio }}
                             {% else %}
-                                <span class="badge text-white" style="background-color: #c82333;">Pendiente</span>
+                                <span class="badge text-white" style="background-color: #e11d48;">Pendiente</span>
                             {% endif %}
                         </td>
                         <td>
                             {% if order.provider %}
                                 {{ order.provider.razon_social or order.provider.name }}
                             {% else %}
-                                <span class="badge text-white" style="background-color: #c82333;">Pendiente</span>
+                                <span class="badge text-white" style="background-color: #e11d48;">Pendiente</span>
                             {% endif %}
                         </td>
                         <td>
@@ -155,75 +143,47 @@
                             {% if order.lens_class %}
                                 {{ order.lens_class }}
                             {% else %}
-                                <span class="badge text-white" style="background-color: #c82333;">Pendiente</span>
+                                <span class="badge text-white" style="background-color: #e11d48;">Pendiente</span>
                             {% endif %}
                         </td>
                         <td>
                             {% if order.lens_type %}
                                 {{ order.lens_type }}
                             {% else %}
-                                <span class="badge text-white" style="background-color: #c82333;">Pendiente</span>
+                                <span class="badge text-white" style="background-color: #e11d48;">Pendiente</span>
                             {% endif %}
                         </td>
                         <td>
+                            {% if order.status == 'pendiente_envio' %}
+                                <span class="badge status-badge status-badge-pendiente_envio"><i class="bi bi-hourglass-split me-1"></i>Pendiente de Envío</span>
+                            {% elif order.status == 'enviada' %}
+                                <span class="badge status-badge status-badge-enviada"><i class="bi bi-send-fill me-1"></i>{{ 'Recibida' if current_user.role == 'proveedor' else 'Enviada' }}</span>
+                            {% elif order.status == 'aceptada' %}
+                                <span class="badge status-badge status-badge-aceptada"><i class="bi bi-check-circle-fill me-1"></i>Aceptada</span>
+                            {% elif order.status == 'rechazada' %}
+                                <span class="badge status-badge status-badge-rechazada"><i class="bi bi-x-circle-fill me-1"></i>Rechazada</span>
+                                {% if order.rejection_count > 1 %}
+                                    <br><small class="text-danger">{{ order.rejection_count }} rechazos</small>
+                                {% endif %}
+                            {% elif order.status == 'en_proceso' %}
+                                <span class="badge status-badge status-badge-en_proceso"><i class="bi bi-gear-fill me-1"></i>{{ 'Trabajando' if current_user.role == 'proveedor' else 'En Proceso' }}</span>
+                            {% elif order.status == 'devuelta_proveedor' %}
+                                <span class="badge status-badge status-badge-devuelta_proveedor"><i class="bi bi-bag-check-fill me-1"></i>{{ 'Terminada' if current_user.role == 'proveedor' else 'Lista para Recoger' }}</span>
+                            {% elif order.status == 'recibida_optica' %}
+                                <span class="badge status-badge status-badge-recibida_optica"><i class="bi bi-building me-1"></i>{{ 'Recogida' if current_user.role == 'proveedor' else 'Recibida' }}</span>
+                            {% elif order.status == 'finalizada' %}
+                                <span class="badge status-badge status-badge-finalizada"><i class="bi bi-trophy-fill me-1"></i>{{ 'Completada' if current_user.role == 'proveedor' else 'Finalizada' }}</span>
+                            {% elif order.status == 'cancelada' %}
+                                <span class="badge status-badge status-badge-cancelada"><i class="bi bi-slash-circle me-1"></i>Cancelada</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ order.status.replace('_', ' ').title() }}</span>
+                            {% endif %}
                             {% if order.is_overdue %}
-                                <span class="badge text-dark fs-6" style="background-color: #ffc107;">
-                                    <i class="fas fa-exclamation-triangle me-1"></i>⚠️ Vencida
+                                <br><span class="badge text-white fs-6 mt-1" style="background-color: #d97706;">
+                                    <i class="bi bi-exclamation-triangle-fill me-1"></i>Vencida
                                 </span>
                                 {% if order.days_overdue %}
                                     <br><small class="text-danger fw-bold">{{ order.days_overdue }} día(s) de atraso</small>
-                                {% endif %}
-                            {% elif current_user.role == 'proveedor' %}
-                                {% if order.status == 'enviada' %}
-                                    <span class="badge bg-warning text-dark">📥 Recibida</span>
-                                {% elif order.status == 'aceptada' %}
-                                    <span class="badge bg-success">✅ Aceptada</span>
-                                {% elif order.status == 'rechazada' %}
-                                    <span class="badge bg-danger">❌ Rechazada</span>
-                                {% elif order.status == 'en_proceso' %}
-                                    <span class="badge bg-primary">🔧 Trabajando</span>
-                                {% elif order.status == 'devuelta_proveedor' %}
-                                    <span class="badge bg-success">✅ Terminada</span>
-                                {% elif order.status == 'recibida_optica' %}
-                                    <span class="badge bg-info text-dark">🏢 Recogida</span>
-                                {% elif order.status == 'finalizada' %}
-                                    <span class="badge bg-success">🎉 Completada</span>
-                                {% elif order.status == 'cancelada' %}
-                                    <span class="badge bg-danger">🚫 Cancelada</span>
-                                {% else %}
-                                    <span class="badge bg-secondary">{{ order.status.replace('_', ' ').title() }}</span>
-                                {% endif %}
-                            {% else %}
-                                {% if order.is_overdue %}
-                                    <span class="badge text-dark fs-6" style="background-color: #ffc107;">
-                                        <i class="fas fa-exclamation-triangle me-1"></i>⚠️ Vencida
-                                    </span>
-                                    {% if order.days_overdue %}
-                                        <br><small class="text-danger fw-bold">{{ order.days_overdue }} día(s) de atraso</small>
-                                    {% endif %}
-                                {% elif order.status == 'pendiente_envio' %}
-                                    <span class="badge bg-secondary">⏳ Preparando</span>
-                                {% elif order.status == 'enviada' %}
-                                    <span class="badge bg-info text-dark">📧 Enviada</span>
-                                {% elif order.status == 'aceptada' %}
-                                    <span class="badge bg-success">✅ Aceptada</span>
-                                {% elif order.status == 'rechazada' %}
-                                    <span class="badge bg-danger">❌ Rechazada</span>
-                                    {% if order.rejection_count > 1 %}
-                                        <br><small class="text-danger">{{ order.rejection_count }} rechazos</small>
-                                    {% endif %}
-                                {% elif order.status == 'en_proceso' %}
-                                    <span class="badge bg-primary">🔧 En Proceso</span>
-                                {% elif order.status == 'devuelta_proveedor' %}
-                                    <span class="badge bg-warning text-dark">📦 Lista</span>
-                                {% elif order.status == 'recibida_optica' %}
-                                    <span class="badge bg-info text-dark">🏢 Recibida</span>
-                                {% elif order.status == 'finalizada' %}
-                                    <span class="badge bg-success">🎉 Finalizada</span>
-                                {% elif order.status == 'cancelada' %}
-                                    <span class="badge bg-danger">🚫 Cancelada</span>
-                                {% else %}
-                                    <span class="badge bg-primary">{{ order.status.replace('_', ' ').title() }}</span>
                                 {% endif %}
                             {% endif %}
                         </td>
@@ -254,38 +214,38 @@
                         <td>
                             {% if order.status in ['devuelta_proveedor', 'recibida_optica', 'finalizada'] %}
                                 <span class="badge bg-success" title="Entregada a tiempo">
-                                    <i class="fas fa-check me-1"></i>Completada
+                                    <i class="bi bi-check-lg me-1"></i>Completada
                                 </span>
                             {% elif order.accepted_at and order.delivery_deadline %}
                                 {% set delivery_info = order.get_delivery_status_info() %}
                                 {% if delivery_info.status == 'overdue' %}
                                     <span class="badge bg-danger" title="Orden vencida">
-                                        <i class="fas fa-exclamation-triangle me-1"></i>VENCIDA ({{ delivery_info.days_overdue }}d)
+                                        <i class="bi bi-exclamation-triangle-fill me-1"></i>VENCIDA ({{ delivery_info.days_overdue }}d)
                                     </span>
                                 {% elif delivery_info.status == 'due_today' %}
                                     <span class="badge bg-danger" title="Vence hoy">
-                                        <i class="fas fa-clock me-1"></i>Vence Hoy
+                                        <i class="bi bi-clock-fill me-1"></i>Vence Hoy
                                     </span>
                                 {% elif delivery_info.status == 'on_time' and delivery_info.days_left == 1 %}
                                     <span class="badge bg-warning text-dark" title="Vence mañana">
-                                        <i class="fas fa-clock me-1"></i>1 día
+                                        <i class="bi bi-clock-fill me-1"></i>1 día
                                     </span>
                                 {% elif delivery_info.status == 'on_time' and delivery_info.days_left <= 3 %}
                                     <span class="badge bg-warning text-dark" title="Vence en {{ delivery_info.days_left }} días">
-                                        <i class="fas fa-clock me-1"></i>{{ delivery_info.days_left }} días
+                                        <i class="bi bi-clock-fill me-1"></i>{{ delivery_info.days_left }} días
                                     </span>
                                 {% elif delivery_info.status == 'on_time' %}
                                     <span class="badge bg-success" title="{{ delivery_info.days_left }} días restantes">
-                                        <i class="fas fa-clock me-1"></i>{{ delivery_info.days_left }} días
+                                        <i class="bi bi-clock-fill me-1"></i>{{ delivery_info.days_left }} días
                                     </span>
                                 {% else %}
                                     <span class="badge bg-secondary" title="Estado desconocido">
-                                        <i class="fas fa-question me-1"></i>{{ delivery_info.message }}
+                                        <i class="bi bi-question-lg me-1"></i>{{ delivery_info.message }}
                                     </span>
                                 {% endif %}
                             {% elif order.status in ['aceptada', 'en_proceso'] %}
                                 <span class="badge bg-secondary" title="Plazo no establecido">
-                                    <i class="fas fa-hourglass-start me-1"></i>Sin plazo
+                                    <i class="bi bi-hourglass-top me-1"></i>Sin plazo
                                 </span>
                             {% else %}
                                 <span class="text-muted small">-</span>
@@ -293,16 +253,16 @@
                         </td>
                         <td>
                             <div class="d-flex flex-wrap gap-1">
-                                <a href="{{ url_for('main.view_order', order_id=order.id) }}" class="btn btn-sm btn-primary" title="Ver Detalle"><i class="fas fa-eye"></i></a>
+                                <a href="{{ url_for('main.view_order', order_id=order.id) }}" class="btn btn-sm btn-primary" title="Ver Detalle"><i class="bi bi-eye-fill"></i></a>
                                 {% if current_user.role in ['admin', 'asistente'] or (current_user.role == 'admin_sede' and current_user.sede_id == order.sede_id) %}
                                     {% if order.status == 'rechazada' %}
                                         <a href="{{ url_for('main.resubmit_order', order_id=order.id) }}" class="btn btn-sm btn-success" title="Reenviar con Ajustes"><i class="bi bi-arrow-repeat"></i></a>
                                     {% endif %}
-                                    <a href="{{ url_for('main.edit_order', order_id=order.id) }}" class="btn btn-sm btn-info" title="Editar"><i class="fas fa-edit"></i></a>
+                                    <a href="{{ url_for('main.edit_order', order_id=order.id) }}" class="btn btn-sm btn-info" title="Editar"><i class="bi bi-pencil-square"></i></a>
                                 {% endif %}
                                 {% if current_user.role in ['admin', 'asistente'] or (current_user.role == 'proveedor' and current_user.provider and order.provider_id == current_user.provider.id) %}
                                     {% if current_user.role != 'admin_sede' %}
-                                        <a href="{{ url_for('main.update_order_status', order_id=order.id) }}" class="btn btn-sm btn-warning" title="Actualizar Estado"><i class="fas fa-sync-alt"></i></a>
+                                        <a href="{{ url_for('main.update_order_status', order_id=order.id) }}" class="btn btn-sm btn-warning" title="Actualizar Estado"><i class="bi bi-arrow-clockwise"></i></a>
                                     {% endif %}
                                 {% endif %}
                             </div>

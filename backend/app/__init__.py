@@ -208,24 +208,27 @@ def create_app(config_class=Config):
                 session['last_activity'] = datetime.now().isoformat()
                 session.permanent = True
 
-    # Configuro headers de seguridad (temporalmente deshabilitado para debug)
-    # @app.after_request
-    # def security_headers(response):
-    #     # Content Security Policy - Más permisivo para Bootstrap
-    #     response.headers['Content-Security-Policy'] = (
-    #         "default-src 'self'; "
-    #         "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; "
-    #         "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
-    #         "font-src 'self' https://cdnjs.cloudflare.com; "
-    #         "img-src 'self' data:; "
-    #         "connect-src 'self'"
-    #     )
-    #     # Otros headers de seguridad
-    #     response.headers['X-Content-Type-Options'] = 'nosniff'
-    #     response.headers['X-Frame-Options'] = 'SAMEORIGIN'
-    #     response.headers['X-XSS-Protection'] = '1; mode=block'
-    #     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
-    #     return response
+    # Headers de seguridad HTTP
+    @app.after_request
+    def security_headers(response):
+        from flask import request
+        # Content Security Policy - permisivo con Bootstrap/Chart.js/Popper vía CDN
+        response.headers['Content-Security-Policy'] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; "
+            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; "
+            "font-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://fonts.gstatic.com; "
+            "img-src 'self' data: https://res.cloudinary.com; "
+            "connect-src 'self'"
+        )
+        # Otros headers de seguridad
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        response.headers['X-XSS-Protection'] = '1; mode=block'
+        response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        if request.is_secure:
+            response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+        return response
 
     # Manejo de errores CSRF deshabilitado
     # @app.errorhandler(400)
@@ -251,6 +254,27 @@ def create_app(config_class=Config):
         except Exception as e:
             db.session.rollback()
             print(f"Info: Índices ya existentes o no se pudieron crear: {e}")
+
+    # Limpieza automática del registro de auditoría: borra entradas de más de
+    # 140 horas para que la tabla no crezca indefinidamente. Se revisa cada
+    # hora. El chequeo de WERKZEUG_RUN_MAIN evita que el reloader de Flask
+    # (modo debug) arranque el programador dos veces.
+    if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
+        from apscheduler.schedulers.background import BackgroundScheduler
+
+        def cleanup_old_audit_logs():
+            with app.app_context():
+                from datetime import datetime, timedelta
+                from backend.app.models import AuditLog
+                cutoff = datetime.utcnow() - timedelta(hours=140)
+                deleted = AuditLog.query.filter(AuditLog.timestamp < cutoff).delete()
+                db.session.commit()
+                if deleted:
+                    app.logger.info(f'Limpieza automática: {deleted} registro(s) de auditoría de más de 140 horas eliminados.')
+
+        scheduler = BackgroundScheduler(daemon=True)
+        scheduler.add_job(cleanup_old_audit_logs, 'interval', hours=1, id='cleanup_audit_logs', replace_existing=True)
+        scheduler.start()
 
     return app
 

@@ -1,34 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
 <style>
-/* Asegurar que el sidebar y topbar permanezcan fijos durante el scroll */
-.sidebar {
-    position: fixed !important;
-    top: 65px !important;
-    left: 0 !important;
-    bottom: 0 !important;
-    width: 280px !important;
-    z-index: 1040 !important;
-    transform: none !important;
-    transition: none !important;
-}
-
-.topbar {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    z-index: 1060 !important;
-    transform: none !important;
-}
-
-body.sidebar-layout {
-    padding-left: 280px !important;
-    padding-top: 65px !important;
-    position: relative !important;
-    transform: none !important;
-}
-
 .main-content {
     position: relative !important;
     z-index: 1 !important;
@@ -60,53 +32,53 @@ body.sidebar-layout {
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h2 class="fw-bold text-primary mb-2">
-                    <i class="fas fa-chart-bar me-2"></i>Estadísticas por Sede
+                    <i class="bi bi-bar-chart-fill me-2"></i>Estadísticas por Sede
                 </h2>
                 <p class="text-muted mb-0">Panel de control detallado por sede - {{ current_month }}/{{ current_year }}</p>
             </div>
             <div class="d-flex gap-2">
                 <button class="btn btn-outline-primary btn-sm" onclick="exportStatsToExcel()">
-                    <i class="fas fa-file-excel me-1"></i>Exportar Excel
+                    <i class="bi bi-file-earmark-excel-fill me-1"></i>Exportar Excel
                 </button>
                 <button class="btn btn-primary btn-sm" onclick="refreshStats()">
-                    <i class="fas fa-sync me-1"></i>Actualizar
+                    <i class="bi bi-arrow-clockwise me-1"></i>Actualizar
                 </button>
             </div>
         </div>
 
         <!-- KPIs Resumen -->
         <div class="row mb-4">
-            <div class="col-lg-3 col-md-6 mb-3">
-                <div class="card border-0 h-100 bg-primary text-white">
-                    <div class="card-body text-center p-4">
-                        <i class="fas fa-building fs-1 mb-3 opacity-80"></i>
+            <div class="col-6 col-lg-3 mb-3">
+                <div class="card border-0 h-100 kpi-card-sedes">
+                    <div class="card-body text-center text-white p-4">
+                        <i class="bi bi-building fs-1 mb-3 opacity-80"></i>
                         <h3 class="fw-bold mb-1">{{ sedes_stats|length if sedes_stats else 0 }}</h3>
                         <small class="opacity-90">Sedes Activas</small>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-6 mb-3">
-                <div class="card border-0 h-100 bg-success text-white">
-                    <div class="card-body text-center p-4">
-                        <i class="fas fa-dollar-sign fs-1 mb-3 opacity-80"></i>
+            <div class="col-6 col-lg-3 mb-3">
+                <div class="card border-0 h-100 kpi-card-ventas">
+                    <div class="card-body text-center text-white p-4">
+                        <i class="bi bi-currency-dollar fs-1 mb-3 opacity-80"></i>
                         <h3 class="fw-bold mb-1">${{ "{:,.0f}".format(totales['total_ventas']) if totales and totales.get('total_ventas') else '0' }}</h3>
                         <small class="opacity-90">Facturación Total</small>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-6 mb-3">
-                <div class="card border-0 h-100 bg-info text-white">
-                    <div class="card-body text-center p-4">
-                        <i class="fas fa-shopping-cart fs-1 mb-3 opacity-80"></i>
+            <div class="col-6 col-lg-3 mb-3">
+                <div class="card border-0 h-100 kpi-card-ordenes">
+                    <div class="card-body text-center text-white p-4">
+                        <i class="bi bi-cart-fill fs-1 mb-3 opacity-80"></i>
                         <h3 class="fw-bold mb-1">{{ totales['total_ordenes'] if totales and totales.get('total_ordenes') else 0 }}</h3>
                         <small class="opacity-90">Órdenes Totales</small>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-6 mb-3">
-                <div class="card border-0 h-100 bg-warning text-white">
-                    <div class="card-body text-center p-4">
-                        <i class="fas fa-exclamation-triangle fs-1 mb-3 opacity-80"></i>
+            <div class="col-6 col-lg-3 mb-3">
+                <div class="card border-0 h-100 kpi-card-utilidad">
+                    <div class="card-body text-center text-white p-4">
+                        <i class="bi bi-exclamation-triangle-fill fs-1 mb-3 opacity-80"></i>
                         <h3 class="fw-bold mb-1">{{ totales['vencidas'] if totales and totales.get('vencidas') else 0 }}</h3>
                         <small class="opacity-90">Órdenes Vencidas</small>
                     </div>
@@ -119,7 +91,7 @@ body.sidebar-layout {
     <div class="card border-0 shadow-sm">
         <div class="card-header bg-light border-bottom">
             <h5 class="mb-0 fw-bold">
-                <i class="fas fa-table me-2 text-primary"></i>Análisis Detallado por Sede
+                <i class="bi bi-table me-2 text-primary"></i>Análisis Detallado por Sede
             </h5>
         </div>
         <div class="card-body p-0">
@@ -144,7 +116,7 @@ body.sidebar-layout {
                         <label class="form-label small fw-bold">&nbsp;</label>
                         <div class="d-flex gap-2">
                             <button class="btn btn-outline-secondary btn-sm w-100" onclick="clearFilters()">
-                                <i class="fas fa-times me-1"></i>Limpiar
+                                <i class="bi bi-x-lg me-1"></i>Limpiar
                             </button>
                         </div>
                     </div>
@@ -157,34 +129,34 @@ body.sidebar-layout {
                     <thead class="table-light">
                         <tr>
                             <th class="fw-bold">
-                                <i class="fas fa-building me-1 text-primary"></i>Sede
+                                <i class="bi bi-building me-1 text-primary"></i>Sede
                             </th>
                             <th class="text-end fw-bold">
-                                <i class="fas fa-dollar-sign me-1 text-success"></i>Ventas
+                                <i class="bi bi-currency-dollar me-1 text-success"></i>Ventas
                             </th>
                             <th class="text-center fw-bold">
-                                <i class="fas fa-shopping-cart me-1 text-info"></i>Órdenes
+                                <i class="bi bi-cart-fill me-1 text-info"></i>Órdenes
                             </th>
                             <th class="text-center fw-bold">
-                                <i class="fas fa-check-circle me-1 text-success"></i>Completas
+                                <i class="bi bi-check-circle-fill me-1 text-success"></i>Completas
                             </th>
                             <th class="text-center fw-bold">
-                                <i class="fas fa-clock me-1 text-warning"></i>En Proceso
+                                <i class="bi bi-clock-fill me-1 text-warning"></i>En Proceso
                             </th>
                             <th class="text-center fw-bold">
-                                <i class="fas fa-exclamation-triangle me-1 text-danger"></i>Vencidas
+                                <i class="bi bi-exclamation-triangle-fill me-1 text-danger"></i>Vencidas
                             </th>
                             <th class="text-end fw-bold">
-                                <i class="fas fa-chart-line me-1 text-warning"></i>Utilidad
+                                <i class="bi bi-graph-up me-1 text-warning"></i>Utilidad
                             </th>
                             <th class="text-center fw-bold">
-                                <i class="fas fa-percentage me-1 text-primary"></i>Margen %
+                                <i class="bi bi-percent me-1 text-primary"></i>Margen %
                             </th>
                             <th class="text-center fw-bold">
-                                <i class="fas fa-trophy me-1 text-warning"></i>Éxito %
+                                <i class="bi bi-trophy-fill me-1 text-warning"></i>Éxito %
                             </th>
                             <th class="text-end fw-bold">
-                                <i class="fas fa-receipt me-1 text-info"></i>Ticket Prom.
+                                <i class="bi bi-receipt me-1 text-info"></i>Ticket Prom.
                             </th>
                             <th class="text-center fw-bold">Acciones</th>
                         </tr>
@@ -196,7 +168,7 @@ body.sidebar-layout {
                                 <td class="align-middle">
                                     <div class="d-flex align-items-center">
                                         <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
-                                            <i class="fas fa-building text-primary small"></i>
+                                            <i class="bi bi-building text-primary small"></i>
                                         </div>
                                         <div>
                                             <h6 class="mb-0 fw-semibold">{{ sede_stat['sede'].name }}</h6>
@@ -274,10 +246,10 @@ body.sidebar-layout {
                                 <td class="text-center align-middle">
                                     <div class="btn-group" role="group">
                                         <button type="button" class="btn btn-outline-primary btn-sm" onclick="viewSedeOrders('{{ sede_stat['sede'].id }}')" title="Ver Órdenes">
-                                            <i class="fas fa-eye"></i>
+                                            <i class="bi bi-eye-fill"></i>
                                         </button>
                                         <button type="button" class="btn btn-outline-info btn-sm" onclick="viewSedeDetails('{{ sede_stat['sede'].id }}')" title="Ver Detalles">
-                                            <i class="fas fa-info-circle"></i>
+                                            <i class="bi bi-info-circle-fill"></i>
                                         </button>
                                     </div>
                                 </td>
@@ -287,7 +259,7 @@ body.sidebar-layout {
                             <tr>
                                 <td colspan="11" class="text-center py-5">
                                     <div class="text-muted">
-                                        <i class="fas fa-chart-bar fa-3x mb-3 opacity-50"></i>
+                                        <i class="bi bi-bar-chart-fill bi-3x mb-3 opacity-50"></i>
                                         <p class="mb-0">No hay datos de estadísticas disponibles</p>
                                     </div>
                                 </td>
@@ -301,7 +273,7 @@ body.sidebar-layout {
                             <td class="align-middle">
                                 <div class="d-flex align-items-center">
                                     <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
-                                        <i class="fas fa-calculator text-white small"></i>
+                                        <i class="bi bi-calculator text-white small"></i>
                                     </div>
                                     <div>
                                         <h6 class="mb-0 fw-bold text-primary">TOTALES</h6>
@@ -360,13 +332,13 @@ body.sidebar-layout {
                 </div>
                 <div class="d-flex gap-3 align-items-center">
                     <span class="badge bg-primary bg-opacity-75 px-3 py-2 fw-semibold">
-                        <i class="fas fa-eye me-2"></i>Progresivos
+                        <i class="bi bi-eye-fill me-2"></i>Progresivos
                     </span>
                     <span class="badge bg-warning bg-opacity-75 px-3 py-2 fw-semibold">
-                        <i class="fas fa-adjust me-2"></i>Bifocales
+                        <i class="bi bi-circle-half me-2"></i>Bifocales
                     </span>
                     <span class="badge bg-success bg-opacity-75 px-3 py-2 fw-semibold">
-                        <i class="fas fa-circle me-2"></i>Monofocales
+                        <i class="bi bi-circle-fill me-2"></i>Monofocales
                     </span>
                 </div>
             </div>
@@ -380,7 +352,7 @@ body.sidebar-layout {
                             <div class="card-body p-4">
                                 <div class="d-flex align-items-center mb-3">
                                     <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
-                                        <i class="fas fa-building text-primary"></i>
+                                        <i class="bi bi-building text-primary"></i>
                                     </div>
                                     <div>
                                         <h6 class="mb-0 fw-bold">{{ sede_stat['sede'].name }}</h6>
@@ -402,7 +374,7 @@ body.sidebar-layout {
                                 <div class="d-flex align-items-center justify-content-between mb-3">
                                     <div class="d-flex align-items-center">
                                         <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
-                                            <i class="fas fa-eye text-primary small"></i>
+                                            <i class="bi bi-eye-fill text-primary small"></i>
                                         </div>
                                         <div>
                                             <div class="fw-semibold">Progresivos</div>
@@ -420,7 +392,7 @@ body.sidebar-layout {
                                 <div class="d-flex align-items-center justify-content-between mb-3">
                                     <div class="d-flex align-items-center">
                                         <div class="bg-warning bg-opacity-10 rounded-circle p-2 me-3">
-                                            <i class="fas fa-adjust text-warning small"></i>
+                                            <i class="bi bi-circle-half text-warning small"></i>
                                         </div>
                                         <div>
                                             <div class="fw-semibold">Bifocales</div>
@@ -438,7 +410,7 @@ body.sidebar-layout {
                                 <div class="d-flex align-items-center justify-content-between mb-3">
                                     <div class="d-flex align-items-center">
                                         <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3">
-                                            <i class="fas fa-circle text-success small"></i>
+                                            <i class="bi bi-circle-fill text-success small"></i>
                                         </div>
                                         <div>
                                             <div class="fw-semibold">Monofocales</div>
@@ -466,28 +438,28 @@ body.sidebar-layout {
                                         {% endif %}
                                     </div>
                                     <div class="d-flex justify-content-between mt-2">
-                                        <small class="text-primary">● Progresivos</small>
-                                        <small class="text-warning">● Bifocales</small>
-                                        <small class="text-success">● Monofocales</small>
+                                        <small class="text-primary"><i class="bi bi-circle-fill" style="font-size: 0.5rem;"></i> Progresivos</small>
+                                        <small class="text-warning"><i class="bi bi-circle-fill" style="font-size: 0.5rem;"></i> Bifocales</small>
+                                        <small class="text-success"><i class="bi bi-circle-fill" style="font-size: 0.5rem;"></i> Monofocales</small>
                                     </div>
                                 </div>
                                 
                                 <!-- Producto Estrella -->
                                 {% if progresivos >= bifocales and progresivos >= monofocales %}
                                     {% set estrella = "Progresivos" %}
-                                    {% set estrella_icon = "fa-eye" %}
+                                    {% set estrella_icon = "bi-eye-fill" %}
                                     {% set estrella_color = "primary" %}
                                 {% elif bifocales >= monofocales %}
                                     {% set estrella = "Bifocales" %}
-                                    {% set estrella_icon = "fa-adjust" %}
+                                    {% set estrella_icon = "bi-circle-half" %}
                                     {% set estrella_color = "warning" %}
                                 {% else %}
                                     {% set estrella = "Monofocales" %}
-                                    {% set estrella_icon = "fa-circle" %}
+                                    {% set estrella_icon = "bi-circle-fill" %}
                                     {% set estrella_color = "success" %}
                                 {% endif %}
                                 <div class="mt-3 p-2 bg-{{ estrella_color }} bg-opacity-10 rounded-3 text-center">
-                                    <i class="fas {{ estrella_icon }} text-{{ estrella_color }} me-2"></i>
+                                    <i class="bi {{ estrella_icon }} text-{{ estrella_color }} me-2"></i>
                                     <small class="fw-semibold text-{{ estrella_color }}">Producto Estrella: {{ estrella }}</small>
                                 </div>
                             </div>
@@ -497,7 +469,7 @@ body.sidebar-layout {
                 {% else %}
                     <div class="col-12">
                         <div class="text-center py-5">
-                            <i class="fas fa-glasses fa-3x text-muted mb-3"></i>
+                            <i class="bi bi-eyeglasses bi-3x text-muted mb-3"></i>
                             <p class="text-muted">No hay datos de productos disponibles</p>
                         </div>
                     </div>
@@ -585,7 +557,7 @@ function showNotification(message, type) {
 {% else %}
 <div class="container">
     <div class="alert alert-warning">
-        <i class="fas fa-exclamation-triangle me-2"></i>
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
         No tienes permisos para ver esta página.
     </div>
 </div>

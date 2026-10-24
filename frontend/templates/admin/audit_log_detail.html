@@ -5,7 +5,7 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h2><i class="fas fa-file-alt"></i> Detalle del Log #{{ log.id }}</h2>
+                    <h2><i class="bi bi-file-earmark-text-fill"></i> Detalle del Log #{{ log.id }}</h2>
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Inicio</a></li>
@@ -16,28 +16,28 @@
                 </div>
                 <div class="btn-group">
                     <a href="{{ url_for('main.view_audit_logs') }}" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-left"></i> Volver a la Lista
+                        <i class="bi bi-arrow-left"></i> Volver a la Lista
                     </a>
                     {% if log.requires_attention and not log.reviewed %}
                     <button class="btn btn-success" onclick="markAsReviewed()">
-                        <i class="fas fa-check"></i> Marcar como Revisado
+                        <i class="bi bi-check-lg"></i> Marcar como Revisado
                     </button>
                     {% endif %}
                 </div>
             </div>
             {% if log.severity == 'CRITICAL' %}
             <div class="alert alert-danger" role="alert">
-                <i class="fas fa-exclamation-triangle"></i>
+                <i class="bi bi-exclamation-triangle-fill"></i>
                 <strong>Evento Crítico:</strong> Este log ha sido marcado como crítico y requiere atención inmediata.
             </div>
             {% elif log.requires_attention and not log.reviewed %}
             <div class="alert alert-warning" role="alert">
-                <i class="fas fa-eye"></i>
+                <i class="bi bi-eye-fill"></i>
                 <strong>Requiere Atención:</strong> Este log está pendiente de revisión.
             </div>
             {% elif log.reviewed %}
             <div class="alert alert-success" role="alert">
-                <i class="fas fa-check-circle"></i>
+                <i class="bi bi-check-circle-fill"></i>
                 <strong>Revisado:</strong> Este log fue revisado el {{ log.reviewed_at.strftime('%d/%m/%Y a las %H:%M') }} por un administrador.
             </div>
             {% endif %}
@@ -45,7 +45,7 @@
                 <div class="col-lg-8 mb-4">
                     <div class="card">
                         <div class="card-header bg-primary text-white">
-                            <h5><i class="fas fa-info-circle"></i> Información del Evento</h5>
+                            <h5><i class="bi bi-info-circle-fill"></i> Información del Evento</h5>
                         </div>
                         <div class="card-body">
                             <div class="row">
@@ -55,10 +55,10 @@
                                         <dd class="col-sm-8"><span class="badge bg-secondary">#{{ log.id }}</span></dd>
                                         <dt class="col-sm-4">Fecha y Hora:</dt>
                                         <dd class="col-sm-8">
-                                            <i class="fas fa-calendar-alt text-muted me-1"></i>
+                                            <i class="bi bi-calendar3 text-muted me-1"></i>
                                             {{ log.timestamp.strftime('%d/%m/%Y') }}
                                             <br>
-                                            <i class="fas fa-clock text-muted me-1"></i>
+                                            <i class="bi bi-clock-fill text-muted me-1"></i>
                                             {{ log.timestamp.strftime('%H:%M:%S') }}
                                         </dd>
                                         <dt class="col-sm-4">Tipo de Acción:</dt>
@@ -133,7 +133,7 @@
                                 </div>
                             </div>
                             <div class="mt-3">
-                                <h6><i class="fas fa-file-alt"></i> Descripción del Evento:</h6>
+                                <h6><i class="bi bi-file-earmark-text-fill"></i> Descripción del Evento:</h6>
                                 <div class="bg-light p-3 rounded">
                                     <p class="mb-0">{{ log.description }}</p>
                                 </div>
@@ -144,11 +144,11 @@
                 <div class="col-lg-4">
                     <div class="card mb-3">
                         <div class="card-header {% if log.reviewed %}bg-success{% elif log.requires_attention %}bg-warning{% else %}bg-secondary{% endif %} text-white">
-                            <h6><i class="fas fa-clipboard-check"></i> Estado de Revisión</h6>
+                            <h6><i class="bi bi-clipboard-check"></i> Estado de Revisión</h6>
                         </div>
                         <div class="card-body">
                             {% if log.reviewed %}
-                            <p><i class="fas fa-check-circle text-success"></i> <strong>Revisado</strong></p>
+                            <p><i class="bi bi-check-circle-fill text-success"></i> <strong>Revisado</strong></p>
                             <p><small class="text-muted">
                                 Fecha: {{ log.reviewed_at.strftime('%d/%m/%Y %H:%M') }}<br>
                                 {% if log.reviewed_by_user_id %}
@@ -156,10 +156,10 @@
                                 {% endif %}
                             </small></p>
                             {% elif log.requires_attention %}
-                            <p><i class="fas fa-exclamation-circle text-warning"></i> <strong>Pendiente de Revisión</strong></p>
+                            <p><i class="bi bi-exclamation-circle-fill text-warning"></i> <strong>Pendiente de Revisión</strong></p>
                             <p><small class="text-muted">Este evento requiere atención y debe ser revisado por un administrador.</small></p>
                             {% else %}
-                            <p><i class="fas fa-info-circle text-muted"></i> <strong>Informativo</strong></p>
+                            <p><i class="bi bi-info-circle-fill text-muted"></i> <strong>Informativo</strong></p>
                             <p><small class="text-muted">Este evento es informativo y no requiere revisión.</small></p>
                             {% endif %}
                         </div>
@@ -167,7 +167,7 @@
                     {% if log.user_agent %}
                     <div class="card mb-3">
                         <div class="card-header bg-info text-white">
-                            <h6><i class="fas fa-browser"></i> User Agent</h6>
+                            <h6><i class="bi bi-window"></i> User Agent</h6>
                         </div>
                         <div class="card-body">
                             <code class="small d-block word-break-all">{{ log.user_agent }}</code>
@@ -176,23 +176,23 @@
                     {% endif %}
                     <div class="card">
                         <div class="card-header bg-dark text-white">
-                            <h6><i class="fas fa-tools"></i> Acciones Rápidas</h6>
+                            <h6><i class="bi bi-tools"></i> Acciones Rápidas</h6>
                         </div>
                         <div class="card-body">
                             <div class="d-grid gap-2">
                                 {% if log.ip_address %}
                                 <button class="btn btn-outline-primary btn-sm" onclick="viewIPLogs('{{ log.ip_address }}')">
-                                    <i class="fas fa-search"></i> Ver logs de esta IP
+                                    <i class="bi bi-search"></i> Ver logs de esta IP
                                 </button>
                                 {% endif %}
                                 {% if log.username %}
                                 <button class="btn btn-outline-info btn-sm" onclick="viewUserLogs('{{ log.username }}')">
-                                    <i class="fas fa-user"></i> Ver logs de este usuario
+                                    <i class="bi bi-person-fill"></i> Ver logs de este usuario
                                 </button>
                                 {% endif %}
                                 {% if log.action_type %}
                                 <button class="btn btn-outline-secondary btn-sm" onclick="viewActionLogs('{{ log.action_type }}')">
-                                    <i class="fas fa-list"></i> Ver logs de esta acción
+                                    <i class="bi bi-list-ul"></i> Ver logs de esta acción
                                 </button>
                                 {% endif %}
                             </div>
@@ -205,7 +205,7 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-header bg-secondary text-white">
-                            <h5><i class="fas fa-database"></i> Datos Adicionales (Metadata)</h5>
+                            <h5><i class="bi bi-database-fill"></i> Datos Adicionales (Metadata)</h5>
                         </div>
                         <div class="card-body">
                             <pre class="bg-light p-3 rounded" style="max-height: 400px; overflow-y: auto;"><code>{{ log.extra_data }}</code></pre>

@@ -6,7 +6,7 @@
             <div class="card mb-4 border-success">
                 <div class="card-header bg-success text-white">
                     <h4 class="mb-0">
-                        <i class="fas fa-handshake me-2"></i>
+                        <i class="bi bi-hand-thumbs-up-fill me-2"></i>
                         Aceptar Orden N° {{ order.order_number }}
                     </h4>
                     <small>{{ order.provider.name }} - Establecer precio y condiciones</small>
@@ -48,7 +48,7 @@
             <div class="card border-primary">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">
-                        <i class="fas fa-dollar-sign me-2"></i>
+                        <i class="bi bi-currency-dollar me-2"></i>
                         Establecer precio y condiciones
                     </h5>
                 </div>
@@ -68,13 +68,13 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold text-warning">
-                                    <i class="fas fa-clock me-1"></i>
+                                    <i class="bi bi-clock-fill me-1"></i>
                                     Plazo de Entrega
                                 </label>
                                 <div class="alert alert-warning mb-2">
                                     <div class="d-flex align-items-center">
                                         <div class="bg-warning bg-gradient rounded-circle p-2 me-3">
-                                            <i class="fas fa-calendar-check text-white"></i>
+                                            <i class="bi bi-calendar-check text-white"></i>
                                         </div>
                                         <div>
                                             <h6 class="mb-1 fw-bold">Plazo Máximo: 7 Días Calendario</h6>
@@ -85,7 +85,7 @@
                                     </div>
                                 </div>
                                 <div class="form-text">
-                                    <i class="fas fa-info-circle me-1"></i>
+                                    <i class="bi bi-info-circle-fill me-1"></i>
                                     <strong>Importante:</strong> Al aceptar esta orden, tendrá exactamente 7 días calendario para completar el trabajo. 
                                     El sistema enviará alertas automáticas si se supera este plazo.
                                 </div>
@@ -103,15 +103,15 @@
                         </div>
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                             <a href="{{ url_for('main.view_order', order_id=order.id) }}" class="btn btn-secondary me-md-2">
-                                <i class="fas fa-arrow-left me-1"></i>Volver a la orden
+                                <i class="bi bi-arrow-left me-1"></i>Volver a la orden
                             </a>
                             <a href="{{ url_for('main.update_order_status', order_id=order.id) }}" class="btn btn-danger me-md-2">
-                                <i class="fas fa-times me-1"></i>Rechazar orden
+                                <i class="bi bi-x-lg me-1"></i>Rechazar orden
                             </a>
                             {{ form.submit(class="btn btn-success btn-lg") }}
                         </div>
                         <div class="alert alert-success mt-3">
-                            <h6><i class="fas fa-check-circle me-2"></i>Después de aceptar la orden podrá:</h6>
+                            <h6><i class="bi bi-check-circle-fill me-2"></i>Después de aceptar la orden podrá:</h6>
                             <ul class="mb-0">
                                 <li><strong>Iniciar el trabajo:</strong> Cambiar estado a "En Proceso"</li>
                                 <li><strong>Actualizar progreso:</strong> Mantener informada a la sede</li>
@@ -123,7 +123,7 @@
                 </div>
             </div>
             <div class="alert alert-info mt-4">
-                <h6><i class="fas fa-info-circle me-2"></i>¿Cómo funciona el nuevo sistema de entregas?</h6>
+                <h6><i class="bi bi-info-circle-fill me-2"></i>¿Cómo funciona el nuevo sistema de entregas?</h6>
                 <ul class="mb-0">
                     <li><strong>Usted establece:</strong> Solo el precio que cobrará por el trabajo</li>
                     <li><strong>Plazo automático:</strong> Se asignan automáticamente 7 días calendario para la entrega</li>
@@ -134,7 +134,7 @@
                 </ul>
             </div>
             <div class="alert alert-warning mt-3">
-                <h6><i class="fas fa-exclamation-triangle me-2"></i>Compromiso de Entrega</h6>
+                <h6><i class="bi bi-exclamation-triangle-fill me-2"></i>Compromiso de Entrega</h6>
                 <p class="mb-0">
                     <strong>Al aceptar esta orden, se compromete a entregarla en un máximo de 7 días calendario.</strong>
                     El incumplimiento de este plazo generará alertas automáticas que serán enviadas a la sede y administración central.
