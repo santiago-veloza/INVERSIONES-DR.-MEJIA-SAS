@@ -71,3 +71,4 @@ frontend/static/uploads/*
 
 __pycache__/
 *.pyc
+.vercel
