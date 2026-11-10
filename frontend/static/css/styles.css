@@ -4687,14 +4687,21 @@ i.bi, .bi {
 .text-primary,
 .btn-primary,
 .btn-primary *,
-.bg-primary,
-.bg-primary *,
+.bg-primary:not([class*="bg-opacity"]),
+.bg-primary:not([class*="bg-opacity"]) *,
 .text-info,
 .btn-info,
 .btn-info *,
-.bg-info,
-.bg-info * {
+.bg-info:not([class*="bg-opacity"]),
+.bg-info:not([class*="bg-opacity"]) * {
     color: #ffffff !important;
+    font-weight: 600 !important;
+}
+
+/* Variantes suaves (tinte claro): texto oscuro para contraste WCAG AA (>= 4.5:1) */
+.bg-primary[class*="bg-opacity"],
+.bg-info[class*="bg-opacity"] {
+    color: #212529 !important;
     font-weight: 600 !important;
 }
 

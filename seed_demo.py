@@ -1,9 +1,4 @@
-"""Carga datos de ejemplo: sedes, proveedores y 20 órdenes que recorren cada estado del flujo.
 
-Uso:  python seed_demo.py            (agrega los datos si no existen)
-      python seed_demo.py --reset    (borra primero las órdenes 100001-100020 y las vuelve a crear)
-Las órdenes de ejemplo usan consecutivos numéricos 100001-100020 en order_number.
-"""
 import sys
 from datetime import datetime, timedelta
 

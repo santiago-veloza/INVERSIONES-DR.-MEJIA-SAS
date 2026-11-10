@@ -1791,8 +1791,8 @@ body {
 /* Elementos con texto que debe mantenerse blanco cuando tiene fondo azul */
 .btn-primary, 
 .btn-info,
-.bg-primary,
-.bg-info,
+.bg-primary:not([class*="bg-opacity"]),
+.bg-info:not([class*="bg-opacity"]),
 .badge-primary,
 .badge-info {
     color: #ffffff !important;
