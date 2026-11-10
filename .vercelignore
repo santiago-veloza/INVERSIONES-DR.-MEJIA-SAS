@@ -1,0 +1,11 @@
+venv/
+.venv/
+logs/
+__pycache__/
+*.pyc
+.env*
+seed_demo.py
+setup_db.py
+create_admin.py
+frontend/static/uploads/
+.git/

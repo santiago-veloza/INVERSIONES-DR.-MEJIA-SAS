@@ -259,7 +259,7 @@ def create_app(config_class=Config):
     # 140 horas para que la tabla no crezca indefinidamente. Se revisa cada
     # hora. El chequeo de WERKZEUG_RUN_MAIN evita que el reloader de Flask
     # (modo debug) arranque el programador dos veces.
-    if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
+    if os.environ.get('WERKZEUG_RUN_MAIN') != 'true' and not os.environ.get('VERCEL'):  # sin procesos en segundo plano en serverless
         from apscheduler.schedulers.background import BackgroundScheduler
 
         def cleanup_old_audit_logs():

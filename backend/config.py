@@ -5,6 +5,9 @@ from dotenv import load_dotenv
 
 load_dotenv()  # Carga las variables del archivo .env
 
+IS_VERCEL = bool(os.environ.get('VERCEL'))
+
+
 class Config:
     # Clave secreta desde variable de entorno o generada
     SECRET_KEY = os.environ.get('SECRET_KEY') or secrets.token_hex(32)
@@ -15,16 +18,22 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # Configuración optimizada del pool de conexiones
-    SQLALCHEMY_ENGINE_OPTIONS = {
-        'pool_pre_ping': True,          # Verifica conexiones antes de usarlas
-        'pool_recycle': 300,            # Recicla conexiones cada 5 minutos
-        'pool_size': 10,                # Máximo de conexiones en el pool
-        'max_overflow': 20,             # Conexiones adicionales permitidas
-        'pool_timeout': 30,             # Timeout para obtener conexión del pool
-    }
+    if IS_VERCEL:
+        # Serverless: cada invocación abre/cierra su conexión; el pooler de Supabase hace el pooling real
+        from sqlalchemy.pool import NullPool
+        SQLALCHEMY_ENGINE_OPTIONS = {'poolclass': NullPool}
+    else:
+        SQLALCHEMY_ENGINE_OPTIONS = {
+            'pool_pre_ping': True,          # Verifica conexiones antes de usarlas
+            'pool_recycle': 300,            # Recicla conexiones cada 5 minutos
+            'pool_size': 10,                # Máximo de conexiones en el pool
+            'max_overflow': 20,             # Conexiones adicionales permitidas
+            'pool_timeout': 30,             # Timeout para obtener conexión del pool
+        }
     
     # Configuración de archivos
-    UPLOAD_FOLDER = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', 'frontend', 'static', 'uploads')
+    # En Vercel el disco es de solo lectura salvo /tmp (efímero)
+    UPLOAD_FOLDER = '/tmp/uploads' if IS_VERCEL else os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', 'frontend', 'static', 'uploads')
     MAX_CONTENT_LENGTH = int(os.environ.get('MAX_CONTENT_LENGTH', 16 * 1024 * 1024))  # 16 MB default
     
     SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'True').lower() == 'true'
@@ -60,7 +69,10 @@ class Config:
         import logging
         from logging.handlers import RotatingFileHandler
         
-        if not app.debug and not app.testing:
+        if IS_VERCEL:
+            # Sin archivos de log en serverless: Vercel captura stdout/stderr
+            app.logger.setLevel(getattr(logging, Config.LOG_LEVEL))
+        elif not app.debug and not app.testing:
             # Crear directorio de logs si no existe
             log_dir = os.path.dirname(Config.LOG_FILE)
             if log_dir and not os.path.exists(log_dir):
